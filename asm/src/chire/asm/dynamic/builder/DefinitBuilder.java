@@ -8,7 +8,7 @@ public class DefinitBuilder<T> extends Builder<T> {
     }
 
     public T toVar(String name){
-        classAsm.toVar(name);
+        classAsm.varInsn(name);
 
         return this.create();
     }

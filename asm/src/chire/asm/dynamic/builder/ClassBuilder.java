@@ -14,7 +14,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public ClassBuilder defineVar(int access, String name, Class<?> returnType){
-        classAsm.defineVar(access, name, returnType);
+        classAsm.defineClassVar(access, name, returnType);
 
         return new ClassBuilder(classAsm);
     }
