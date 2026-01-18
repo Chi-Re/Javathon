@@ -1,4 +1,4 @@
-package chire.asm.dynamic;
+package chire.asm.dynamic.builder;
 
 import chire.asm.Args;
 import chire.asm.ClassAsm;
@@ -7,11 +7,9 @@ import chire.asm.dynamic.definition.ConstructDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
 import org.objectweb.asm.Opcodes;
 
-public class ClassBuilder {
-    private final ClassAsm classAsm;
-
+public class ClassBuilder extends Builder {
     public ClassBuilder(ClassAsm classAsm) {
-        this.classAsm = classAsm;
+        super(classAsm);
     }
 
     public ConstructDefinition defineConstruct(int access, Args args){

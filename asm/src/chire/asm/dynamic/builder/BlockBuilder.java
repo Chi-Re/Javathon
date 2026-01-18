@@ -1,16 +1,14 @@
-package chire.asm.dynamic;
+package chire.asm.dynamic.builder;
 
 import chire.asm.ClassAsm;
 
 import java.lang.reflect.InvocationTargetException;
 
-public class BlockBuilder<T> {
-    protected final ClassAsm classAsm;
-
+public class BlockBuilder<T> extends Builder {
     private final Class<T> type;
 
     public BlockBuilder(ClassAsm classAsm, Class<T> type) {
-        this.classAsm = classAsm;
+        super(classAsm);
         this.type = type;
     }
 
