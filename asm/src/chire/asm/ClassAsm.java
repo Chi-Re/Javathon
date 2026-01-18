@@ -26,7 +26,7 @@ public class ClassAsm {
 
     public void defineClass(String className, Class<?> superClass) {
         this.className = className.replace('.', '/');
-        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, this.className, null, Format.formatPack(superClass), null);
+        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, this.className, null, Format.formatPack(superClass, false), null);
     }
 
     public void defineFunction(int access, String name, Args args, Class<?> returnType) {
