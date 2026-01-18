@@ -1,18 +1,11 @@
 package chire.asm;
 
 public class Test {
-    public Integer a;
-    public Integer b;
+    public Test a;
+    public int b;
 
     public Test() {
-        String var1 = "ssss";
-        String var2 = "wwww";
-    }
-
-    {
-        String var3 = "asd";
-    }
-
-    public void tete() {
+        a = new  Test();
+        b = 33333;
     }
 }

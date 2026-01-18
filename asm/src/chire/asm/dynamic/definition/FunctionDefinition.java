@@ -14,4 +14,8 @@ public class FunctionDefinition extends BlockBuilder<FunctionDefinition> {
 
         return new ClassBuilder(classAsm);
     }
+
+    public ClassBuilder _return() {
+        return _return(false);
+    }
 }
