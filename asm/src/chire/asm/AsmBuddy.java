@@ -10,20 +10,21 @@ public class AsmBuddy {
 
     public static void main(String[] args) {
         try (FileOutputStream fos = new FileOutputStream("TestCl.class")) {
-            fos.write(new AsmBuddy()
-                            .defineClass("TestCl", Object.class)
+            fos.write(new AsmBuddy().defineClass("TestCl", Object.class)
+                            .defineVar("a", Integer.class)
+                            .defineVar("b", Integer.class)
                             .defineConstruct()
-                            .definitObj("ssss")
-                            .toVar("a")
-                            .definitObj("wwww")
-                            .toVar("b")
-                            ._back()
+                                .definitObj("ssss")
+                                    .toVar("a")
+                                .definitObj("wwww")
+                                    .toVar("b")
+                                ._back()
                             .defineClinit()
-                            .definitObj("asd")
-                            .toVar("f")
-                            ._back()
+                                .definitObj("asd")
+                                    .toVar("f")
+                                ._back()
                             .defineFunction("tete")
-                            ._return(false)
+                                ._return(false)
                             .make()
             );
         } catch (IOException e) {

@@ -2,6 +2,7 @@ package chire.asm;
 
 import chire.asm.util.Format;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -46,6 +47,11 @@ public class ClassAsm {
             varsKey.put(name, varsKey.size());
             mv.visitVarInsn(ASTORE, varsKey.size());
         }
+    }
+
+    public void defineVar(int access, String name, Class<?> returnType) {
+        FieldVisitor fv = cw.visitField(access, name, Format.formatPack(returnType), null, null);
+        fv.visitEnd();
     }
 
     public void ldcInsn(Object obj){
