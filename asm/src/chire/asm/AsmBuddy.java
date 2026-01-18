@@ -1,7 +1,6 @@
 package chire.asm;
 
-import chire.asm.dynamic.ClassBuilder;
-import org.objectweb.asm.Opcodes;
+import chire.asm.dynamic.builder.ClassBuilder;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

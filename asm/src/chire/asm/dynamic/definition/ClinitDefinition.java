@@ -1,8 +1,8 @@
 package chire.asm.dynamic.definition;
 
 import chire.asm.ClassAsm;
-import chire.asm.dynamic.BlockBuilder;
-import chire.asm.dynamic.ClassBuilder;
+import chire.asm.dynamic.builder.BlockBuilder;
+import chire.asm.dynamic.builder.ClassBuilder;
 
 public class ClinitDefinition extends BlockBuilder<ClinitDefinition> {
 
