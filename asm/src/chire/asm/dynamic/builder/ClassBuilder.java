@@ -1,15 +1,16 @@
 package chire.asm.dynamic.builder;
 
 import chire.asm.Args;
+import chire.asm.AsmBuddy;
 import chire.asm.ClassAsm;
 import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.ConstructDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
 import org.objectweb.asm.Opcodes;
 
-public class ClassBuilder extends Builder {
+public class ClassBuilder extends Builder<AsmBuddy> {
     public ClassBuilder(ClassAsm classAsm) {
-        super(classAsm);
+        super(classAsm, AsmBuddy.class);
     }
 
     public ConstructDefinition defineConstruct(int access, Args args){
