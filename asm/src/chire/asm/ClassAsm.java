@@ -27,14 +27,15 @@ public class ClassAsm {
 
     private boolean initialize = false;
 
-    public ClassAsm() {
-        cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-    }
-
-    public void defineClass(String className, Class<?> superClass) {
+    public ClassAsm(String className, Class<?> superClass) {
         this.className = className.replace('.', '/');
         this.superClass = superClass;
+        cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, this.className, null, Format.formatPack(superClass, false), null);
+    }
+
+    public void defineClass(){
+        cw.newClass("");
     }
 
     public void defineConstruct(int access, Args args, Class<?> owner, String type) {

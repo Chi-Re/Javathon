@@ -13,7 +13,7 @@ public class AsmBuddy {
 
     public static void main(String[] args) {
         try (FileOutputStream fos = new FileOutputStream("cache/test/TestCl.class")) {
-            fos.write(new AsmBuddy().defineClass("TestCl", Object.class)
+            fos.write(new AsmBuddy("TestCl", Object.class).create()
                     .defineVar("a", String.class, "ssssss")
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
                         put("args", String[].class);
@@ -32,17 +32,15 @@ public class AsmBuddy {
         }
     }
 
-    public AsmBuddy() {
-        this(new ClassAsm());
+    public AsmBuddy(String name, Class<?> superClass) {
+        this(new ClassAsm(name, superClass));
     }
 
     public AsmBuddy(ClassAsm classAsm) {
         this.classAsm = classAsm;
     }
 
-    public ClassBuilder defineClass(String name, Class<?> superClass) {
-        classAsm.defineClass(name, superClass);
-
+    public ClassBuilder create() {
         return new ClassBuilder(classAsm);
     }
 }
