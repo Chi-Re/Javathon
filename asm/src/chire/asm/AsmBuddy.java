@@ -14,6 +14,7 @@ public class AsmBuddy {
     public static void main(String[] args) {
         try (FileOutputStream fos = new FileOutputStream("cache/test/TestCl.class")) {
             fos.write(new AsmBuddy().defineClass("TestCl", Object.class)
+                    .defineVar("a", String.class, "ssssss")
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
                         put("args", String[].class);
                     }})
@@ -26,8 +27,6 @@ public class AsmBuddy {
                     ._return()
                     .make()
             );
-
-            System.out.println("");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

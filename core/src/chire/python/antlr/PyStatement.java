@@ -4,6 +4,7 @@ import chire.python.py.base.PyObject;
 import chire.python.util.SmartIndenter;
 import chire.python.util.type.RemoveQuotes;
 import org.antlr.v4.runtime.Token;
+import org.objectweb.asm.Opcodes;
 
 import java.util.ArrayList;
 import java.util.Objects;

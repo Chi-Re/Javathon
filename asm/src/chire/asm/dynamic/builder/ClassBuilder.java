@@ -3,6 +3,7 @@ package chire.asm.dynamic.builder;
 import chire.asm.args.Args;
 import chire.asm.AsmBuddy;
 import chire.asm.ClassAsm;
+import chire.asm.dynamic.VarVisitor;
 import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.ConstructDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
@@ -13,18 +14,23 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         super(classAsm, AsmBuddy.class);
     }
 
-    public ClassBuilder defineVar(int access, String name, Class<?> returnType){
-        classAsm.defineClassVar(access, name, returnType);
+    public ClassBuilder defineVar(int access, String name, Class<?> returnType, Object value) {
+        classAsm.defineClassVar(access, name, returnType, new VarVisitor() {
+            public void init(ClassAsm mv) {
+                mv.classVarInsn(Opcodes.PUTFIELD, name, returnType, value);
+            }
+        });
 
         return new ClassBuilder(classAsm);
     }
 
-    public ClassBuilder defineVar(String name, Class<?> returnType){
-        return defineVar(Opcodes.ACC_PUBLIC, name, returnType);
+    public ClassBuilder defineVar(String name, Class<?> returnType, Object value){
+        return defineVar(Opcodes.ACC_PUBLIC, name, returnType, value);
     }
 
     public ConstructDefinition defineConstruct(int access, Args args){
-        classAsm.defineFunction(access, "<init>", args, null);
+        //TODO 补丁，之后新添加一个Builder
+        classAsm.defineConstruct(access, args, Object.class, "()V");
 
         return new ConstructDefinition(classAsm);
     }
@@ -34,7 +40,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public ClinitDefinition defineClinit(int access){
-        classAsm.defineFunction(access, "<clinit>", new Args(), null);
+        classAsm.defineClinit(access);
 
         return new ClinitDefinition(classAsm);
     }

@@ -26,7 +26,8 @@ public class PythonInterpreter {
         // 73 /
         String pythonCode = """
                 a = 1
-                b = 4
+                b = 3
+                
                 """;
 
         // 创建词法分析器和语法分析器
