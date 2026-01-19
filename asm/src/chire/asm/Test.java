@@ -1,11 +1,7 @@
 package chire.asm;
 
 public class Test {
-    public Test a;
-    public int b;
-
-    public Test() {
-        a = new  Test();
-        b = 33333;
+    public static void main(String[] var0) {
+        System.out.println("aaa");
     }
 }

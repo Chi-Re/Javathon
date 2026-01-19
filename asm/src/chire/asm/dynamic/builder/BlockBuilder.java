@@ -1,6 +1,7 @@
 package chire.asm.dynamic.builder;
 
 import chire.asm.ClassAsm;
+import chire.asm.util.Format;
 import org.objectweb.asm.Opcodes;
 
 import java.lang.reflect.InvocationTargetException;
@@ -31,5 +32,17 @@ public class BlockBuilder<T> extends Builder<T> {
 
     public T setVar(String name, Class<?> type, Object value) {
         return setVar(Opcodes.PUTFIELD, name, type, value);
+    }
+
+    public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
+        classAsm.invokeVar(opcode, owner, var, Format.formatPack(type)+";");
+
+        return new CallBuilder<>(classAsm,  this.type);
+    }
+
+    public CallBuilder<T> call(int opcode, Class<?> owner, String var, String type) {
+        classAsm.invokeVar(opcode, owner, var, type);
+
+        return new CallBuilder<>(classAsm,  this.type);
     }
 }

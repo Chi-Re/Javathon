@@ -1,10 +1,12 @@
 package chire.asm;
 
+import chire.asm.args.Args;
 import chire.asm.dynamic.builder.ClassBuilder;
 import org.objectweb.asm.Opcodes;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 
 public class AsmBuddy {
     private ClassAsm classAsm;
@@ -15,9 +17,17 @@ public class AsmBuddy {
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
                         put("args", String[].class);
                     }})
+                            .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                            .definitObj("aaa")
+                            .callMethod(PrintStream.class, "println", new Class[]{
+                                    String.class,
+                            }, null)
+                            .out()
                     ._return()
                     .make()
             );
+
+            System.out.println("");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

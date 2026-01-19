@@ -1,5 +1,7 @@
 package chire.asm.util;
 
+import chire.asm.args.Args;
+
 public class Format {
     public static String formatPack(Class<?> clazz, boolean prefix) {
         String str = clazz.getName().replace(".", "/").replace(";", "");
@@ -27,5 +29,13 @@ public class Format {
         bs.append(")");
 
         return bs.toString();
+    }
+
+    public static String formatArgs(Args args, Class<?> returnType) {
+        return args+(returnType==null?"V":(Format.formatPack(returnType)+";"));
+    }
+
+    public static String formatParameter(Class<?>[] parameterTypes, Class<?> returnType){
+        return formatPacks(parameterTypes)+(returnType==null?"V":(Format.formatPack(returnType)+";"));
     }
 }

@@ -1,4 +1,4 @@
-package chire.asm;
+package chire.asm.args;
 
 import chire.asm.util.Format;
 

@@ -1,6 +1,6 @@
 package chire.asm.dynamic.builder;
 
-import chire.asm.Args;
+import chire.asm.args.Args;
 import chire.asm.AsmBuddy;
 import chire.asm.ClassAsm;
 import chire.asm.dynamic.definition.ClinitDefinition;
@@ -62,6 +62,8 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public byte[] make() {
+        classAsm.returnBlock();
+
         classAsm.closeClass();
 
         return classAsm.getByte();
