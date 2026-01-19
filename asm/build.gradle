@@ -13,11 +13,21 @@ tasks.withType(JavaCompile){
     options.compilerArgs.addAll(['--release', '8'])
 }
 
-jar{
-    dependsOn clean
+tasks.register('sourcesJar', Jar) {
+    dependsOn classes
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
 
-    from{
-        configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }
-    }
+tasks.register('dist', Jar) {
+    dependsOn configurations.runtimeClasspath
+
+    from files(sourceSets.main.output.classesDirs)
+    from files(sourceSets.main.output.resourcesDir)
+    from {configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }}
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    archiveFileName = "${rootProject.name}.jar"
 }
 
