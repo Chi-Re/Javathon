@@ -1,7 +1,11 @@
 package chire.asm;
 
 import chire.asm.args.Args;
+import chire.asm.dynamic.AsmBudVisitor;
+import chire.asm.dynamic.VarVisitor;
+import chire.asm.dynamic.builder.CallBuilder;
 import chire.asm.dynamic.builder.ClassBuilder;
+import chire.asm.dynamic.definition.FunctionDefinition;
 import org.objectweb.asm.Opcodes;
 
 import java.io.FileOutputStream;
@@ -19,10 +23,12 @@ public class AsmBuddy {
                         put("args", String[].class);
                     }})
                             .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                            .definitObj("aaa")
                             .callMethod(PrintStream.class, "println", new Class[]{
                                     String.class,
-                            }, null)
+                            }, null,
+                                    builder ->
+                                            builder.definitObj("ssssss")
+                            )
                             .out()
                     ._return()
                     .make()

@@ -1,6 +1,7 @@
 package chire.asm;
 
 import chire.asm.args.Args;
+import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.VarVisitor;
 import chire.asm.util.Format;
 import org.objectweb.asm.*;
@@ -34,8 +35,8 @@ public class ClassAsm {
         cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, this.className, null, Format.formatPack(superClass, false), null);
     }
 
-    public void defineClass(){
-        cw.newClass("");
+    public ClassAsm defineClass(){
+        return null;
     }
 
     public void defineConstruct(int access, Args args, Class<?> owner, String type) {

@@ -8,6 +8,7 @@ public class Test {
 
     public static void main(String[] var0) {
         System.out.println("aaa");
+        System.out.println(new Test2().c);
     }
 
     private void $__init__$FieldInsn$() {
@@ -17,27 +18,11 @@ public class Test {
     public Test() {
         this.$__init__$FieldInsn$();
     }
+
+    public static class Test2{
+        public String c = "lll";
+
+        public Test2() {}
+    }
 }
 
-//        {
-//            methodVisitor = classWriter.visitMethod(ACC_PRIVATE, "$__init__$FieldInsn$", "()V", null, null);
-//            methodVisitor.visitCode();
-//            methodVisitor.visitVarInsn(ALOAD, 0);
-//            methodVisitor.visitLdcInsn("ssssss");
-//            methodVisitor.visitFieldInsn(PUTFIELD, "chire/asm/Test", "a", "Ljava/lang/String;");
-//            methodVisitor.visitInsn(RETURN);
-//            methodVisitor.visitMaxs(2, 1);
-//            methodVisitor.visitEnd();
-//        }
-
-
-//        {
-//            methodVisitor = classWriter.visitMethod(ACC_PRIVATE, "$__init__$FieldInsn$", "()V", null, null);
-//            methodVisitor.visitCode();
-//            methodVisitor.visitVarInsn(ALOAD, 0);
-//            methodVisitor.visitLdcInsn("ssssss");
-//            methodVisitor.visitFieldInsn(PUTFIELD, "TestCl", "a", "Ljava/lang/String;");
-//            methodVisitor.visitInsn(RETURN);
-//            methodVisitor.visitMaxs(0, 1);
-//            methodVisitor.visitEnd();
-//        }
