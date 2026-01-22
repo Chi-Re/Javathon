@@ -12,7 +12,6 @@ public class ClinitDefinition extends BlockBuilder<ClinitDefinition> {
 
     public ClassBuilder _back(){
         classAsm.toReturn();
-        classAsm.returnBlock();
         return new ClassBuilder(classAsm);
     }
 }

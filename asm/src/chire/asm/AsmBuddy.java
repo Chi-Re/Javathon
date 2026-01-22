@@ -23,11 +23,9 @@ public class AsmBuddy {
                         put("args", String[].class);
                     }})
                             .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                            .callMethod(PrintStream.class, "println", new Class[]{
-                                    String.class,
-                            }, null,
-                                    builder ->
-                                            builder.definitObj("ssssss")
+                            .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null,
+                                builder ->
+                                        builder.definitObj("ssssss")
                             )
                             .out()
                     ._return()

@@ -20,7 +20,7 @@ public class ClassAsm {
 
     private final Map<String, Integer> varsKey = new HashMap<>();
 
-    private final List<VarVisitor> classVars = new ArrayList<>();
+    protected final List<VarVisitor> classVars = new ArrayList<>();
 
     private String className;
 
@@ -69,12 +69,18 @@ public class ClassAsm {
         FieldVisitor fv = cw.visitField(access, name, Format.formatPack(returnType)+";", null, null);
         fv.visitEnd();
 
-        classVars.add(varVisitor);
+        if (varVisitor != null) classVars.add(varVisitor);
     }
 
     public void classVarInsn(int opcode, String name, Class<?> type, Object value) {
         mv.visitVarInsn(ALOAD, 0);
         mv.visitLdcInsn(value);
+        mv.visitFieldInsn(opcode, this.className, name, Format.formatPack(type)+";");
+    }
+
+    public void classVarInsn(int opcode, String name, Class<?> type, VarVisitor varVisitor) {
+        mv.visitVarInsn(ALOAD, 0);
+        varVisitor.init(this);
         mv.visitFieldInsn(opcode, this.className, name, Format.formatPack(type)+";");
     }
 
@@ -110,15 +116,13 @@ public class ClassAsm {
         } else {
             mv.visitInsn(RETURN);
         }
+
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
     }
 
     public void toReturn() {
         toReturn(false);
-    }
-
-    public void returnBlock(){
-        mv.visitMaxs(0, 0);
-        mv.visitEnd();
     }
 
     public void closeClass(){
@@ -130,12 +134,10 @@ public class ClassAsm {
 
         classVars.clear();
         toReturn();
-        returnBlock();
 
         if (!initialize) {
             defineConstruct(ACC_PUBLIC, new Args(), this.superClass, "()V");
             toReturn();
-            returnBlock();
 
             initialize = true;
         }

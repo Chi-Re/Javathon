@@ -68,8 +68,6 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public byte[] make() {
-        classAsm.returnBlock();
-
         classAsm.closeClass();
 
         return classAsm.getByte();
