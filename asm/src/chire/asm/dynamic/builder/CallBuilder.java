@@ -24,16 +24,42 @@ public class CallBuilder<T> extends Builder<T>{
         }
     }
 
-    public CallBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType, AsmBudVisitor<T> visitor) {
-        return visitor.visit(new ParameterBuilder<>(classAsm, type))
-                .callMethod(owner, var, parameters, returnType);
+    public static class MethodBuilder<T> extends Builder<T>{
+        AsmBudVisitor.AsmCallBuilder<T> callBuilder;
+
+        public MethodBuilder(ClassAsm classAsm, Class<T> type) {
+            super(classAsm, type);
+        }
+
+        public CallBuilder<T> setContent(AsmBudVisitor<T> builder) {
+            return callBuilder.visit(builder.visit(new ParameterBuilder<>(classAsm, type)));
+        }
+
+        private void end(AsmBudVisitor.AsmCallBuilder<T> builder){
+            callBuilder = builder;
+        }
     }
 
-    private CallBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
-        classAsm.invokeMethod(Opcodes.INVOKEVIRTUAL, owner, var, Format.formatParameter(parameters, returnType));
+    public MethodBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
+        MethodBuilder<T> methodBuilder = new MethodBuilder<>(classAsm, type);
 
-        return new CallBuilder<>(classAsm, type);
+        methodBuilder.end(new AsmBudVisitor.AsmCallBuilder<T>() {
+            @Override
+            public CallBuilder<T> visit(CallBuilder<T> builder) {
+                classAsm.invokeMethod(Opcodes.INVOKEVIRTUAL, owner, var, Format.formatParameter(parameters, returnType));
+
+                return new CallBuilder<>(classAsm, type);
+            }
+        });
+
+        return methodBuilder;
     }
+
+//    private CallBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
+//        classAsm.invokeMethod(Opcodes.INVOKEVIRTUAL, owner, var, Format.formatParameter(parameters, returnType));
+//
+//        return new CallBuilder<>(classAsm, type);
+//    }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
         classAsm.invokeVar(opcode, owner, var, Format.formatPack(type)+";");

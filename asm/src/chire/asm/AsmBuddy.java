@@ -23,10 +23,13 @@ public class AsmBuddy {
                         put("args", String[].class);
                     }})
                             .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                            .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null,
-                                builder ->
-                                        builder.definitObj("ssssss")
-                            )
+                            .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null)
+                            .setContent(new AsmBudVisitor<FunctionDefinition>() {
+                                @Override
+                                public CallBuilder<FunctionDefinition> visit(CallBuilder.ParameterBuilder<FunctionDefinition> builder) {
+                                    return builder.definitObj("aaaaaaaa");
+                                }
+                            })
                             .out()
                     ._return()
                     .make()
