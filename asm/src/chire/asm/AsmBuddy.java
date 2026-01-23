@@ -24,7 +24,12 @@ public class AsmBuddy {
                     }})
                             .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
                             .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null)
-                            这里模拟存在的评论之类的，也可以在这里写注释
+                            .setContent(new AsmBudVisitor<FunctionDefinition>() {
+                                @Override
+                                public CallBuilder<FunctionDefinition> visit(CallBuilder.ParameterBuilder<FunctionDefinition> builder) {
+                                    return builder.definitObj("aaaaaaaa");
+                                }
+                            })
                             .out()
                     ._return()
                     .make()
