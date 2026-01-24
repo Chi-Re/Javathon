@@ -51,7 +51,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         }
 
         public FunctionDefinition visit(FunctionDefinition builder) {
-            return builder.setVar(access, name, returnType).setContent(content);
+            return builder.setClassVar(access, name, returnType).setContent(content);
         }
     }
 
