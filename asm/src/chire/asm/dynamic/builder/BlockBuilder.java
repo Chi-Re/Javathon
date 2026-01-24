@@ -64,6 +64,7 @@ public class BlockBuilder<T> extends Builder<T> {
 
     public VarBuilder<T> setVar(int opcode, String name, Class<?> type) {
         VarBuilder<T> varBuilder = new VarBuilder<>(this.classAsm, this.type);
+        varBuilder.setVar(name, type);
         return varBuilder;
     }
 
