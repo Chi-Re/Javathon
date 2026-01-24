@@ -29,6 +29,8 @@ public class AsmBuddy {
                             .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null)
                             .setContent(builder -> builder.definitObj("aaaaaaaa"))
                             .out()
+                            .setVar(Opcodes.ACC_PUBLIC, "c", String.class)
+                            .setContent(builder -> builder.definitObj("ssssssssssss"))
                     ._return()
                     .make()
                     .save()

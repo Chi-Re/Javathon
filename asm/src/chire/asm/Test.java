@@ -16,5 +16,10 @@ public class Test {
     private void $__init__$FieldInsn$() {
         this.a = "System.out";
     }
+
+    public void foo() {
+        // SIPUSH
+        String c = "11145";
+    }
 }
 

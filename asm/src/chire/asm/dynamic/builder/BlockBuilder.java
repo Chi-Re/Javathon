@@ -19,11 +19,32 @@ public class BlockBuilder<T> extends Builder<T> {
     }
 
     public static class VarBuilder<T> extends Builder<T> {
-        private int opcode;
         private String name;
         private Class<?> varType;
 
         public VarBuilder(ClassAsm classAsm, Class<T> type) {
+            super(classAsm, type);
+        }
+
+        private void setVar(String name, Class<?> type) {
+            this.name = name;
+            this.varType = type;
+        }
+
+        public T setContent(AsmBudVisitor.AsmCallBuilder<T> visitor) {
+            CallBuilder<T> builder = visitor.visit(new CallBuilder<>(classAsm, type));
+
+            builder.classAsm.varInsn(name);
+            return builder.create();
+        }
+    }
+
+    public static class ClassVarBuilder<T> extends Builder<T> {
+        private int opcode;
+        private String name;
+        private Class<?> varType;
+
+        public ClassVarBuilder(ClassAsm classAsm, Class<T> type) {
             super(classAsm, type);
         }
 
@@ -43,14 +64,16 @@ public class BlockBuilder<T> extends Builder<T> {
 
     public VarBuilder<T> setVar(int opcode, String name, Class<?> type) {
         VarBuilder<T> varBuilder = new VarBuilder<>(this.classAsm, this.type);
-        varBuilder.setVar(opcode, name, type);
-
         return varBuilder;
     }
 
-    public VarBuilder<T> setClassVar(int opcode, String name, Class<?> type) {
+    public ClassVarBuilder<T> setClassVar(int opcode, String name, Class<?> type) {
         classAsm.thisInsn();
-        return setVar(opcode, name, type);
+
+        ClassVarBuilder<T> varBuilder = new ClassVarBuilder<>(this.classAsm, this.type);
+        varBuilder.setVar(opcode, name, type);
+
+        return varBuilder;
     }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {

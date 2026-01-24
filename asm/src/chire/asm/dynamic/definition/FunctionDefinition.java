@@ -21,7 +21,7 @@ public class FunctionDefinition extends BlockBuilder<FunctionDefinition> {
     }
 
     @Override
-    public VarBuilder<FunctionDefinition> setClassVar(int opcode, String name, Class<?> type) {
+    public ClassVarBuilder<FunctionDefinition> setClassVar(int opcode, String name, Class<?> type) {
         return super.setClassVar(opcode, name, type);
     }
 
