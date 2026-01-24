@@ -14,6 +14,10 @@ public abstract class Builder<T> {
         this.type = type;
     }
 
+    public Class<T>  getType() {
+        return type;
+    }
+
     protected T create(){
         try {
             return this.type.getDeclaredConstructor(classAsm.getClass(), Class.class).newInstance(classAsm, type);

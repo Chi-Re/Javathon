@@ -18,13 +18,6 @@ public class BlockBuilder<T> extends Builder<T> {
         return new DefinitBuilder<>(classAsm, type);
     }
 
-    public T setVar(int opcode, String name, Class<?> type, Object value) {
-        //TODO 由于字节码操作，这里可能导致错误赋值比如: int a = 1.1F，加判断
-        classAsm.classVarInsn(opcode, name, type, value);
-
-        return this.create();
-    }
-
     public static class VarBuilder<T> extends Builder<T> {
         private int opcode;
         private String name;
@@ -49,23 +42,16 @@ public class BlockBuilder<T> extends Builder<T> {
     }
 
     public VarBuilder<T> setVar(int opcode, String name, Class<?> type) {
-        classAsm.thisInsn();
-
         VarBuilder<T> varBuilder = new VarBuilder<>(this.classAsm, this.type);
         varBuilder.setVar(opcode, name, type);
 
         return varBuilder;
     }
 
-//    public T setVar(int opcode, String name, Object value) {
-//        classAsm.classVarInsn(opcode, name, value.getClass(), value);
-//
-//        return this.create();
-//    }
-
-//    public T setVar(String name, Class<?> type, Object value) {
-//        return setVar(Opcodes.PUTFIELD, name, type, value);
-//    }
+    public VarBuilder<T> setClassVar(int opcode, String name, Class<?> type) {
+        classAsm.thisInsn();
+        return setVar(opcode, name, type);
+    }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
         classAsm.invokeVar(opcode, owner, var, Format.formatPack(type)+";");
