@@ -1,6 +1,7 @@
 package chire.asm.util;
 
 import chire.asm.args.Args;
+import org.objectweb.asm.Opcodes;
 
 public class Format {
     public static String formatPack(Class<?> clazz, boolean prefix) {

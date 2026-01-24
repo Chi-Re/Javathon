@@ -18,21 +18,20 @@ public class AsmBuddy {
     public static void main(String[] args) {
         try (FileOutputStream fos = new FileOutputStream("cache/test/TestCl.class")) {
             fos.write(new AsmBuddy("TestCl", Object.class).create()
-                    .defineVar("a", String.class, "ssssss")
+                    .declareVar(Opcodes.ACC_PUBLIC, "a", PrintStream.class)
+                            .setContent(builder -> {
+                                return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
+                            })
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
                         put("args", String[].class);
                     }})
                             .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
                             .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null)
-                            .setContent(new AsmBudVisitor<FunctionDefinition>() {
-                                @Override
-                                public CallBuilder<FunctionDefinition> visit(CallBuilder.ParameterBuilder<FunctionDefinition> builder) {
-                                    return builder.definitObj("aaaaaaaa");
-                                }
-                            })
+                            .setContent(builder -> builder.definitObj("aaaaaaaa"))
                             .out()
                     ._return()
                     .make()
+                    .save()
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -49,5 +48,9 @@ public class AsmBuddy {
 
     public ClassBuilder create() {
         return new ClassBuilder(classAsm);
+    }
+
+    public byte[] save() {
+        return classAsm.getByte();
     }
 }

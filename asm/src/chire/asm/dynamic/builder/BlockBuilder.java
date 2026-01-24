@@ -1,10 +1,11 @@
 package chire.asm.dynamic.builder;
 
 import chire.asm.ClassAsm;
+import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.util.Format;
 import org.objectweb.asm.Opcodes;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 
 public class BlockBuilder<T> extends Builder<T> {
     public BlockBuilder(ClassAsm classAsm, Class<T> type) {
@@ -24,15 +25,47 @@ public class BlockBuilder<T> extends Builder<T> {
         return this.create();
     }
 
-    public T setVar(int opcode, String name, Object value) {
-        classAsm.classVarInsn(opcode, name, value.getClass(), value);
+    public static class VarBuilder<T> extends Builder<T> {
+        private int opcode;
+        private String name;
+        private Class<?> varType;
 
-        return this.create();
+        public VarBuilder(ClassAsm classAsm, Class<T> type) {
+            super(classAsm, type);
+        }
+
+        private void setVar(int opcode, String name, Class<?> type) {
+            this.opcode = opcode;
+            this.name = name;
+            this.varType = type;
+        }
+
+        public T setContent(AsmBudVisitor.AsmCallBuilder<T> visitor) {
+            CallBuilder<T> builder = visitor.visit(new CallBuilder<>(classAsm, type));
+
+            builder.classAsm.invokeClassVarEnd(opcode, name, varType);
+            return builder.create();
+        }
     }
 
-    public T setVar(String name, Class<?> type, Object value) {
-        return setVar(Opcodes.PUTFIELD, name, type, value);
+    public VarBuilder<T> setVar(int opcode, String name, Class<?> type) {
+        classAsm.thisInsn();
+
+        VarBuilder<T> varBuilder = new VarBuilder<>(this.classAsm, this.type);
+        varBuilder.setVar(opcode, name, type);
+
+        return varBuilder;
     }
+
+//    public T setVar(int opcode, String name, Object value) {
+//        classAsm.classVarInsn(opcode, name, value.getClass(), value);
+//
+//        return this.create();
+//    }
+
+//    public T setVar(String name, Class<?> type, Object value) {
+//        return setVar(Opcodes.PUTFIELD, name, type, value);
+//    }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
         classAsm.invokeVar(opcode, owner, var, Format.formatPack(type)+";");

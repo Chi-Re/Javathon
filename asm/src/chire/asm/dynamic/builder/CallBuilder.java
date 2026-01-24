@@ -43,13 +43,10 @@ public class CallBuilder<T> extends Builder<T>{
     public MethodBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
         MethodBuilder<T> methodBuilder = new MethodBuilder<>(classAsm, type);
 
-        methodBuilder.end(new AsmBudVisitor.AsmCallBuilder<T>() {
-            @Override
-            public CallBuilder<T> visit(CallBuilder<T> builder) {
-                classAsm.invokeMethod(Opcodes.INVOKEVIRTUAL, owner, var, Format.formatParameter(parameters, returnType));
+        methodBuilder.end(builder -> {
+            classAsm.invokeMethod(Opcodes.INVOKEVIRTUAL, owner, var, Format.formatParameter(parameters, returnType));
 
-                return new CallBuilder<>(classAsm, type);
-            }
+            return new CallBuilder<>(classAsm, type);
         });
 
         return methodBuilder;
@@ -71,6 +68,12 @@ public class CallBuilder<T> extends Builder<T>{
         classAsm.invokeVar(opcode, owner, var, type);
 
         return new CallBuilder<>(classAsm,  this.type);
+    }
+
+    public CallBuilder<T> definitObj(Object obj) {
+        classAsm.ldcInsn(obj);
+
+        return new CallBuilder<>(classAsm, type);
     }
 
     public T out(){

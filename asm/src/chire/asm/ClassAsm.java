@@ -1,8 +1,8 @@
 package chire.asm;
 
 import chire.asm.args.Args;
-import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.VarVisitor;
+import chire.asm.dynamic.builder.ClassBuilder;
 import chire.asm.util.Format;
 import org.objectweb.asm.*;
 
@@ -22,6 +22,8 @@ public class ClassAsm {
 
     protected final List<VarVisitor> classVars = new ArrayList<>();
 
+    protected List<ClassBuilder.ClassVarBuild> classVarBuilds = new ArrayList<>();
+
     private String className;
 
     private Class<?> superClass;
@@ -35,9 +37,9 @@ public class ClassAsm {
         cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, this.className, null, Format.formatPack(superClass, false), null);
     }
 
-    public ClassAsm defineClass(){
-        return null;
-    }
+//    public ClassAsm defineClass(){
+//        return null;
+//    }
 
     public void defineConstruct(int access, Args args, Class<?> owner, String type) {
         defineFunction(access, "<init>", args, null);
@@ -84,6 +86,14 @@ public class ClassAsm {
         mv.visitFieldInsn(opcode, this.className, name, Format.formatPack(type)+";");
     }
 
+    public void thisInsn() {
+        mv.visitVarInsn(ALOAD, 0);
+    }
+
+    public void invokeClassVarEnd(int opcode, String name, Class<?> type) {
+        mv.visitFieldInsn(opcode, this.className, name, Format.formatPack(type)+";");
+    }
+
     public void invokeVar(int opcode, Class<?> owner, String name, String type){
         //TODO 对于解析时type的获取明显是有些麻烦且不符合直觉的，添加自动获取type的功能
         mv.visitFieldInsn(opcode, Format.formatPack(owner, false), name, type);
@@ -126,14 +136,14 @@ public class ClassAsm {
     }
 
     public void closeClass(){
-        defineFunction(ACC_PRIVATE, "$__init__$FieldInsn$", new Args(), null);
-
-        for (VarVisitor v : classVars) {
-            v.init(this);
-        }
-
-        classVars.clear();
-        toReturn();
+//        defineFunction(ACC_PRIVATE, "$__init__$FieldInsn$", new Args(), null);
+//
+//        for (VarVisitor v : classVars) {
+//            v.init(this);
+//        }
+//
+//        classVars.clear();
+//        toReturn();
 
         if (!initialize) {
             defineConstruct(ACC_PUBLIC, new Args(), this.superClass, "()V");
@@ -147,5 +157,13 @@ public class ClassAsm {
 
     public byte[] getByte(){
         return cw.toByteArray();
+    }
+
+    public List<ClassBuilder.ClassVarBuild> getClassVars(){
+        return classVarBuilds;
+    }
+
+    public void addClassVars(ClassBuilder.ClassVarBuild content) {
+        classVarBuilds.add(content);
     }
 }
