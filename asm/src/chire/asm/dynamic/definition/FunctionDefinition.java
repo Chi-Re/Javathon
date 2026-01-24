@@ -16,16 +16,22 @@ public class FunctionDefinition extends BlockBuilder<FunctionDefinition> {
     }
 
     @Override
-    public VarBuilder<FunctionDefinition> setVar(int opcode, String name, Class<?> type) {
-        return super.setVar(opcode, name, type);
+    public VarBuilder setVar(int opcode, String name, Class<?> type) {
+        return (VarBuilder) super.setVar(opcode, name, type);
     }
 
     @Override
-    public VarBuilder<FunctionDefinition> setClassVar(int opcode, String name, Class<?> type) {
-        return super.setClassVar(opcode, name, type);
+    public VarBuilder setClassVar(int opcode, String name, Class<?> type) {
+        return (VarBuilder) super.setClassVar(opcode, name, type);
     }
 
     public ClassBuilder _return() {
         return _return(false);
+    }
+
+    public static class VarBuilder extends BlockBuilder.VarBuilder<FunctionDefinition> {
+        public VarBuilder(ClassAsm classAsm) {
+            super(classAsm, FunctionDefinition.class);
+        }
     }
 }
