@@ -20,8 +20,6 @@ public class ClassAsm {
 
     private final Map<String, Integer> varsKey = new HashMap<>();
 
-    protected final List<VarVisitor> classVars = new ArrayList<>();
-
     protected List<ClassBuilder.ClassVarBuild> classVarBuilds = new ArrayList<>();
 
     private String className;
@@ -67,11 +65,9 @@ public class ClassAsm {
         mv.visitCode();
     }
 
-    public void defineClassVar(int access, String name, Class<?> returnType, VarVisitor varVisitor) {
+    public void defineClassVar(int access, String name, Class<?> returnType) {
         FieldVisitor fv = cw.visitField(access, name, Format.formatPack(returnType)+";", null, null);
         fv.visitEnd();
-
-        if (varVisitor != null) classVars.add(varVisitor);
     }
 
     public void classVarInsn(int opcode, String name, Class<?> type, Object value) {
@@ -117,7 +113,22 @@ public class ClassAsm {
     }
 
     public void ldcInsn(Object obj){
-        mv.visitLdcInsn(obj);
+        //Java 8不支持var，每个类型都需要特定类型字节码支持。
+        if (obj instanceof Boolean) {
+            mv.visitInsn((Boolean) obj ? ICONST_1 : ICONST_0);
+            mv.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;", false);
+        } else if (obj instanceof Float) {
+            mv.visitLdcInsn(obj);
+            mv.visitMethodInsn(INVOKESTATIC, "java/lang/Float", "valueOf", "(F)Ljava/lang/Float;", false);
+        } else if (obj instanceof Integer) {
+            mv.visitIntInsn(SIPUSH, (Integer) obj);
+            mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", false);
+        } else if (obj instanceof Double) {
+            mv.visitLdcInsn(obj);
+            mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false);
+        } else {
+            mv.visitLdcInsn(obj);
+        }
     }
 
     public void toReturn(boolean returnValue) {
@@ -136,15 +147,6 @@ public class ClassAsm {
     }
 
     public void closeClass(){
-//        defineFunction(ACC_PRIVATE, "$__init__$FieldInsn$", new Args(), null);
-//
-//        for (VarVisitor v : classVars) {
-//            v.init(this);
-//        }
-//
-//        classVars.clear();
-//        toReturn();
-
         if (!initialize) {
             defineConstruct(ACC_PUBLIC, new Args(), this.superClass, "()V");
             toReturn();

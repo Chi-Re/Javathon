@@ -56,7 +56,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public VarBuilder declareVar(int access, String name, Class<?> returnType) {
-        classAsm.defineClassVar(access, name, returnType, null);
+        classAsm.defineClassVar(access, name, returnType);
 
         VarBuilder builder = new VarBuilder(classAsm, type);
         builder.setClassVars(access, name, returnType);
@@ -64,18 +64,18 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         return builder;
     }
 
-    public ClassBuilder defineVar(int access, String name, Class<?> returnType, Object value) {
-        classAsm.defineClassVar(access, name, returnType, new VarVisitor() {
-            public void init(ClassAsm mv) {
-                mv.classVarInsn(Opcodes.PUTFIELD, name, returnType, value);
-            }
-        });
+    public VarBuilder declareVar(String name, Class<?> returnType) {
+        return declareVar(Opcodes.ACC_PUBLIC, name, returnType);
+    }
+
+    public ClassBuilder defineVar(int access, String name, Class<?> returnType) {
+        classAsm.defineClassVar(access, name, returnType);
 
         return new ClassBuilder(classAsm);
     }
 
-    public ClassBuilder defineVar(String name, Class<?> returnType, Object value){
-        return defineVar(Opcodes.ACC_PUBLIC, name, returnType, value);
+    public ClassBuilder defineVar(String name, Class<?> returnType){
+        return defineVar(Opcodes.ACC_PUBLIC, name, returnType);
     }
 
     public ConstructDefinition defineConstruct(int access, Args args){
