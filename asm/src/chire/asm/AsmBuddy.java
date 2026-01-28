@@ -2,10 +2,9 @@ package chire.asm;
 
 import chire.asm.args.Args;
 import chire.asm.dynamic.AsmBudVisitor;
-import chire.asm.dynamic.VarVisitor;
 import chire.asm.dynamic.builder.CallBuilder;
 import chire.asm.dynamic.builder.ClassBuilder;
-import chire.asm.dynamic.definition.FunctionDefinition;
+import chire.asm.dynamic.definition.ClinitDefinition;
 import org.objectweb.asm.Opcodes;
 
 import java.io.FileOutputStream;
@@ -18,9 +17,16 @@ public class AsmBuddy {
     public static void main(String[] args) {
         try (FileOutputStream fos = new FileOutputStream("cache/test/TestCl.class")) {
             fos.write(new AsmBuddy("TestCl", Object.class).create()
-                    .declareVar(Opcodes.ACC_PUBLIC, "a", PrintStream.class)
+                    .declareVar(Opcodes.ACC_PUBLIC, "a", Object.class)
                             .setContent(builder -> {
                                 return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
+                            })
+                            .declareStaticVar("st", String.class)
+                            .setContent(new AsmBudVisitor.AsmCallBuilder<ClinitDefinition>() {
+                                @Override
+                                public CallBuilder<ClinitDefinition> visit(CallBuilder<ClinitDefinition> builder) {
+                                    return builder.definitObj("setClassStaticVar");
+                                }
                             })
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
                         put("args", String[].class);
@@ -29,8 +35,8 @@ public class AsmBuddy {
                             .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null)
                             .setContent(builder -> builder.definitObj("aaaaaaaa"))
                             .out()
-                            .setVar(Opcodes.ACC_PUBLIC, "c", String.class)
-                            .setContent(builder -> builder.definitObj("ssssssssssss"))
+                            .setVar("c")
+                            .setContent(builder -> builder.definitObj(12))
                     ._return()
                     .make()
                     .save()

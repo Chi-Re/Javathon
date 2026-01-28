@@ -20,15 +20,12 @@ public class BlockBuilder<T> extends Builder<T> {
 
     public static class VarBuilder<T> extends Builder<T> {
         private String name;
-        private Class<?> varType;
-
         public VarBuilder(ClassAsm classAsm, Class<T> type) {
             super(classAsm, type);
         }
 
-        private void setVar(String name, Class<?> type) {
+        private void setVar(String name) {
             this.name = name;
-            this.varType = type;
         }
 
         public T setContent(AsmBudVisitor.AsmCallBuilder<T> visitor) {
@@ -62,9 +59,9 @@ public class BlockBuilder<T> extends Builder<T> {
         }
     }
 
-    public VarBuilder<T> setVar(int opcode, String name, Class<?> type) {
+    public VarBuilder<T> setVar(String name) {
         VarBuilder<T> varBuilder = new VarBuilder<>(this.classAsm, this.type);
-        varBuilder.setVar(name, type);
+        varBuilder.setVar(name);
         return varBuilder;
     }
 
@@ -73,6 +70,13 @@ public class BlockBuilder<T> extends Builder<T> {
 
         ClassVarBuilder<T> varBuilder = new ClassVarBuilder<>(this.classAsm, this.type);
         varBuilder.setVar(opcode, name, type);
+
+        return varBuilder;
+    }
+
+    public ClassVarBuilder<T> setClassStaticVar(String name, Class<?> type) {
+        ClassVarBuilder<T> varBuilder = new ClassVarBuilder<>(this.classAsm, this.type);
+        varBuilder.setVar(Opcodes.PUTSTATIC, name, type);
 
         return varBuilder;
     }

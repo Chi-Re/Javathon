@@ -10,8 +10,8 @@ public class ConstructDefinition extends BlockBuilder<ConstructDefinition> {
     }
 
     @Override
-    public VarBuilder<ConstructDefinition> setVar(int opcode, String name, Class<?> type) {
-        return super.setVar(opcode, name, type);
+    public VarBuilder<ConstructDefinition> setVar(String name) {
+        return super.setVar(name);
     }
 
     @Override

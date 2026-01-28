@@ -22,6 +22,8 @@ public class ClassAsm {
 
     protected List<ClassBuilder.ClassVarBuild> classVarBuilds = new ArrayList<>();
 
+    protected List<ClassBuilder.ClassStaticVarBuild> classStaticVarBuilds = new ArrayList<>();
+
     private String className;
 
     private Class<?> superClass;
@@ -165,7 +167,15 @@ public class ClassAsm {
         return classVarBuilds;
     }
 
+    public  List<ClassBuilder.ClassStaticVarBuild> getClassStaticVars(){
+        return classStaticVarBuilds;
+    }
+
     public void addClassVars(ClassBuilder.ClassVarBuild content) {
         classVarBuilds.add(content);
+    }
+
+    public void addClassVars(ClassBuilder.ClassStaticVarBuild content) {
+        classStaticVarBuilds.add(content);
     }
 }

@@ -37,6 +37,25 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         }
     }
 
+    public static class StaticVarBuilder extends Builder<AsmBuddy> {
+        private String name;
+        private Class<?> returnType;
+
+        public StaticVarBuilder(ClassAsm classAsm, Class<AsmBuddy> type) {
+            super(classAsm, type);
+        }
+
+        private void setClassVars(String name, Class<?> returnType) {
+            this.name = name;
+            this.returnType = returnType;
+        }
+
+        public ClassBuilder setContent(AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+            this.classAsm.addClassVars(new ClassStaticVarBuild(name, returnType, content));
+            return new ClassBuilder(classAsm);
+        }
+    }
+
     public static class ClassVarBuild {
         private final int access;
         private final String name;
@@ -55,6 +74,22 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         }
     }
 
+    public static class ClassStaticVarBuild {
+        private final String name;
+        private final Class<?> returnType;
+        private final AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content;
+
+        public ClassStaticVarBuild(String name, Class<?> returnType, AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+            this.name = name;
+            this.returnType = returnType;
+            this.content = content;
+        }
+
+        public ClinitDefinition visit(ClinitDefinition builder) {
+            return builder.setClassVar(name, returnType).setContent(content);
+        }
+    }
+
     public VarBuilder declareVar(int access, String name, Class<?> returnType) {
         classAsm.defineClassVar(access, name, returnType);
 
@@ -66,6 +101,15 @@ public class ClassBuilder extends Builder<AsmBuddy> {
 
     public VarBuilder declareVar(String name, Class<?> returnType) {
         return declareVar(Opcodes.ACC_PUBLIC, name, returnType);
+    }
+
+    public StaticVarBuilder declareStaticVar(String name, Class<?> returnType) {
+        classAsm.defineClassVar(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, name, returnType);
+
+        StaticVarBuilder builder = new StaticVarBuilder(classAsm, type);
+        builder.setClassVars(name, returnType);
+
+        return builder;
     }
 
     public ClassBuilder defineVar(int access, String name, Class<?> returnType) {
@@ -96,7 +140,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public ClinitDefinition defineClinit(){
-        return defineClinit(Opcodes.ACC_PUBLIC);
+        return defineClinit(Opcodes.ACC_STATIC);
     }
 
     public FunctionDefinition defineFunction(int access, String name, Args args, Class<?> returnType) {
@@ -124,10 +168,19 @@ public class ClassBuilder extends Builder<AsmBuddy> {
             builder = callBuilder.visit(builder);
         }
 
-        builder.classAsm.toReturn();
-        builder.classAsm.closeClass();
+        //builder.classAsm.toReturn();
 
-        return new AsmBuddy(builder.classAsm);
+        ClinitDefinition clinitBuilder = builder._return().defineClinit();
+
+        for (ClassStaticVarBuild callBuilder : classAsm.getClassStaticVars()) {
+            clinitBuilder = callBuilder.visit(clinitBuilder);
+        }
+
+        clinitBuilder.classAsm.toReturn();
+
+        clinitBuilder.classAsm.closeClass();
+
+        return new AsmBuddy(clinitBuilder.classAsm);
     }
 
 //    public byte[] make() {
