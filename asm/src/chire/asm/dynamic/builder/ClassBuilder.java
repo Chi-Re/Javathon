@@ -4,7 +4,6 @@ import chire.asm.args.Args;
 import chire.asm.AsmBuddy;
 import chire.asm.ClassAsm;
 import chire.asm.dynamic.AsmBudVisitor;
-import chire.asm.dynamic.VarVisitor;
 import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.ConstructDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
@@ -51,7 +50,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         }
 
         public ClassBuilder setContent(AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
-            this.classAsm.addClassVars(new ClassStaticVarBuild(name, returnType, content));
+            this.classAsm.addClassVars(new StaticVarBuild(name, returnType, content));
             return new ClassBuilder(classAsm);
         }
     }
@@ -74,19 +73,19 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         }
     }
 
-    public static class ClassStaticVarBuild {
+    public static class StaticVarBuild {
         private final String name;
         private final Class<?> returnType;
         private final AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content;
 
-        public ClassStaticVarBuild(String name, Class<?> returnType, AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+        public StaticVarBuild(String name, Class<?> returnType, AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
             this.name = name;
             this.returnType = returnType;
             this.content = content;
         }
 
         public ClinitDefinition visit(ClinitDefinition builder) {
-            return builder.setClassVar(name, returnType).setContent(content);
+            return builder.setStaticVar(name, returnType).setContent(content);
         }
     }
 
@@ -172,7 +171,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
 
         ClinitDefinition clinitBuilder = builder._return().defineClinit();
 
-        for (ClassStaticVarBuild callBuilder : classAsm.getClassStaticVars()) {
+        for (StaticVarBuild callBuilder : classAsm.getClassStaticVars()) {
             clinitBuilder = callBuilder.visit(clinitBuilder);
         }
 

@@ -18,25 +18,20 @@ public class AsmBuddy {
         try (FileOutputStream fos = new FileOutputStream("cache/test/TestCl.class")) {
             fos.write(new AsmBuddy("TestCl", Object.class).create()
                     .declareVar(Opcodes.ACC_PUBLIC, "a", Object.class)
-                            .setContent(builder -> {
-                                return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
-                            })
-                            .declareStaticVar("st", String.class)
-                            .setContent(new AsmBudVisitor.AsmCallBuilder<ClinitDefinition>() {
-                                @Override
-                                public CallBuilder<ClinitDefinition> visit(CallBuilder<ClinitDefinition> builder) {
-                                    return builder.definitObj("setClassStaticVar");
-                                }
-                            })
+                        .setContent(builder -> {
+                            return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
+                        })
+                    .declareStaticVar("st", String.class)
+                        .setContent(builder -> builder.definitObj("setStaticVar"))
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
                         put("args", String[].class);
                     }})
-                            .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                            .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null)
-                            .setContent(builder -> builder.definitObj("aaaaaaaa"))
-                            .out()
-                            .setVar("c")
-                            .setContent(builder -> builder.definitObj(12))
+                        .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                        .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null)
+                        .setContent(builder -> builder.definitObj("aaaaaaaa"))
+                        .out()
+                        .setVar("c")
+                        .setContent(builder -> builder.definitObj(12))
                     ._return()
                     .make()
                     .save()

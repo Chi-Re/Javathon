@@ -5,8 +5,6 @@ import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.util.Format;
 import org.objectweb.asm.Opcodes;
 
-import java.util.Objects;
-
 public class BlockBuilder<T> extends Builder<T> {
     public BlockBuilder(ClassAsm classAsm, Class<T> type) {
         super(classAsm, type);
@@ -74,7 +72,7 @@ public class BlockBuilder<T> extends Builder<T> {
         return varBuilder;
     }
 
-    public ClassVarBuilder<T> setClassStaticVar(String name, Class<?> type) {
+    public ClassVarBuilder<T> setStaticVar(String name, Class<?> type) {
         ClassVarBuilder<T> varBuilder = new ClassVarBuilder<>(this.classAsm, this.type);
         varBuilder.setVar(Opcodes.PUTSTATIC, name, type);
 
