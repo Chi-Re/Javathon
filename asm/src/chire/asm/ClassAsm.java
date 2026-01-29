@@ -58,6 +58,7 @@ public class ClassAsm {
     }
 
     public void defineFunction(int access, String name, Args args, Class<?> returnType) {
+        varsKey.clear();
         mv = cw.visitMethod(access, name, Format.formatArgs(args, returnType), null, null);
 
         for (String var : args.getArgNames()) {
