@@ -167,7 +167,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
             builder = callBuilder.visit(builder);
         }
 
-        //builder.classAsm.toReturn();
+        builder = builder._return().defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "$import$ACC_STATIC$", new Args(), null);
 
         ClinitDefinition clinitBuilder = builder._return().defineClinit();
 
