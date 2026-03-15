@@ -1,5 +1,11 @@
 package chire.python.antlr;
 
+import chire.asm.args.Args;
+import chire.asm.dynamic.builder.BlockBuilder;
+import chire.asm.dynamic.builder.Builder;
+import chire.asm.dynamic.builder.ClassBuilder;
+import chire.asm.dynamic.definition.ClinitDefinition;
+import chire.asm.dynamic.definition.FunctionDefinition;
 import chire.python.py.base.PyObject;
 import chire.python.util.SmartIndenter;
 import chire.python.util.type.RemoveQuotes;
@@ -7,10 +13,16 @@ import org.antlr.v4.runtime.Token;
 import org.objectweb.asm.Opcodes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public abstract class PyStatement {
     public abstract PyExecutor.PyInstruction build(PyAssembler builder);
+
+    public Builder<?> build(Builder<?> builder){
+        return builder;
+    }
 
     public void toString(SmartIndenter indenter){
     }
@@ -34,16 +46,68 @@ public abstract class PyStatement {
         }
     }
 
+    public static class TypeStatement extends PyStatement{
+        private final Token type;
+        private final TypeStatement[] value;
+
+        protected Map<String, Class<?>> types = new HashMap<>();
+
+        {
+            types.put("int", Integer.class);
+        }
+
+        TypeStatement(Token type, TypeStatement... value) {
+            this.type = type;
+            this.value = value;
+        }
+
+        TypeStatement(Token type) {
+            this(type, new TypeStatement[0]);
+        }
+
+        public Class<?> toType(){
+            return types.getOrDefault(type.getText(), Object.class);
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            return super.build(builder);
+        }
+
+        @Override
+        public PyExecutor.PyInstruction build(PyAssembler builder) {
+            return null;
+        }
+    }
+
     /**定义变量*/
     public static class VarStatement extends PyStatement{
         public final Token name;
 
         public PyStatement value;
 
-        public VarStatement(Token name, PyStatement value){
+        public TypeStatement type;
+
+        public VarStatement(Token name, PyStatement value, TypeStatement type) {
             if (name == null) throw new RuntimeException("name 不能为空");
             this.name = name;
             this.value = value;
+            this.type = type;
+        }
+
+        VarStatement(Token name, PyStatement value) {
+            this(name, value, null);
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof ClassBuilder) {
+                return value.build(((ClassBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Object.class));
+            } else if (builder instanceof FunctionDefinition){
+                return value.build(((FunctionDefinition) builder).setVar(this.name.getText()));
+            } else {
+                return builder;
+            }
         }
 
         @Override
@@ -58,6 +122,10 @@ public abstract class PyStatement {
                     .add("name=").add(name.getText()).newLine()
                     .add("value:").indent();
             value.toString(indenter);
+//            indenter.unindent()
+//                    .newLine()
+//                    .add("type:").indent();
+//            type.toString();
             indenter.unindent().newLine()
                     .unindent()
                     .add("}");
@@ -120,6 +188,27 @@ public abstract class PyStatement {
             this.args = args;
             this.token = token;
             this.statements = statements;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            Args args = new Args();
+
+            for (ArgStatement arg : this.args) {
+                args.put(arg.token.getText(), arg.type);
+            }
+
+            if (builder instanceof ClassBuilder) {
+                FunctionDefinition fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, token.getText(), args);
+
+                for (PyStatement statement : this.statements) {
+                    fun = (FunctionDefinition) statement.build(fun);
+                }
+
+                return fun._return();
+            } else {
+                return builder;
+            }
         }
 
         @Override
@@ -488,6 +577,19 @@ public abstract class PyStatement {
             this.token = token;
             this.type = type;
             this.range = range;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof ClassBuilder.VarBuilder) {
+                return ((ClassBuilder.VarBuilder) builder).setContent(builder1 -> builder1.definitObj(cast()));
+            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
+                return ((ClassBuilder.StaticVarBuilder) builder).setContent(builder1 -> builder1.definitObj(cast()));
+            } else if (builder instanceof BlockBuilder.VarBuilder) {
+                return ((BlockBuilder.VarBuilder<FunctionDefinition>) builder).setContent(builder1 -> builder1.definitObj(cast()));
+            } else {
+                return builder;
+            }
         }
 
         @Override

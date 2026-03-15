@@ -46,7 +46,7 @@ public class PyParser {
 
             switch (token.getType()) {
                 case 45:
-                    if (match(current+1, 44, 63, 88, 89, 90, 92)){
+                    if (match(current+1, 44, 63, 88, 89, 90, 92, 60)){
                         statements.add(varDeclaration());
                     } else if (match(current+1, 57)){
                         statements.add(methodCall());
@@ -289,6 +289,22 @@ public class PyParser {
         throw new RuntimeException("no key");
     }
 
+    private PyStatement.TypeStatement typeDeclaration(){
+        return typeDeclaration(0);
+    }
+    private PyStatement.TypeStatement typeDeclaration(int cur){
+        this.current += cur;
+
+        Token token = peek();
+
+        switch (token.getType()) {
+            case 45:
+                return new PyStatement.TypeStatement(token);
+        }
+
+        throw new NullPointerException("no key");
+    }
+
     private PyStatement varDeclaration(){
         current++;
 
@@ -299,6 +315,13 @@ public class PyParser {
                 var name = previous();
                 var asm = assignment(1);
                 return new PyStatement.VarStatement(name, asm);
+
+            case 60:
+                name = previous();
+                var type = typeDeclaration(1);
+                current++;
+                asm = assignment(1);
+                return new PyStatement.VarStatement(name, asm, type);
 
             //TODO '@='=91 ? 这是什么鬼
             case 88, 89, 90, 92:

@@ -2,16 +2,19 @@ package chire.python;
 
 import chire.antlr.Python3Lexer;
 import chire.antlr.Python3Parser;
-import chire.python.antlr.PyAssembler;
+import chire.asm.AsmBuddy;
+import chire.asm.dynamic.builder.Builder;
+import chire.asm.dynamic.builder.ClassBuilder;
 import chire.python.antlr.PyExecutor;
 import chire.python.antlr.PyParser;
 import chire.python.antlr.PyStatement;
-import chire.python.antlr.callable.PyCallable;
 import chire.python.util.SmartIndenter;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 
 public class PythonInterpreter {
@@ -25,9 +28,16 @@ public class PythonInterpreter {
         // 71 +
         // 73 /
         String pythonCode = """
-                a = 1
+                a: int = 1
                 b = 3
                 
+                n.m.f()
+                
+                def main():
+                    g = 1
+                
+                def fun(te):
+                    c = 4
                 """;
 
         // 创建词法分析器和语法分析器
@@ -37,39 +47,31 @@ public class PythonInterpreter {
         Python3Parser parser = new Python3Parser(tokens);
         parser.file_input();
 
+        for (Token token : tokens.getTokens()) {
+            System.out.println(token);
+        }
+
         ArrayList<PyStatement> statements = new PyParser(tokens).parse();
 
-        ArrayList<PyExecutor.PyInstruction> instructions = new ArrayList<>();
+        Builder<?> builder = new AsmBuddy("ClassPyTest", Object.class).create();
 
-        PyAssembler assembler = new PyAssembler();
         SmartIndenter indenter = new SmartIndenter("  ");
         for (PyStatement statement : statements) {
             statement.toString(indenter);
-            instructions.add(statement.build(assembler));
+
+            builder = statement.build(builder);
         }
         System.out.println(indenter.toString());
 
-
-        PyExecutor executor = new PyExecutor();
-
-        executor.setVar("print", (PyCallable) (exec, self, arguments) -> {
-            for (var argument : arguments) {
-                System.out.print(argument);
+        if (builder instanceof ClassBuilder) {
+            try (FileOutputStream fos = new FileOutputStream("cache/test/ClassPyTest.class")) {
+                fos.write(((ClassBuilder) builder).make().save());
+            } catch (Exception e){
+                throw new RuntimeException(e);
             }
-            System.out.print("\n");
-
-            return null;
-        });
-
-        for (PyExecutor.PyInstruction instruction : instructions) {
-            instruction.run(executor);
+        } else {
+            System.out.println(builder.getClass());
         }
-
-
-
-//        Interpreter interpreter = new Interpreter(parser);
-//
-//        interpreter.visit(tree);
     }
 
     public PythonInterpreter() {
