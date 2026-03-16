@@ -102,7 +102,7 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ClassBuilder) {
-                return value.build(((ClassBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Object.class));
+                return value.build(((ClassBuilder) builder).declareVar(this.name.getText(), this.type != null ? this.type.toType() : Object.class));
             } else if (builder instanceof FunctionDefinition){
                 return value.build(((FunctionDefinition) builder).setVar(this.name.getText()));
             } else {
@@ -199,7 +199,7 @@ public abstract class PyStatement {
             }
 
             if (builder instanceof ClassBuilder) {
-                FunctionDefinition fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, token.getText(), args);
+                FunctionDefinition fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args);
 
                 for (PyStatement statement : this.statements) {
                     fun = (FunctionDefinition) statement.build(fun);

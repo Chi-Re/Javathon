@@ -31,8 +31,6 @@ public class PythonInterpreter {
                 a: int = 1
                 b = 3
                 
-                n.m.f()
-                
                 def main():
                     g = 1
                 
