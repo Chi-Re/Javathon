@@ -80,13 +80,11 @@ public class BlockBuilder<T> extends Builder<T> {
     }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
-        classAsm.invokeVar(opcode, owner, var, Format.formatPack(type)+";");
-
-        return new CallBuilder<>(classAsm,  this.type);
+        return call(opcode, owner, var, Format.formatPack(type));
     }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, String type) {
-        classAsm.invokeVar(opcode, owner, var, type);
+        classAsm.invokeVar(opcode, owner, var, type+";");
 
         return new CallBuilder<>(classAsm,  this.type);
     }

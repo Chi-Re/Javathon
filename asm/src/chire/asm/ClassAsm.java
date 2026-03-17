@@ -42,6 +42,10 @@ public class ClassAsm {
 //    }
 
     public void defineConstruct(int access, Args args, Class<?> owner, String type) {
+        defineConstruct(access, args, Format.formatPack(owner, false), type);
+    }
+
+    public void defineConstruct(int access, Args args, String owner, String type) {
         defineFunction(access, "<init>", args, null);
 
         mv.visitVarInsn(ALOAD, 0);
@@ -69,20 +73,32 @@ public class ClassAsm {
     }
 
     public void defineClassVar(int access, String name, Class<?> returnType) {
-        FieldVisitor fv = cw.visitField(access, name, Format.formatPack(returnType)+";", null, null);
+        defineClassVar(access, name, Format.formatPack(returnType));
+    }
+
+    public void defineClassVar(int access, String name, String returnType) {
+        FieldVisitor fv = cw.visitField(access, name, returnType+";", null, null);
         fv.visitEnd();
     }
 
     public void classVarInsn(int opcode, String name, Class<?> type, Object value) {
+        classVarInsn(opcode, name, Format.formatPack(type), value);
+    }
+
+    public void classVarInsn(int opcode, String name, String type, Object value) {
         mv.visitVarInsn(ALOAD, 0);
         mv.visitLdcInsn(value);
-        mv.visitFieldInsn(opcode, this.className, name, Format.formatPack(type)+";");
+        mv.visitFieldInsn(opcode, this.className, name, type+";");
     }
 
     public void classVarInsn(int opcode, String name, Class<?> type, VarVisitor varVisitor) {
+        classVarInsn(opcode, name, Format.formatPack(type), varVisitor);
+    }
+
+    public void classVarInsn(int opcode, String name, String type, VarVisitor varVisitor) {
         mv.visitVarInsn(ALOAD, 0);
         varVisitor.init(this);
-        mv.visitFieldInsn(opcode, this.className, name, Format.formatPack(type)+";");
+        mv.visitFieldInsn(opcode, this.className, name, type+";");
     }
 
     public void thisInsn() {
@@ -90,7 +106,11 @@ public class ClassAsm {
     }
 
     public void invokeClassVarEnd(int opcode, String name, Class<?> type) {
-        mv.visitFieldInsn(opcode, this.className, name, Format.formatPack(type)+";");
+        invokeClassVarEnd(opcode, name, Format.formatPack(type));
+    }
+
+    public void invokeClassVarEnd(int opcode, String name, String type) {
+        mv.visitFieldInsn(opcode, this.className, name, type+";");
     }
 
     public void invokeVar(int opcode, Class<?> owner, String name, String type){

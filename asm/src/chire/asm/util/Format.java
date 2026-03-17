@@ -50,6 +50,10 @@ public class Format {
         }
     }
 
+    public static String formatStrPack(String path) {
+        return formatStrPack(path, false);
+    }
+
     public static String formatStrPacks(String[] classes) {
         StringBuilder bs = new StringBuilder();
         bs.append("(");

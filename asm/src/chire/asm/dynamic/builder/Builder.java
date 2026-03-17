@@ -1,6 +1,7 @@
 package chire.asm.dynamic.builder;
 
 import chire.asm.ClassAsm;
+import chire.asm.dynamic.AsmBudVisitor;
 
 import java.lang.reflect.InvocationTargetException;
 

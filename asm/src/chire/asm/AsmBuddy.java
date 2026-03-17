@@ -26,8 +26,8 @@ public class AsmBuddy {
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
                         put("args", String[].class);
                     }})
-                        .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                        .callMethod(PrintStream.class, "println", new String[]{"Ljava.lang.String",}, null)
+                        .call(Opcodes.GETSTATIC, System.class, "out", "Ljava/io/PrintStream")
+                        .callMethod(PrintStream.class, "println", new String[]{"Ljava/lang/String",}, null)
                         .setContent(builder -> builder.definitObj("aaaaaaaa"))
                         .out()
                         .setVar("c")

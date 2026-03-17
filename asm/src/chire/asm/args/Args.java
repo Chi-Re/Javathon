@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Args {
-    private final Map<String, Class<?>> args;
+    private final Map<String, String> args;
 
     public Args() {
         this.args = new HashMap<>();
@@ -17,11 +17,15 @@ public class Args {
     }
 
     public void put(String key, Class<?> value) {
+        args.put(key, Format.formatPack(value));
+    }
+
+    public void put(String key, String value) {
         args.put(key, value);
     }
 
     @Override
     public String toString() {
-        return Format.formatPacks(args.values().toArray(new Class<?>[0]));
+        return Format.formatStrPacks(args.values().toArray(new String[0]));
     }
 }
