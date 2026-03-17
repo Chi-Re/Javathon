@@ -39,4 +39,30 @@ public class Format {
     public static String formatParameter(Class<?>[] parameterTypes, Class<?> returnType){
         return formatPacks(parameterTypes)+(returnType==null?"V":(Format.formatPack(returnType)+";"));
     }
+
+    public static String formatStrPack(String path, boolean arr) {
+        String str = path.replace(".", "/").replace(";", "");
+
+        if (arr) {
+            return "[L"+str;
+        } else {
+            return "L"+str;
+        }
+    }
+
+    public static String formatStrPacks(String[] classes) {
+        StringBuilder bs = new StringBuilder();
+        bs.append("(");
+
+        for (String aClass : classes) {
+            bs.append(aClass).append(";");
+        }
+        bs.append(")");
+
+        return bs.toString();
+    }
+
+    public static String formatStrParameter(String[] parameterTypes, String returnType){
+        return formatStrPacks(parameterTypes)+(returnType==null?"V":returnType+";");
+    }
 }

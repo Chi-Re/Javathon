@@ -27,7 +27,7 @@ public class AsmBuddy {
                         put("args", String[].class);
                     }})
                         .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                        .callMethod(PrintStream.class, "println", new Class[]{String.class,}, null)
+                        .callMethod(PrintStream.class, "println", new String[]{"Ljava.lang.String",}, null)
                         .setContent(builder -> builder.definitObj("aaaaaaaa"))
                         .out()
                         .setVar("c")

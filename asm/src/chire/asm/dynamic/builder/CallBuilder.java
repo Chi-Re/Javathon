@@ -52,6 +52,18 @@ public class CallBuilder<T> extends Builder<T>{
         return methodBuilder;
     }
 
+    public MethodBuilder<T> callMethod(Class<?> owner, String var, String[] parameters, String returnType) {
+        MethodBuilder<T> methodBuilder = new MethodBuilder<>(classAsm, type);
+
+        methodBuilder.end(builder -> {
+            classAsm.invokeMethod(Opcodes.INVOKEVIRTUAL, owner, var, Format.formatStrParameter(parameters, returnType));
+
+            return new CallBuilder<>(classAsm, type);
+        });
+
+        return methodBuilder;
+    }
+
 //    private CallBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
 //        classAsm.invokeMethod(Opcodes.INVOKEVIRTUAL, owner, var, Format.formatParameter(parameters, returnType));
 //
