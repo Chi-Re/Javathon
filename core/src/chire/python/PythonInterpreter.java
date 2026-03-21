@@ -28,7 +28,7 @@ public class PythonInterpreter {
         // 71 +
         // 73 /
         String pythonCode = """
-                from java.lang import System
+                import T1.T2
                 
                 a: int = 1
                 b = 3

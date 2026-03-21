@@ -9,6 +9,7 @@ import org.antlr.v4.runtime.Token;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 public class PyParser {
@@ -71,6 +72,10 @@ public class PyParser {
                     statements.add(classDeclaration(1));
                     break;
 
+                case 23, 26:
+                    statements.add(importDeclaration());
+                    break;
+
                 default:
                     break;
             }
@@ -79,6 +84,91 @@ public class PyParser {
         }
 
         return statements;
+    }
+
+    private PyStatement importDeclaration() {
+        return importDeclaration(0);
+    }
+
+    private PyStatement importDeclaration(int cur) {
+        this.current += cur;
+
+        var key = peek();
+        PyStatement.ImportStatement importStatement = null;
+        switch (key.getType()){
+            case 23:
+                List<String> path = new ArrayList<>();
+
+                for (;;) {
+                    current++;
+                    key = peek();
+
+                    if (key.getType() == 54) {
+                        //TODO 这里之后要支持父级调用
+                        if (last().getType() == 54 || previous().getType() == 54) throw new RuntimeException("not key");
+                        continue;
+                    }
+
+                    if (key.getType() == 45) {
+                        path.add(key.getText());
+                        continue;
+                    }
+
+                    if (key.getType() == 26) {
+                        break;
+                    } else {
+                        throw new RuntimeException("out key");
+                    }
+                }
+
+                current++;
+
+                key = peek();
+
+                importStatement = new PyStatement.ImportStatement(path, key.getText());
+                break;
+
+            case 26:
+                List<String> pack = new ArrayList<>();
+
+                for (;;) {
+                    current++;
+                    key = peek();
+
+                    if (key.getType() == 54) {
+                        //TODO 这里之后要支持父级调用
+                        if (last().getType() == 54 || previous().getType() == 54) throw new RuntimeException("not key");
+                        continue;
+                    }
+
+                    if (key.getType() == 45) {
+                        if (key.getType() != 54 && last().getType() != 54) {
+                            importStatement = new PyStatement.ImportStatement(pack, key.getText());
+                            break;
+                        }
+
+                        pack.add(key.getText());
+                        continue;
+                    }
+
+                    throw new RuntimeException("out key");
+                }
+
+                break;
+        }
+
+        if (last().getType() == 7) {
+            current += 2;
+
+            if (key.getType() == 45) {
+                importStatement.toName(key.getText());
+                return importStatement;
+            } else {
+                throw new RuntimeException("out key");
+            }
+        }
+
+        return importStatement;
     }
 
     private PyStatement submethodCall(PyStatement var){

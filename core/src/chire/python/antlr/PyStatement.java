@@ -12,10 +12,7 @@ import chire.python.util.type.RemoveQuotes;
 import org.antlr.v4.runtime.Token;
 import org.objectweb.asm.Opcodes;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public abstract class PyStatement {
     public abstract PyExecutor.PyInstruction build(PyAssembler builder);
@@ -43,6 +40,31 @@ public abstract class PyStatement {
         @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("Break");
+        }
+    }
+
+    public static class ImportStatement extends PyStatement{
+        private final List<String> path;
+        private String name;
+        private final String packName;
+
+        ImportStatement(List<String> path, String packName){
+            this.path = path;
+            this.packName = packName;
+            this.name = packName;
+        }
+
+        public void toName(String name) {
+            this.name = name;
+        }
+
+        public Builder<?> build(Builder<?> builder){
+            return builder;
+        }
+
+        @Override
+        public PyExecutor.PyInstruction build(PyAssembler builder) {
+            return null;
         }
     }
 
