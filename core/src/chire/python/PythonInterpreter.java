@@ -5,9 +5,9 @@ import chire.antlr.Python3Parser;
 import chire.asm.AsmBuddy;
 import chire.asm.dynamic.builder.Builder;
 import chire.asm.dynamic.builder.ClassBuilder;
-import chire.python.antlr.PyExecutor;
 import chire.python.antlr.PyParser;
 import chire.python.antlr.PyStatement;
+import chire.python.asm.PythonAsmBuddy;
 import chire.python.util.SmartIndenter;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -28,6 +28,8 @@ public class PythonInterpreter {
         // 71 +
         // 73 /
         String pythonCode = """
+                from java.lang import System
+                
                 a: int = 1
                 b = 3
                 
@@ -51,7 +53,7 @@ public class PythonInterpreter {
 
         ArrayList<PyStatement> statements = new PyParser(tokens).parse();
 
-        Builder<?> builder = new AsmBuddy("ClassPyTest", Object.class).create();
+        Builder<?> builder = new PythonAsmBuddy("ClassPyTest", Object.class).create();
 
         SmartIndenter indenter = new SmartIndenter("  ");
         for (PyStatement statement : statements) {

@@ -53,6 +53,10 @@ public class AsmBuddy {
         return new ClassBuilder(classAsm);
     }
 
+    public ClassAsm getClassAsm() {
+        return classAsm;
+    }
+
     public byte[] save() {
         return classAsm.getByte();
     }
