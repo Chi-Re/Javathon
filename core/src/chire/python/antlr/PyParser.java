@@ -19,18 +19,6 @@ public class PyParser {
 
     private int current = 0;
 
-    private static HashMap<String, Class<?>> keyMap = new HashMap<>();
-
-    static {
-        keyMap.put("object", PyObject.class);
-        keyMap.put("float", Float.class);
-        keyMap.put("int", Integer.class);
-        keyMap.put("str", String.class);
-
-        keyMap.put("dict", PyDict.class);
-        keyMap.put("list", PyList.class);
-    }
-
     public PyParser(CommonTokenStream token) {
         this.tokenStream = token;
     }
@@ -319,13 +307,13 @@ public class PyParser {
 
             switch (token.getType()) {
                 case 45:
-                    Class<?> type;
+                    PyStatement.TypeStatement type;
                     if (match(this.current+1, 60)){
                         current+=2;
-                        if (!match(peek().getType(), 45)) throw new RuntimeException("no key");
-                        type = keyMap.getOrDefault(peek().getText(), Object.class);
+                        if (!match(current, 45)) throw new RuntimeException("no key");
+                        type = typeDeclaration();
                     } else {
-                        type = Object.class;
+                        type = null;
                     }
 
                     args.add(new PyStatement.ArgStatement(token, type));

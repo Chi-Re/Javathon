@@ -7,6 +7,8 @@ import chire.asm.dynamic.builder.ClassBuilder;
 import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
 import chire.python.asm.ModuleBuilder;
+import chire.python.py.PyDict;
+import chire.python.py.PyList;
 import chire.python.py.base.PyObject;
 import chire.python.util.SmartIndenter;
 import chire.python.util.type.RemoveQuotes;
@@ -76,7 +78,13 @@ public abstract class PyStatement {
         protected Map<String, Class<?>> types = new HashMap<>();
 
         {
+            types.put("object", PyObject.class);
+            types.put("float", Float.class);
             types.put("int", Integer.class);
+            types.put("str", String.class);
+
+            types.put("dict", PyDict.class);
+            types.put("list", PyList.class);
         }
 
         TypeStatement(Token type, TypeStatement... value) {
@@ -223,7 +231,7 @@ public abstract class PyStatement {
             Args args = new Args();
 
             for (ArgStatement arg : this.args) {
-                args.put(arg.token.getText(), arg.type);
+                args.put(arg.token.getText(), arg.getType());
             }
 
             if (builder instanceof ClassBuilder) {
@@ -492,21 +500,20 @@ public abstract class PyStatement {
 
         public final Token token;
 
-        public final Class<?> type;
+        public final TypeStatement type;
 
-        public ArgStatement(Token token, Class<?> type){
+        public ArgStatement(Token token, TypeStatement type){
             this.token = token;
             this.type = type;
         }
 
-        public ArgStatement(Token token){
-            this.token = token;
-            this.type = Object.class;
+        public Class<?> getType(){
+            return type == null ? Object.class : type.toType();
         }
 
         @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.ArgPy(token.getText(), type);
+            return new PyExecutor.ArgPy(token.getText(), Object.class);
         }
 
         @Override
