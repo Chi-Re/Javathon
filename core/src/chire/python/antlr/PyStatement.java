@@ -6,6 +6,7 @@ import chire.asm.dynamic.builder.Builder;
 import chire.asm.dynamic.builder.ClassBuilder;
 import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
+import chire.python.asm.ModuleBuilder;
 import chire.python.py.base.PyObject;
 import chire.python.util.SmartIndenter;
 import chire.python.util.type.RemoveQuotes;
@@ -123,7 +124,12 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
-            if (builder instanceof ClassBuilder) {
+            if (builder instanceof ModuleBuilder) {
+                return new ModuleBuilder(
+                        value.build(((ModuleBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Object.class))
+                                .getClassAsm()
+                );
+            } else if (builder instanceof ClassBuilder) {
                 return value.build(((ClassBuilder) builder).declareVar(this.name.getText(), this.type != null ? this.type.toType() : Object.class));
             } else if (builder instanceof FunctionDefinition){
                 return value.build(((FunctionDefinition) builder).setVar(this.name.getText()));
@@ -221,13 +227,23 @@ public abstract class PyStatement {
             }
 
             if (builder instanceof ClassBuilder) {
-                FunctionDefinition fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args);
+                FunctionDefinition fun;
+
+                if (builder instanceof ModuleBuilder) {
+                    fun = ((ModuleBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, token.getText(), args);
+                } else {
+                    fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args);
+                }
 
                 for (PyStatement statement : this.statements) {
                     fun = (FunctionDefinition) statement.build(fun);
                 }
 
-                return fun._return();
+                if (builder instanceof ModuleBuilder) {
+                    return new ModuleBuilder(fun._return().getClassAsm());
+                } else {
+                    return fun._return();
+                }
             } else {
                 return builder;
             }
