@@ -19,6 +19,11 @@ public class ConstructDefinition extends BlockBuilder<ConstructDefinition> {
         return super.setClassVar(opcode, name, type);
     }
 
+    @Override
+    public ClassVarBuilder<ConstructDefinition> setClassVar(int opcode, String name, String type) {
+        return super.setClassVar(opcode, name, type);
+    }
+
     public ClassBuilder _back(){
         classAsm.toReturn();
         return new ClassBuilder(classAsm);

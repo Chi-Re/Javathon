@@ -24,6 +24,10 @@ public class ClinitDefinition extends BlockBuilder<ClinitDefinition> {
         return super.setStaticVar(name, type);
     }
 
+    public ClassVarBuilder<ClinitDefinition> setStaticVar(String name, String type) {
+        return super.setStaticVar(name, type);
+    }
+
     public ClassBuilder _back(){
         classAsm.toReturn();
         return new ClassBuilder(classAsm);

@@ -7,6 +7,7 @@ import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.ConstructDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
+import chire.asm.util.Format;
 import chire.asm.util.OpcodesFormat;
 import org.objectweb.asm.Opcodes;
 
@@ -18,16 +19,20 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     public static class VarBuilder extends Builder<AsmBuddy> {
         private int access;
         private String name;
-        private Class<?> returnType;
+        private String returnType;
 
         public VarBuilder(ClassAsm classAsm, Class<AsmBuddy> type) {
             super(classAsm, type);
         }
 
-        private void setClassVars(int access, String name, Class<?> returnType) {
+        private void setClassVars(int access, String name, String returnType) {
             this.access = access;
             this.name = name;
             this.returnType = returnType;
+        }
+
+        private void setClassVars(int access, String name, Class<?> returnType) {
+            setClassVars(access, name, Format.formatPack(returnType));
         }
 
         public ClassBuilder setContent(AsmBudVisitor.AsmCallBuilder<FunctionDefinition> content) {
@@ -38,15 +43,19 @@ public class ClassBuilder extends Builder<AsmBuddy> {
 
     public static class StaticVarBuilder extends Builder<AsmBuddy> {
         private String name;
-        private Class<?> returnType;
+        private String returnType;
 
         public StaticVarBuilder(ClassAsm classAsm, Class<AsmBuddy> type) {
             super(classAsm, type);
         }
 
-        private void setClassVars(String name, Class<?> returnType) {
+        private void setClassVars(String name, String returnType) {
             this.name = name;
             this.returnType = returnType;
+        }
+
+        private void setClassVars(String name, Class<?> returnType) {
+            setClassVars(name, Format.formatPack(returnType));
         }
 
         public ClassBuilder setContent(AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
@@ -58,14 +67,18 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     public static class ClassVarBuild {
         private final int access;
         private final String name;
-        private final Class<?> returnType;
+        private final String returnType;
         private final AsmBudVisitor.AsmCallBuilder<FunctionDefinition> content;
 
-        public ClassVarBuild(int access, String name, Class<?> returnType, AsmBudVisitor.AsmCallBuilder<FunctionDefinition> content) {
+        public ClassVarBuild(int access, String name, String returnType, AsmBudVisitor.AsmCallBuilder<FunctionDefinition> content) {
             this.access = access;
             this.name = name;
             this.returnType = returnType;
             this.content = content;
+        }
+
+        public ClassVarBuild(int access, String name, Class<?> returnType, AsmBudVisitor.AsmCallBuilder<FunctionDefinition> content) {
+            this(access, name, Format.formatPack(returnType), content);
         }
 
         public FunctionDefinition visit(FunctionDefinition builder) {
@@ -75,18 +88,31 @@ public class ClassBuilder extends Builder<AsmBuddy> {
 
     public static class StaticVarBuild {
         private final String name;
-        private final Class<?> returnType;
+        private final String returnType;
         private final AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content;
 
-        public StaticVarBuild(String name, Class<?> returnType, AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+        public StaticVarBuild(String name, String returnType, AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
             this.name = name;
             this.returnType = returnType;
             this.content = content;
         }
 
+        public StaticVarBuild(String name, Class<?> returnType, AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+            this(name, Format.formatPack(returnType), content);
+        }
+
         public ClinitDefinition visit(ClinitDefinition builder) {
             return builder.setStaticVar(name, returnType).setContent(content);
         }
+    }
+
+    public VarBuilder declareVar(int access, String name, String returnType) {
+        classAsm.defineClassVar(access, name, returnType);
+
+        VarBuilder builder = new VarBuilder(classAsm, type);
+        builder.setClassVars(access, name, returnType);
+
+        return builder;
     }
 
     public VarBuilder declareVar(int access, String name, Class<?> returnType) {

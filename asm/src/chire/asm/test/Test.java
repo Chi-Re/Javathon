@@ -1,15 +1,12 @@
 package chire.asm.test;
 
 public class Test {
+    public String a = "aa";
+
     public static void main(String[] var0) {
-        Runnable run = () -> {
-            String str = "Hello?";
+        Test t = new Test();
 
-            System.out.println("Hello World");
-            System.out.println(str);
-        };
-
-        run.run();
+        System.out.println(t.a);
     }
 }
 
