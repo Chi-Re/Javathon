@@ -124,12 +124,21 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         return builder;
     }
 
+    public VarBuilder declareVar(String name, String returnType) {
+        return declareVar(Opcodes.ACC_PUBLIC, name, returnType);
+    }
+
     public VarBuilder declareVar(String name, Class<?> returnType) {
         return declareVar(Opcodes.ACC_PUBLIC, name, returnType);
     }
 
     public StaticVarBuilder declareStaticVar(String name, Class<?> returnType) {
-        return declareStaticVar(name, Format.formatPack(returnType));
+        classAsm.defineClassVar(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, name, returnType);
+
+        StaticVarBuilder builder = new StaticVarBuilder(classAsm, type);
+        builder.setClassVars(name, returnType);
+
+        return builder;
     }
 
     public StaticVarBuilder declareStaticVar(String name, String returnType) {

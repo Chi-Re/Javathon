@@ -71,7 +71,7 @@ public class CallBuilder<T> extends Builder<T>{
 //    }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
-        classAsm.invokeVar(opcode, owner, var, Format.formatPack(type)+";");
+        classAsm.invokeVar(opcode, owner, var, Format.formatPack(type));
 
         return new CallBuilder<>(classAsm,  this.type);
     }
