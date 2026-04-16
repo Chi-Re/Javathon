@@ -3,10 +3,13 @@ package chire.asm.test;
 public class Test {
     public String a = "aa";
 
-    public static void main(String[] var0) {
-        Test t = new Test();
+    public static Test test = new Test("adb", 12);
 
-        System.out.println(t.a);
+    public static void main(String[] var0) {
+    }
+
+    public Test(String name, Integer num){
+
     }
 }
 
