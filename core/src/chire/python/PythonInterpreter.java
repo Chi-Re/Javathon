@@ -38,7 +38,7 @@ public class PythonInterpreter {
                 
                 def fun(te):
                     c = 4
-                """;
+                """;//
 
         // 创建词法分析器和语法分析器
         CharStream input = CharStreams.fromString(pythonCode);

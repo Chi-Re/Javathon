@@ -85,7 +85,7 @@ public class PyParser {
         PyStatement.ImportStatement importStatement = null;
         switch (key.getType()){
             case 23:
-                List<String> path = new ArrayList<>();
+                StringBuilder path = new StringBuilder();
 
                 for (;;) {
                     current++;
@@ -94,11 +94,12 @@ public class PyParser {
                     if (key.getType() == 54) {
                         //TODO 这里之后要支持父级调用
                         if (last().getType() == 54 || previous().getType() == 54) throw new RuntimeException("not key");
+                        path.append(".");
                         continue;
                     }
 
                     if (key.getType() == 45) {
-                        path.add(key.getText());
+                        path.append(key.getText());
                         continue;
                     }
 
@@ -113,11 +114,12 @@ public class PyParser {
 
                 key = peek();
 
-                importStatement = new PyStatement.ImportStatement(path, key.getText());
+                importStatement = new PyStatement.ImportStatement(path.toString(), key.getText());
                 break;
 
             case 26:
-                List<String> pack = new ArrayList<>();
+//                List<String> pack = new ArrayList<>();
+                StringBuilder pack = new StringBuilder();
 
                 for (;;) {
                     current++;
@@ -126,16 +128,17 @@ public class PyParser {
                     if (key.getType() == 54) {
                         //TODO 这里之后要支持父级调用
                         if (last().getType() == 54 || previous().getType() == 54) throw new RuntimeException("not key");
+                        pack.append(".");
                         continue;
                     }
 
                     if (key.getType() == 45) {
                         if (key.getType() != 54 && last().getType() != 54) {
-                            importStatement = new PyStatement.ImportStatement(pack, key.getText());
+                            importStatement = new PyStatement.ImportStatement(pack.toString(), key.getText());
                             break;
                         }
 
-                        pack.add(key.getText());
+                        pack.append(key.getText());
                         continue;
                     }
 

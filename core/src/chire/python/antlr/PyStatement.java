@@ -4,8 +4,8 @@ import chire.asm.args.Args;
 import chire.asm.dynamic.builder.BlockBuilder;
 import chire.asm.dynamic.builder.Builder;
 import chire.asm.dynamic.builder.ClassBuilder;
-import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
+import chire.asm.util.Format;
 import chire.python.asm.ModuleBuilder;
 import chire.python.py.PyDict;
 import chire.python.py.PyList;
@@ -14,6 +14,7 @@ import chire.python.util.SmartIndenter;
 import chire.python.util.type.RemoveQuotes;
 import org.antlr.v4.runtime.Token;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import java.util.*;
 
@@ -47,11 +48,11 @@ public abstract class PyStatement {
     }
 
     public static class ImportStatement extends PyStatement{
-        private final List<String> path;
+        private final String path;
         private String name;
         private final String packName;
 
-        ImportStatement(List<String> path, String packName){
+        ImportStatement(String path, String packName){
             this.path = path;
             this.packName = packName;
             this.name = packName;
@@ -61,8 +62,31 @@ public abstract class PyStatement {
             this.name = name;
         }
 
-        public Builder<?> build(Builder<?> builder){
-            return builder;
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof ModuleBuilder) {
+                return new ModuleBuilder(
+                       ((ModuleBuilder) builder).declareStaticVar("JPClass_"+this.name, Class.class).setContent(
+                               argb -> argb.definitObj(
+                                       Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
+                               )
+                       ).getClassAsm()
+                );
+            } else if (builder instanceof ClassBuilder) {
+                return ((ClassBuilder) builder).declareVar(this.name, Class.class).setContent(
+                        argb -> argb.definitObj(
+                                Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
+                        )
+                );
+            } else if (builder instanceof FunctionDefinition){
+                return ((FunctionDefinition) builder).setVar(this.name).setContent(
+                        argb -> argb.definitObj(
+                                Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
+                        )
+                );
+            } else {
+                return builder;
+            }
         }
 
         @Override
