@@ -43,6 +43,10 @@ public class Format {
     public static String formatStrPack(String path, boolean arr) {
         String str = path.replace(".", "/").replace(";", "");
 
+        if (path.indexOf("L") == 0){
+            str = str.replaceFirst("L", "");
+        } else if (path.indexOf("L") == 1 && path.indexOf("[") == 0) str = str.replaceFirst("\\[", "");
+
         if (arr) {
             return "[L"+str;
         } else {

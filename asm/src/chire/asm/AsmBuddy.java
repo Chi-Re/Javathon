@@ -19,7 +19,7 @@ public class AsmBuddy {
             fos.write(new AsmBuddy("TestCl", Object.class).create()
                     .declareVar(Opcodes.ACC_PUBLIC, "a", Object.class)
                         .setContent(builder -> {
-                            return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
+                            return builder.call(Opcodes.GETSTATIC, System.class, "out", "Ljava/io/PrintStream");
                         })
                     .declareStaticVar("st", String.class)
                         .setContent(builder -> builder.definitObj("setStaticVar"))
