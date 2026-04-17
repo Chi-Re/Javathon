@@ -313,7 +313,7 @@ public class PyParser {
                     PyStatement.TypeStatement type;
                     if (match(this.current+1, 60)){
                         current+=2;
-                        if (!match(current, 45)) throw new RuntimeException("no key");
+                        if (!match(current, 45, 3)) throw new RuntimeException("no key");
                         type = typeDeclaration();
                     } else {
                         type = null;
@@ -379,7 +379,7 @@ public class PyParser {
         Token token = peek();
 
         switch (token.getType()) {
-            case 45:
+            case 45, 3:
                 return new PyStatement.TypeStatement(token);
         }
 

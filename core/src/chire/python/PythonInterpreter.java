@@ -33,7 +33,7 @@ public class PythonInterpreter {
                 a: int = 1
                 b = 3
                 
-                def main(s: str):
+                def main(s: "java:[Ljava/lang/String"):
                     g = 1
                 
                 def fun(te):

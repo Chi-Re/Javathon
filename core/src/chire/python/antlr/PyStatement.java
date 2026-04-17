@@ -99,18 +99,6 @@ public abstract class PyStatement {
         private final Token type;
         private final TypeStatement[] value;
 
-        protected Map<String, Class<?>> types = new HashMap<>();
-
-        {
-            types.put("object", PyObject.class);
-            types.put("float", Float.class);
-            types.put("int", Integer.class);
-            types.put("str", String.class);
-
-            types.put("dict", PyDict.class);
-            types.put("list", PyList.class);
-        }
-
         TypeStatement(Token type, TypeStatement... value) {
             this.type = type;
             this.value = value;
@@ -120,8 +108,14 @@ public abstract class PyStatement {
             this(type, new TypeStatement[0]);
         }
 
-        public Class<?> toType(){
-            return types.getOrDefault(type.getText(), Object.class);
+        public String toType(){
+            String path = type.getText().replaceAll("\"", "");
+
+            if (path.indexOf("java:") == 0) {
+                return path.replaceFirst("java:", "");
+            } else {
+                return Format.formatPack(Object.class);
+            }
         }
 
         @Override
@@ -158,11 +152,11 @@ public abstract class PyStatement {
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ModuleBuilder) {
                 return new ModuleBuilder(
-                        value.build(((ModuleBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Object.class))
+                        value.build(((ModuleBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)))
                                 .getClassAsm()
                 );
             } else if (builder instanceof ClassBuilder) {
-                return value.build(((ClassBuilder) builder).declareVar(this.name.getText(), this.type != null ? this.type.toType() : Object.class));
+                return value.build(((ClassBuilder) builder).declareVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
             } else if (builder instanceof FunctionDefinition){
                 return value.build(((FunctionDefinition) builder).setVar(this.name.getText()));
             } else {
@@ -531,8 +525,8 @@ public abstract class PyStatement {
             this.type = type;
         }
 
-        public Class<?> getType(){
-            return type == null ? Object.class : type.toType();
+        public String getType(){
+            return type == null ? Format.formatPack(Object.class) : type.toType();
         }
 
         @Override
