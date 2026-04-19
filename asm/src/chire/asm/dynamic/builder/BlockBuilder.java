@@ -91,13 +91,19 @@ public class BlockBuilder<T> extends Builder<T> {
         return setStaticVar(name, Format.formatPack(type));
     }
 
+    public CallBuilder.MethodBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
+        return new CallBuilder<>(classAsm, this.type).callMethod(owner, var, parameters, returnType);
+    }
+
+    public CallBuilder.MethodBuilder<T> callMethod(Class<?> owner, String var, String[] parameters, String returnType) {
+        return new CallBuilder<>(classAsm, this.type).callMethod(owner, var, parameters, returnType);
+    }
+
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
         return call(opcode, owner, var, Format.formatPack(type));
     }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, String type) {
-        classAsm.invokeVar(opcode, owner, var, type);
-
-        return new CallBuilder<>(classAsm,  this.type);
+        return new CallBuilder<>(classAsm,  this.type).call(opcode, owner, var, type);
     }
 }

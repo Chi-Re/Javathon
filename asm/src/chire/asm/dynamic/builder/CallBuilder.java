@@ -64,22 +64,17 @@ public class CallBuilder<T> extends Builder<T>{
         return methodBuilder;
     }
 
-//    private CallBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
-//        classAsm.invokeMethod(Opcodes.INVOKEVIRTUAL, owner, var, Format.formatParameter(parameters, returnType));
-//
-//        return new CallBuilder<>(classAsm, type);
-//    }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
         classAsm.invokeVar(opcode, owner, var, Format.formatPack(type));
 
-        return new CallBuilder<>(classAsm,  this.type);
+        return this;
     }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, String type) {
         classAsm.invokeVar(opcode, owner, var, type);
 
-        return new CallBuilder<>(classAsm,  this.type);
+        return this;
     }
 
     public CallBuilder<T> definitObj(Object obj) {

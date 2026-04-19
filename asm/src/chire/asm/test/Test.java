@@ -1,15 +1,16 @@
 package chire.asm.test;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Test {
-    public static Test test = new Test("adb", 12);
-
     public static void main(String[] var0) {
-        System.out.println("java:ssss".indexOf("java:"));
+        Test.tesss("tesssss");
     }
 
-    public Test(String name, Integer num){
+    public static void tesss(String name) {
+        System.out.println(name);
     }
 }
 
