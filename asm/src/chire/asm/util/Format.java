@@ -41,11 +41,7 @@ public class Format {
     }
 
     public static String formatStrPack(String path, boolean arr) {
-        String str = path.replace(".", "/").replace(";", "");
-
-        if (path.indexOf("L") == 0){
-            str = str.replaceFirst("L", "");
-        } else if (path.indexOf("L") == 1 && path.indexOf("[") == 0) str = str.replaceFirst("\\[", "");
+        String str = formatStrType(path);
 
         if (arr) {
             return "[L"+str;
@@ -72,5 +68,21 @@ public class Format {
 
     public static String formatStrParameter(String[] parameterTypes, String returnType){
         return formatStrPacks(parameterTypes)+(returnType==null?"V":returnType+";");
+    }
+
+    public static String formatStrType(Class<?> clazz) {
+        String path = clazz.getName();
+
+        return formatStrType(path);
+    }
+
+    public static String formatStrType(String path) {
+        String str = path.replace(".", "/").replace(";", "");
+
+        if (path.indexOf("L") == 0){
+            str = str.replaceFirst("L", "");
+        } else if (path.indexOf("L") == 1 && path.indexOf("[") == 0) str = str.replaceFirst("\\[", "");
+
+        return str;
     }
 }
