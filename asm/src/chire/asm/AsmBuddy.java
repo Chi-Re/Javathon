@@ -21,31 +21,26 @@ public class AsmBuddy {
             fos.write(new AsmBuddy("TestCl", Object.class).create()
                     .declareVar(Opcodes.ACC_PUBLIC, "a", Object.class)
                         .setContent(builder -> {
-                            return builder.call(Opcodes.GETSTATIC, System.class, "out", "Ljava/io/PrintStream");
+                            return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
                         })
                     .declareStaticVar("st", String.class)
                         .setContent(builder -> builder.definitObj("setStaticVar"))
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
                         put("args", String[].class);
                     }})
-                        .call(Opcodes.GETSTATIC, System.class, "out", "Ljava/io/PrintStream")
-                        .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/String",}, null)
-                        .setContent(builder -> builder.definitObj("aaaaaaaa"))
-                        .out()
-
-//                        .callMethod("chire/python/lib/JPUtil", "newInstance", new String[]{"Ljava/lang/Class", "[Ljava/lang/Object"}, "Ljava/lang/Object")
-//                        .setContent(builder -> {
-//                            return builder.definitObj(Type.getType("Ljava/lang/String;"), "sss");
-//                        })
-//                        .out()
-
-                        .call(Opcodes.GETSTATIC, System.class, "out", "Ljava/io/PrintStream")
-                        .callMethod("java/io/PrintStream", "printf", new String[]{"Ljava/lang/String", "[Ljava/lang/Object"}, "Ljava/io/PrintStream")
-                        .setContent(builder -> builder.definitObj("%.2f", 12.456, 14.344))
-                        .out()
 
                         .setVar("c")
                         .setContent(builder -> builder.definitObj(12))
+
+                        .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                        .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
+                        .setContent(builder -> builder.callLocal("c"))
+                        .out()
+
+                        .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                        .callMethod("java/io/PrintStream", "printf", new String[]{"Ljava/lang/String", "[Ljava/lang/Object"}, "Ljava/io/PrintStream")
+                        .setContent(builder -> builder.definitObj("%.2f", 12.456, 14.344))
+                        .out()
                     ._return()
                     .make()
                     .save()

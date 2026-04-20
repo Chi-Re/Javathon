@@ -99,11 +99,11 @@ public class BlockBuilder<T> extends Builder<T> {
         return new CallBuilder<>(classAsm, this.type).callMethod(Opcodes.INVOKESTATIC, owner, var, parameters, returnType);
     }
 
-    public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
-        return call(opcode, owner, var, Format.formatPack(type));
+    public CallBuilder<T> call(int opcode, String owner, String var, String type) {
+        return new CallBuilder<>(classAsm,  this.type).call(opcode, owner, var, type);
     }
 
-    public CallBuilder<T> call(int opcode, Class<?> owner, String var, String type) {
+    public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
         return new CallBuilder<>(classAsm,  this.type).call(opcode, owner, var, type);
     }
 }

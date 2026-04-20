@@ -12,8 +12,9 @@ public class Test {
     public static String st = "setStaticVar";
 
     public static void main(String[] var0) {
-        System.out.println("aaaaaaaa");
-        System.out.printf("%.2f", 12.456, 14.344);
+        String text = "sssssssdaaa";
+
+        System.out.println(text);
     }
 
     private void $__init__$FieldInsn$() {

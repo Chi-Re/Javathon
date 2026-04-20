@@ -20,6 +20,18 @@ public class CallBuilder<T> extends Builder<T>{
             this.parameters = parameters;
         }
 
+        public CallBuilder<T> callLocal(String name) {
+            return new CallBuilder<>(this.classAsm, this.type).callLocal(name);
+        }
+
+        public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
+            return new CallBuilder<>(this.classAsm, this.type).call(opcode, owner, var, type);
+        }
+
+        public CallBuilder<T> call(int opcode, String owner, String var, String type) {
+            return new CallBuilder<>(this.classAsm, this.type).call(opcode, owner, var, type);
+        }
+
         public CallBuilder<T> definitObj(Object... obj) {
             int argSum = 0;
 
@@ -114,14 +126,19 @@ public class CallBuilder<T> extends Builder<T>{
         return methodBuilder;
     }
 
-
-    public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
-        classAsm.invokeVar(opcode, owner, var, Format.formatPack(type));
+    public CallBuilder<T> callLocal(String name) {
+        classAsm.invokeLocalVar(name);
 
         return this;
     }
 
-    public CallBuilder<T> call(int opcode, Class<?> owner, String var, String type) {
+    public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
+        classAsm.invokeVar(opcode, owner, var, type);
+
+        return this;
+    }
+
+    public CallBuilder<T> call(int opcode, String owner, String var, String type) {
         classAsm.invokeVar(opcode, owner, var, type);
 
         return this;

@@ -117,9 +117,13 @@ public class ClassAsm {
         mv.visitFieldInsn(opcode, this.className, name, type+";");
     }
 
-    public void invokeVar(int opcode, Class<?> owner, String name, String type){
+    public void invokeVar(int opcode, String owner, String name, String type){
+        mv.visitFieldInsn(opcode, owner, name, type+";");
+    }
+
+    public void invokeVar(int opcode, Class<?> owner, String name, Class<?> type){
         //TODO 对于解析时type的获取明显是有些麻烦且不符合直觉的，添加自动获取type的功能
-        mv.visitFieldInsn(opcode, Format.formatPack(owner, false), name, type+";");
+        mv.visitFieldInsn(opcode, Format.formatPack(owner, false), name, Format.formatPack(type)+";");
     }
 
     public void invokeMethod(int opcode, String owner, String name, String type){
@@ -136,6 +140,14 @@ public class ClassAsm {
         } else {
             varsKey.put(name, varsKey.size());
             mv.visitVarInsn(ASTORE, varsKey.size());
+        }
+    }
+
+    public void invokeLocalVar(String name) {
+        if (varsKey.containsKey(name)) {
+            mv.visitVarInsn(ALOAD, varsKey.get(name)+1);
+        } else {
+            throw new RuntimeException("no key");
         }
     }
 
