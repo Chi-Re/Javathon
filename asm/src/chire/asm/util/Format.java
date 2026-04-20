@@ -81,7 +81,9 @@ public class Format {
 
         if (path.indexOf("L") == 0){
             str = str.replaceFirst("L", "");
-        } else if (path.indexOf("L") == 1 && path.indexOf("[") == 0) str = str.replaceFirst("\\[", "");
+        } else if (path.indexOf("L") == 1 && path.indexOf("[") == 0) {
+            str = str.replaceFirst("\\[", "").replaceFirst("L", "");
+        }
 
         return str;
     }
