@@ -92,11 +92,11 @@ public class BlockBuilder<T> extends Builder<T> {
     }
 
     public CallBuilder.MethodBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
-        return new CallBuilder<>(classAsm, this.type).callMethod(owner, var, parameters, returnType);
+        return new CallBuilder<>(classAsm, this.type).callMethod(Opcodes.INVOKESTATIC, owner, var, parameters, returnType);
     }
 
-    public CallBuilder.MethodBuilder<T> callMethod(Class<?> owner, String var, String[] parameters, String returnType) {
-        return new CallBuilder<>(classAsm, this.type).callMethod(owner, var, parameters, returnType);
+    public CallBuilder.MethodBuilder<T> callMethod(String owner, String var, String[] parameters, String returnType) {
+        return new CallBuilder<>(classAsm, this.type).callMethod(Opcodes.INVOKESTATIC, owner, var, parameters, returnType);
     }
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {

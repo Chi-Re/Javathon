@@ -139,6 +139,10 @@ public class ClassAsm {
         }
     }
 
+    public void mVisitInsn(int opcodes) {
+        mv.visitInsn(opcodes);
+    }
+
     public void ldcInsn(Object obj){
         //Java 8不支持var，每个类型都需要特定类型字节码支持。
         if (obj instanceof Boolean) {
@@ -155,6 +159,19 @@ public class ClassAsm {
             mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false);
         } else {
             mv.visitLdcInsn(obj);
+        }
+    }
+    public void ldcInsns(String type, Object... objs){
+        int ICONST_NUM = Opcodes.ICONST_0 + objs.length;
+
+        mv.visitInsn(ICONST_NUM);
+        mv.visitTypeInsn(ANEWARRAY, type);
+
+        for (int i = ICONST_0; i < ICONST_NUM; i++) {
+            mv.visitInsn(DUP);
+            mv.visitInsn(i);
+            ldcInsn(objs[i-ICONST_0]);
+            mv.visitInsn(AASTORE);
         }
     }
 
