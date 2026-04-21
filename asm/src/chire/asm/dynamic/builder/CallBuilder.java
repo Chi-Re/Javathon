@@ -20,8 +20,14 @@ public class CallBuilder<T> extends Builder<T>{
             this.parameters = parameters;
         }
 
-        public CallBuilder<T> callLocal(String name) {
-            return new CallBuilder<>(this.classAsm, this.type).callLocal(name);
+        public CallBuilder<T> callLocal(String... names) {
+            CallBuilder<T> callBuilder = new CallBuilder<>(this.classAsm, this.type);
+
+            for (String name : names) {
+                callBuilder = callBuilder.callLocal(name);
+            }
+
+            return callBuilder;
         }
 
         public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
@@ -30,6 +36,14 @@ public class CallBuilder<T> extends Builder<T>{
 
         public CallBuilder<T> call(int opcode, String owner, String var, String type) {
             return new CallBuilder<>(this.classAsm, this.type).call(opcode, owner, var, type);
+        }
+
+        public CallBuilder<T> callStatic(String var, Class<?> type) {
+            return new CallBuilder<>(this.classAsm, this.type).callStatic(var, type);
+        }
+
+        public CallBuilder<T> callStatic(String var, String type) {
+            return new CallBuilder<>(this.classAsm, this.type).callStatic(var, type);
         }
 
         public CallBuilder<T> definitObj(Object... obj) {
@@ -69,6 +83,21 @@ public class CallBuilder<T> extends Builder<T>{
 
             return new CallBuilder<>(classAsm, type);
         }
+    }
+
+    public MethodBuilder<T> callClass(Class<?> owner, Class<?>[] parameters) {
+        MethodBuilder<T> methodBuilder = new MethodBuilder<>(classAsm, type, parameters);
+
+        classAsm.newClass(owner);
+
+        methodBuilder.end(builder -> {
+            classAsm.invokeMethod(Opcodes.INVOKESPECIAL, owner, "<init>", Format.formatParameter(parameters, null));
+//            classAsm.mVisitInsn(Opcodes.POP); TODO 理应使用，但并没有，使用反而不能运行。
+
+            return new CallBuilder<>(classAsm, type);
+        });
+
+        return methodBuilder;
     }
 
     public static class MethodBuilder<T> extends Builder<T>{
@@ -140,6 +169,18 @@ public class CallBuilder<T> extends Builder<T>{
 
     public CallBuilder<T> call(int opcode, String owner, String var, String type) {
         classAsm.invokeVar(opcode, owner, var, type);
+
+        return this;
+    }
+
+    public CallBuilder<T> callStatic(String var, Class<?> type) {
+        classAsm.invokeStaticVar(Opcodes.GETSTATIC, var, type);
+
+        return this;
+    }
+
+    public CallBuilder<T> callStatic(String var, String type) {
+        classAsm.invokeStaticVar(Opcodes.GETSTATIC, var, type);
 
         return this;
     }

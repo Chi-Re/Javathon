@@ -30,11 +30,17 @@ public class AsmBuddy {
                     }})
 
                         .setVar("c")
-                        .setContent(builder -> builder.definitObj(12))
+                        .setContent(builder -> builder.callClass(String.class, new Class[]{String.class}).setContent(
+                                builder1 -> builder1.definitObj("ddddd")
+                        ))
+
+                        .callClass(String.class, new Class[]{String.class}).setContent(
+                                builder1 -> builder1.definitObj("sssss")
+                        )
 
                         .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
                         .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-                        .setContent(builder -> builder.callLocal("c"))
+                        .setContent(builder -> builder.callStatic("st", String.class))
                         .out()
 
                         .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)

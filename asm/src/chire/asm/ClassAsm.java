@@ -117,6 +117,14 @@ public class ClassAsm {
         mv.visitFieldInsn(opcode, this.className, name, type+";");
     }
 
+    public void invokeStaticVar(int opcode, String name, Class<?> type) {
+        invokeStaticVar(opcode, name, Format.formatPack(type));
+    }
+
+    public void invokeStaticVar(int opcode, String name, String type) {
+        mv.visitFieldInsn(opcode, this.className, name, type+";");
+    }
+
     public void invokeVar(int opcode, String owner, String name, String type){
         mv.visitFieldInsn(opcode, owner, name, type+";");
     }
@@ -132,6 +140,15 @@ public class ClassAsm {
 
     public void invokeMethod(int opcode, Class<?> owner, String name, String type){
         invokeMethod(opcode, Format.formatPack(owner, false), name, type);
+    }
+
+    public void newClass(Class<?> name) {
+        newClass(Format.formatStrType(name));
+    }
+
+    public void newClass(String name) {
+        mv.visitTypeInsn(NEW, name);
+        mv.visitInsn(DUP);
     }
 
     public void varInsn(String name) {

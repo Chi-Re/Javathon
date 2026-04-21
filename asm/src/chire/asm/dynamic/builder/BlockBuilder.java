@@ -91,6 +91,10 @@ public class BlockBuilder<T> extends Builder<T> {
         return setStaticVar(name, Format.formatPack(type));
     }
 
+    public CallBuilder.MethodBuilder<T> callClass(Class<?> owner, Class<?>[] parameters) {
+        return new CallBuilder<>(classAsm, this.type).callClass(owner, parameters);
+    }
+
     public CallBuilder.MethodBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
         return new CallBuilder<>(classAsm, this.type).callMethod(Opcodes.INVOKESTATIC, owner, var, parameters, returnType);
     }
