@@ -6,6 +6,7 @@ import chire.asm.dynamic.builder.ClassBuilder;
 import chire.python.antlr.PyParser;
 import chire.python.antlr.PyStatement;
 import chire.python.asm.PythonAsmBuddy;
+import chire.python.util.SmartIndenter;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PyCompiler {
+    public static boolean debug = false;
 
     public static byte[] compile(String className, String pythonCode) {
         CharStream input = CharStreams.fromString(pythonCode);
@@ -30,9 +32,14 @@ public class PyCompiler {
         ArrayList<PyStatement> statements = new PyParser(tokens).parse();
 
         ClassBuilder builder = new PythonAsmBuddy(className, Object.class).create();
+        SmartIndenter indenter = new SmartIndenter("  ");
+
         for (PyStatement stmt : statements) {
+            if (debug) stmt.toString(indenter);
+
             builder = (ClassBuilder) stmt.build(builder);
         }
+        if (debug) System.out.println(indenter);
 
         // 4. 生成字节数组
         return builder.make().save();

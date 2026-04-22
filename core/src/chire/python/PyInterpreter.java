@@ -1,6 +1,9 @@
 package chire.python;
 
+import chire.asm.AsmBuddy;
+
 import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +24,8 @@ public class PyInterpreter {
                 a: int = 1
                 b = 3
                 
+                System.out.println("test22")
+                
                 def main(s: "java:[Ljava/lang/String"):
                     System.out.println("test")
                 
@@ -28,7 +33,13 @@ public class PyInterpreter {
                     c = 4
                 """;
 
-//        PyCompiler.compile("ClassPyTest", pythonCode);
+        PyCompiler.debug = true;
+
+//        try (FileOutputStream fos = new FileOutputStream("cache/test/ClassPyTest.class")) {
+//            fos.write(PyCompiler.compile("ClassPyTest", pythonCode));
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
 
         PyInterpreter.runScript("C:\\Projects\\java\\JavaPythonInterpreter\\pycode\\main.py");
     }
