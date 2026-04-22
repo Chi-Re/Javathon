@@ -1,4 +1,4 @@
-package chire.python.py;
+package chire.python.lib;
 
 import java.util.*;
 import java.util.stream.Collectors;
