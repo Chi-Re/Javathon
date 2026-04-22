@@ -1,15 +1,10 @@
 package chire.python.antlr;
 
-import chire.python.py.PyDict;
-import chire.python.py.PyList;
-import chire.python.py.base.PyObject;
 import chire.python.util.type.TypeChecker;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 
 public class PyParser {

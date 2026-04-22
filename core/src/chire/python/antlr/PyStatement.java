@@ -3,13 +3,14 @@ package chire.python.antlr;
 import chire.asm.args.Args;
 import chire.asm.dynamic.builder.BlockBuilder;
 import chire.asm.dynamic.builder.Builder;
+import chire.asm.dynamic.builder.CallBuilder;
 import chire.asm.dynamic.builder.ClassBuilder;
 import chire.asm.dynamic.definition.FunctionDefinition;
 import chire.asm.util.Format;
 import chire.python.asm.ModuleBuilder;
-import chire.python.py.PyDict;
-import chire.python.py.PyList;
-import chire.python.py.base.PyObject;
+import chire.python.escape.ClassCall;
+import chire.python.escape.JPUtil;
+import chire.python.lib.base.PyObject;
 import chire.python.util.SmartIndenter;
 import chire.python.util.type.RemoveQuotes;
 import org.antlr.v4.runtime.Token;
@@ -262,7 +263,12 @@ public abstract class PyStatement {
                 }
 
                 for (PyStatement statement : this.statements) {
-                    fun = (FunctionDefinition) statement.build(fun);
+                    Builder<?> bui = statement.build(fun);
+                    if (bui instanceof CallBuilder<?>) {
+                        fun = (FunctionDefinition) ((CallBuilder<?>) bui).out();
+                    } else {
+                        fun = (FunctionDefinition) bui;
+                    }
                 }
 
                 if (builder instanceof ModuleBuilder) {
@@ -383,6 +389,43 @@ public abstract class PyStatement {
         public SubCallStatement(PyStatement var, PyStatement call) {
             this.key = var;
             this.call = call;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof BlockBuilder<?>) {
+                if (key instanceof VarCallStatement) {
+                    builder = ((BlockBuilder<?>) builder).callClass(ClassCall.class, new Class[]{Object.class})
+                            .setContent(bu ->
+                                    bu.callStatic("JPClass_"+((VarCallStatement) key).name.getText(), Class.class)
+                            );
+                } else if (key instanceof SubCallStatement) {
+                    builder = key.build(builder);
+                } else {
+                    throw new RuntimeException("no key");
+                }
+
+                if (!(builder instanceof CallBuilder<?>)) throw new RuntimeException("no key");
+
+                if (call instanceof VarCallStatement) {
+                    builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "call", new Class[]{String.class}, ClassCall.class)
+                            .setContent(bu ->
+                                    bu.definitObj(((VarCallStatement) call).name.getText())
+                            );
+                } else if (call instanceof FunCallStatement) {
+                    builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
+                            .setContent(bu -> bu.definitPar(
+                                    parBui -> parBui.definitObj(((FunCallStatement) call).name.getText()),
+                                    parBui -> ((FunCallStatement) call).build(parBui)
+                            ));
+                }
+
+                return builder;
+            } else if (builder instanceof CallBuilder<?>){
+
+            }
+
+            throw new RuntimeException("no key");
         }
 
         @Override
@@ -694,6 +737,19 @@ public abstract class PyStatement {
         }
 
         @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof CallBuilder<?>) {
+                if (type == String.class) {
+                    return ((CallBuilder<?>) builder).definitObj(RemoveQuotes.removeQuotes(token.getText()));
+                } else {
+                    return ((CallBuilder<?>) builder).definitObj(cast());
+                }
+            } else {
+                throw new RuntimeException("no key");
+            }
+        }
+
+        @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {
             if (type == String.class) {
                 return new PyExecutor.ConstPy(RemoveQuotes.removeQuotes(token.getText()));
@@ -703,11 +759,19 @@ public abstract class PyStatement {
         }
 
         private Object cast() {
+            if (Object.class.equals(type)) {
+                return null;
+            }
+
             if (Boolean.class.equals(type)) {
                 if (Objects.equals(token.getText(), "True")) return true;
                 if (Objects.equals(token.getText(), "False")) return false;
-            } else if (Object.class.equals(type)) {
-                return null;
+            } else if (Integer.class.equals(type)){
+                return Integer.parseInt(token.getText());
+            } else if (Float.class.equals(type)) {
+                return Float.parseFloat(token.getText());
+            } else if (Double.class.equals(type)) {
+                return Double.parseDouble(token.getText());
             }
             return null;
         }
@@ -734,6 +798,19 @@ public abstract class PyStatement {
 
         public void setArg(ArrayList<PyStatement> args){
             this.args = args;
+        }
+
+        @Override
+        public CallBuilder<?> build(Builder<?> builder) {
+            if (builder instanceof CallBuilder<?> callBuilder) {
+                for (PyStatement arg : args) {
+                    callBuilder = (CallBuilder<?>) arg.build(callBuilder);
+                }
+
+                return callBuilder;
+            } else {
+                throw new RuntimeException("no key");
+            }
         }
 
         @Override

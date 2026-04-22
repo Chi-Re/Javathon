@@ -1,7 +1,7 @@
 package chire.python.antlr;
 
 import chire.python.antlr.callable.PyCallable;
-import chire.python.py.PyList;
+import chire.python.lib.PyList;
 import chire.python.util.handle.MethodCallHandle;
 import chire.python.util.handle.SubClass;
 import chire.python.util.handle.VarCallHandle;
