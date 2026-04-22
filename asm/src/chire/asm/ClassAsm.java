@@ -31,20 +31,35 @@ public class ClassAsm {
 
     private boolean initialize = false;
 
+    private final ClassAsm outer;
+
     public ClassAsm(String className, String superClass) {
+        this(className, superClass, null);
+    }
+
+    public ClassAsm(String className, String superClass, ClassAsm outer) {
         this.className = className.replace('.', '/');
         this.superClass = superClass;
+        this.outer = outer;
         cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, this.className, null, this.superClass, null);
     }
 
     public ClassAsm(String className, Class<?> superClass) {
-        this(className, Format.formatPack(superClass, false));
+        this(className, superClass, null);
     }
 
-//    public ClassAsm defineClass(){
-//        return null;
-//    }
+    public ClassAsm(String className, Class<?> superClass, ClassAsm outer) {
+        this(className, Format.formatPack(superClass, false), outer);
+    }
+
+    public ClassAsm defineClass(String className, Class<?> superClass){
+        return defineClass(className, Format.formatPack(superClass, false));
+    }
+
+    public ClassAsm defineClass(String className, String superClass){
+        return new ClassAsm(this.className+"$"+className, superClass, this);
+    }
 
     public void defineConstruct(int access, Args args, Class<?> owner, String type) {
         defineConstruct(access, args, Format.formatPack(owner, false), type);
@@ -235,8 +250,24 @@ public class ClassAsm {
         cw.visitEnd();
     }
 
-    public byte[] getByte(){
-        return cw.toByteArray();
+    public Map<String, byte[]> getByte(){
+        HashMap<String, byte[]> bytes = new HashMap<>();
+
+        ClassAsm classAsm = this;
+
+        for (;;) {
+            bytes.put(classAsm.className, classAsm.cw.toByteArray());
+
+            classAsm = classAsm.outer;
+
+            if (classAsm == null) break;
+        }
+
+        return bytes;
+    }
+
+    public ClassAsm getOuter() {
+        return outer;
     }
 
     public List<ClassBuilder.ClassVarBuild> getClassVars(){

@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Types;
+import java.util.List;
+import java.util.Map;
 
 public class AsmBuddy {
     private ClassAsm classAsm;
@@ -22,86 +24,54 @@ public class AsmBuddy {
         try (FileOutputStream fos = new FileOutputStream("cache/test/TestCl.class")) {
             fos.write(new AsmBuddy("TestCl", Object.class).create()
                     .declareVar(Opcodes.ACC_PUBLIC, "a", Object.class)
-                        .setContent(builder -> {
-                            return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
-                        })
+                    .setContent(builder -> {
+                        return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
+                    })
                     .setContent(cliBuil -> {
                         return cliBuil.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
                                 .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
                                 .setContent(builder -> builder.callStatic("st", String.class));
                     })
                     .declareStaticVar("st", String.class)
-                        .setContent(builder -> builder.definitObj("setStaticVar"))
+                    .setContent(builder -> builder.definitObj("setStaticVar"))
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
                         put("args", String[].class);
                     }})
 
-                        .setVar("c")
-                        .setContent(builder -> builder.callClass(String.class, new Class[]{String.class}).setContent(
-                                builder1 -> builder1.definitObj("ddddd")
-                        ))
+                    .setVar("c")
+                    .setContent(builder -> builder.callClass(String.class, new Class[]{String.class}).setContent(
+                            builder1 -> builder1.definitObj("ddddd")
+                    ))
 
-                        .callClass(String.class, new Class[]{String.class}).setContent(
-                                builder1 -> builder1.definitObj("sssss")
-                        )
+                    .callClass(String.class, new Class[]{String.class}).setContent(
+                            builder1 -> builder1.definitObj("sssss")
+                    )
 
-                        .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                        .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-                        .setContent(builder -> builder.callStatic("st", String.class))
-                        .out()
+                    .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                    .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
+                    .setContent(builder -> builder.callStatic("st", String.class))
+                    .out()
 
-                        .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                        .callMethod("java/io/PrintStream", "printf", new String[]{"Ljava/lang/String", "[Ljava/lang/Object"}, "Ljava/io/PrintStream")
-                        .setContent(builder -> builder.definitPar(
-                                parBui -> parBui.callStatic("st", String.class),
-                                parBui -> parBui.callStatic("st", String.class),
-                                parBui -> parBui.callStatic("st", String.class)
-                        ))
-                        .out()
+                    .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                    .callMethod("java/io/PrintStream", "printf", new String[]{"Ljava/lang/String", "[Ljava/lang/Object"}, "Ljava/io/PrintStream")
+                    .setContent(builder -> builder.definitPar(
+                            parBui -> parBui.callStatic("st", String.class),
+                            parBui -> parBui.callStatic("st", String.class),
+                            parBui -> parBui.callStatic("st", String.class)
+                    ))
+                    .out()
                     ._return()
+
+                    .defineClass("OtherTestCl", Object.class)
+                    .declareStaticVar("st", String.class)
+                    .setContent(builder -> builder.definitObj("setStaticVar"))
                     .make()
-                    .save()
+
+                    .save().get("TestCl$OtherTestCl")
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-//        ByteArrayClassLoader loader = new ByteArrayClassLoader();
-//
-//        Class<?> clazz = loader.defineClass("chire.test.TestCl", new AsmBuddy("chire.test.TestCl", Object.class).create()
-//                .declareVar(Opcodes.ACC_PUBLIC, "a", Object.class)
-//                .setContent(builder -> {
-//                    return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
-//                })
-//                .declareStaticVar("st", String.class)
-//                .setContent(builder -> builder.definitObj("setStaticVar"))
-//                .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
-//                    put("args", String[].class);
-//                }})
-//
-//                .setVar("c")
-//                .setContent(builder -> builder.callClass(String.class, new Class[]{String.class}).setContent(
-//                        builder1 -> builder1.definitObj("ddddd")
-//                ))
-//
-//                .callClass(String.class, new Class[]{String.class}).setContent(
-//                        builder1 -> builder1.definitObj("sssss")
-//                )
-//
-//                .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-//                .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-//                .setContent(builder -> builder.callStatic("st", String.class))
-//                .out()
-//
-//                .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-//                .callMethod("java/io/PrintStream", "printf", new String[]{"Ljava/lang/String", "[Ljava/lang/Object"}, "Ljava/io/PrintStream")
-//                .setContent(builder -> builder.definitObj("%.2f", 12.456, 14.344))
-//                .out()
-//                ._return()
-//                .make()
-//                .save());
-//
-//        System.out.println(clazz.getMethod("main", String[].class).invoke(null, (Object) new String[0]));
     }
 
     static class ByteArrayClassLoader extends ClassLoader {
@@ -126,7 +96,7 @@ public class AsmBuddy {
         return classAsm;
     }
 
-    public byte[] save() {
+    public Map<String, byte[]> save() {
         return classAsm.getByte();
     }
 }

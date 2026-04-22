@@ -232,14 +232,20 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         return new BlockBuilder(classAsm, type).setContent(content);
     }
 
-    public AsmBuddy make(){
+    public ClassBuilder defineClass(String name, Class<?> superClass) {
+        return new ClassBuilder(close().defineClass(name, superClass));
+    }
+
+    public ClassBuilder defineClass(String name, String superClass) {
+        return new ClassBuilder(close().defineClass(name, superClass));
+    }
+
+    private ClassAsm close() {
         FunctionDefinition builder = defineFunction(Opcodes.ACC_PRIVATE, "$__init__$FieldInsn$", new Args(), null);
 
         for (ClassVarBuild callBuilder : classAsm.getClassVars()) {
             builder = callBuilder.visit(builder);
         }
-
-//        builder = builder._return().defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "$import$ACC_STATIC$", new Args(), null);
 
         ClinitDefinition clinitBuilder = builder._return().defineClinit();
 
@@ -251,7 +257,11 @@ public class ClassBuilder extends Builder<AsmBuddy> {
 
         clinitBuilder.classAsm.closeClass();
 
-        return new AsmBuddy(clinitBuilder.classAsm);
+        return clinitBuilder.classAsm;
+    }
+
+    public AsmBuddy make(){
+        return new AsmBuddy(close());
     }
 
 //    public byte[] make() {
