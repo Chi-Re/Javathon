@@ -25,6 +25,11 @@ public class AsmBuddy {
                         .setContent(builder -> {
                             return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
                         })
+                    .setContent(cliBuil -> {
+                        return cliBuil.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                                .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
+                                .setContent(builder -> builder.callStatic("st", String.class));
+                    })
                     .declareStaticVar("st", String.class)
                         .setContent(builder -> builder.definitObj("setStaticVar"))
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{

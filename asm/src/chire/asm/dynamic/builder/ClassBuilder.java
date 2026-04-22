@@ -86,7 +86,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         }
     }
 
-    public static class StaticVarBuild {
+    public static class StaticVarBuild implements StaticBuild {
         private final String name;
         private final String returnType;
         private final AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content;
@@ -101,9 +101,14 @@ public class ClassBuilder extends Builder<AsmBuddy> {
             this(name, Format.formatPack(returnType), content);
         }
 
+        @Override
         public ClinitDefinition visit(ClinitDefinition builder) {
             return builder.setStaticVar(name, returnType).setContent(content);
         }
+    }
+
+    public interface StaticBuild {
+        ClinitDefinition visit(ClinitDefinition builder);
     }
 
     public VarBuilder declareVar(int access, String name, String returnType) {
@@ -199,6 +204,34 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         return defineFunction(Opcodes.ACC_PUBLIC, name, new Args());
     }
 
+    public static class StaticBlockBuild implements StaticBuild {
+        private final AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content;
+
+        public StaticBlockBuild(AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+            this.content = content;
+        }
+
+        @Override
+        public ClinitDefinition visit(ClinitDefinition builder) {
+            return content.visit(new CallBuilder<>(builder.classAsm, builder.type)).out();
+        }
+    }
+
+    public static class BlockBuilder extends Builder<AsmBuddy>{
+        public ClassBuilder setContent(AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+            this.classAsm.addClassVars(new StaticBlockBuild(content));
+            return new ClassBuilder(classAsm);
+        }
+
+        public BlockBuilder(ClassAsm classAsm, Class<AsmBuddy> type) {
+            super(classAsm, type);
+        }
+    }
+
+    public ClassBuilder setContent(AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+        return new BlockBuilder(classAsm, type).setContent(content);
+    }
+
     public AsmBuddy make(){
         FunctionDefinition builder = defineFunction(Opcodes.ACC_PRIVATE, "$__init__$FieldInsn$", new Args(), null);
 
@@ -210,7 +243,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
 
         ClinitDefinition clinitBuilder = builder._return().defineClinit();
 
-        for (StaticVarBuild callBuilder : classAsm.getClassStaticVars()) {
+        for (StaticBuild callBuilder : classAsm.getClassStaticVars()) {
             clinitBuilder = callBuilder.visit(clinitBuilder);
         }
 

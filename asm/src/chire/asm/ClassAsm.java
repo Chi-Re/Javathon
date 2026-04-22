@@ -23,7 +23,7 @@ public class ClassAsm {
 
     protected List<ClassBuilder.ClassVarBuild> classVarBuilds = new ArrayList<>();
 
-    protected List<ClassBuilder.StaticVarBuild> staticVarBuilds = new ArrayList<>();
+    protected List<ClassBuilder.StaticBuild> staticVarBuilds = new ArrayList<>();
 
     private String className;
 
@@ -243,7 +243,7 @@ public class ClassAsm {
         return classVarBuilds;
     }
 
-    public  List<ClassBuilder.StaticVarBuild> getClassStaticVars(){
+    public  List<ClassBuilder.StaticBuild> getClassStaticVars(){
         return staticVarBuilds;
     }
 
@@ -251,7 +251,7 @@ public class ClassAsm {
         classVarBuilds.add(content);
     }
 
-    public void addClassVars(ClassBuilder.StaticVarBuild content) {
+    public void addClassVars(ClassBuilder.StaticBuild content) {
         staticVarBuilds.add(content);
     }
 }
