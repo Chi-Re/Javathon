@@ -68,8 +68,7 @@ public class CallBuilder<T> extends Builder<T>{
             return definitPar(callBuilders);
         }
 
-        @SafeVarargs
-        public final CallBuilder<T> definitPar(AsmBudVisitor.AsmCallBuilder<T>... obj) {
+        public CallBuilder<T> definitPar(AsmBudVisitor.AsmCallBuilder... obj) {
             int argSum = 0;
 
             String clazzPack = null;
