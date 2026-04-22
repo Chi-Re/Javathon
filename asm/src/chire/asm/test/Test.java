@@ -5,7 +5,7 @@ public class Test {
     public static String st = "setStaticVar";
 
     public static void main(String[] var0) {
-        System.out.println(st);
+        System.out.println(new Test());
     }
 
     private void $__init__$FieldInsn$() {

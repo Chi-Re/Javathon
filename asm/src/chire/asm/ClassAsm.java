@@ -1,6 +1,7 @@
 package chire.asm;
 
 import chire.asm.args.Args;
+import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.VarVisitor;
 import chire.asm.dynamic.builder.ClassBuilder;
 import chire.asm.util.Format;
@@ -170,6 +171,10 @@ public class ClassAsm {
 
     public void mVisitInsn(int opcodes) {
         mv.visitInsn(opcodes);
+    }
+
+    public void mVisitTypeInsn(final int opcode, final String type) {
+        mv.visitTypeInsn(opcode, type);
     }
 
     public void ldcInsn(Object obj){

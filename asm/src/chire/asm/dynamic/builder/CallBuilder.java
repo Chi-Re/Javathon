@@ -2,10 +2,15 @@ package chire.asm.dynamic.builder;
 
 import chire.asm.ClassAsm;
 import chire.asm.dynamic.AsmBudVisitor;
+import chire.asm.dynamic.VarVisitor;
 import chire.asm.util.Format;
 import org.objectweb.asm.Opcodes;
 
 import java.util.Arrays;
+
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.AASTORE;
+import static org.objectweb.asm.Opcodes.ICONST_0;
 
 public class CallBuilder<T> extends Builder<T>{
     public CallBuilder(ClassAsm classAsm, Class<T> type) {
@@ -46,7 +51,25 @@ public class CallBuilder<T> extends Builder<T>{
             return new CallBuilder<>(this.classAsm, this.type).callStatic(var, type);
         }
 
-        public CallBuilder<T> definitObj(Object... obj) {
+        public CallBuilder<T> definitObj(Object... objs){
+            AsmBudVisitor.AsmCallBuilder<T>[] callBuilders = new AsmBudVisitor.AsmCallBuilder[objs.length];
+
+            for (int i = 0; i < objs.length; i++) {
+                int finalI = i;
+                callBuilders[i] = new AsmBudVisitor.AsmCallBuilder<T>() {
+                    @Override
+                    public CallBuilder<T> visit(CallBuilder<T> builder) {
+                        builder.classAsm.ldcInsn(objs[finalI]);
+                        return builder;
+                    }
+                };
+            }
+
+            return definitPar(callBuilders);
+        }
+
+        @SafeVarargs
+        public final CallBuilder<T> definitPar(AsmBudVisitor.AsmCallBuilder<T>... obj) {
             int argSum = 0;
 
             String clazzPack = null;
@@ -75,13 +98,33 @@ public class CallBuilder<T> extends Builder<T>{
                 }
             }
 
+            CallBuilder<T> callBuilder = new CallBuilder<>(classAsm, type);
+
             for (int i = 0; i < argSum; i++) {
-                classAsm.ldcInsn(obj[i]);
+                callBuilder = obj[i].visit(callBuilder);
             }
 
-            if (clazzPack != null) classAsm.ldcInsns(clazzPack, Arrays.copyOfRange(obj, argSum, obj.length));
+            if (clazzPack != null) callBuilder = toVarargs(clazzPack, callBuilder, Arrays.copyOfRange(obj, argSum, obj.length));
 
-            return new CallBuilder<>(classAsm, type);
+            return callBuilder;
+        }
+
+        private CallBuilder<T> toVarargs(String clazzPack, CallBuilder<T> callBuilder, AsmBudVisitor.AsmCallBuilder<T>... objs) {
+            int ICONST_NUM = Opcodes.ICONST_0 + objs.length;
+
+            callBuilder.classAsm.mVisitInsn(ICONST_NUM);
+            callBuilder.classAsm.mVisitTypeInsn(ANEWARRAY, clazzPack);
+
+            for (int i = ICONST_0; i < ICONST_NUM; i++) {
+                callBuilder.classAsm.mVisitInsn(DUP);
+                callBuilder.classAsm.mVisitInsn(i);
+
+                callBuilder = objs[i-ICONST_0].visit(callBuilder);
+
+                callBuilder.classAsm.mVisitInsn(AASTORE);
+            }
+
+            return callBuilder;
         }
     }
 
@@ -129,7 +172,7 @@ public class CallBuilder<T> extends Builder<T>{
         methodBuilder.end(builder -> {
             classAsm.invokeMethod(opcode, owner, var, Format.formatParameter(parameters, returnType));
 
-            if (returnType != null) classAsm.mVisitInsn(Opcodes.POP);
+//            if (returnType != null) classAsm.mVisitInsn(Opcodes.POP);
 
             return new CallBuilder<>(classAsm, type);
         });
