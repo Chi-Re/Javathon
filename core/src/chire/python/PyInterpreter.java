@@ -19,29 +19,26 @@ public class PyInterpreter {
         // 71 +
         // 73 /
         String pythonCode = """
-                from java.lang import System
+                class Test:
+                    def __init__(self):
+                        pass
                 
-                a: int = 1
-                b = 3
+                    def test(self):
+                        print("test")
                 
-                System.out.println("test22")
-                
-                def main(s: "java:[Ljava/lang/String"):
-                    System.out.println("test")
-                
-                def fun(te):
-                    c = 4
+                    def func(self):
+                        print("func")
                 """;
 
         PyCompiler.debug = true;
 
-//        try (FileOutputStream fos = new FileOutputStream("cache/test/ClassPyTest.class")) {
-//            fos.write(PyCompiler.compile("ClassPyTest", pythonCode));
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
+        try (FileOutputStream fos = new FileOutputStream("cache/test/ClassPyTest.class")) {
+            fos.write(PyCompiler.compile("ClassPyTest", pythonCode));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
-        PyInterpreter.runScript("C:\\Projects\\java\\JavaPythonInterpreter\\pycode\\main.py");
+//        PyInterpreter.runScript("C:\\Projects\\java\\JavaPythonInterpreter\\pycode\\main.py");
     }
 
     private static final Map<String, Class<?>> CLASS_CACHE = new ConcurrentHashMap<>();

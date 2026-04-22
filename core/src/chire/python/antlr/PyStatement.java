@@ -67,7 +67,7 @@ public abstract class PyStatement {
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ModuleBuilder) {
                 return new ModuleBuilder(
-                       ((ModuleBuilder) builder).declareStaticVar("JPClass_"+this.name, Class.class).setContent(
+                       ((ModuleBuilder) builder).declareStaticVar(this.name, Class.class).setContent(
                                argb -> argb.definitObj(
                                        Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
                                )
@@ -176,7 +176,7 @@ public abstract class PyStatement {
                     .indent()
                     .add("name=").add(name.getText()).newLine()
                     .add("value:").indent();
-            value.toString(indenter);
+            if (value != null) value.toString(indenter);
 //            indenter.unindent()
 //                    .newLine()
 //                    .add("type:").indent();
@@ -412,7 +412,7 @@ public abstract class PyStatement {
             if (key instanceof VarCallStatement) {
                 builder = ((BlockBuilder<?>) builder).callClass(ClassCall.class, new Class[]{Object.class})
                         .setContent(bu ->
-                                bu.callStatic("JPClass_"+((VarCallStatement) key).name.getText(), Class.class)
+                                bu.callStatic(((VarCallStatement) key).name.getText(), Class.class)
                         );
             } else if (key instanceof SubCallStatement) {
                 builder = key.build(builder);
