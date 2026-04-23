@@ -35,7 +35,11 @@ public class JPUtil {
         }
 
         try {
-            return obj.getClass().getMethod(name, classes.toArray(new Class[0])).invoke(obj, args);
+            if (obj instanceof Class<?>) {
+                return ((Class<?>) obj).getMethod(name, classes.toArray(new Class[0])).invoke(null, args);
+            } else {
+                return obj.getClass().getMethod(name, classes.toArray(new Class[0])).invoke(obj, args);
+            }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
