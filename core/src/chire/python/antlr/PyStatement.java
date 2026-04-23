@@ -1,6 +1,7 @@
 package chire.python.antlr;
 
 import chire.asm.args.Args;
+import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.builder.BlockBuilder;
 import chire.asm.dynamic.builder.Builder;
 import chire.asm.dynamic.builder.CallBuilder;
@@ -883,18 +884,20 @@ public abstract class PyStatement {
 
         public CallBuilder makeContent(BlockBuilder<?> builder) {
             if (!args.isEmpty()) {
+                List<AsmBudVisitor.AsmCallBuilder> callBuilders = new ArrayList<>();
+
+                callBuilders.add(parBui -> parBui.definitObj(this.name.getText()));
+
+                for (int i = 0; i < args.size(); i++) {
+                    int finalI = i;
+                    callBuilders.add(par -> (CallBuilder<?>) args.get(finalI).build(par));
+                }
+
                 return builder.callClass(ClassCall.class, new Class[]{Object.class})
                         .setContent(clasBui -> clasBui.definitObj(Type.getType("L"+builder.getClassAsm().className+";")))
                         .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
                         .setContent(bu -> bu.definitPar(
-                                parBui -> parBui.definitObj(this.name.getText()),
-                                parBui -> {
-                                    for (PyStatement arg : args) {
-                                        parBui = (CallBuilder<?>) arg.build(parBui);
-                                    }
-
-                                    return parBui;
-                                }
+                                callBuilders.toArray(new AsmBudVisitor.AsmCallBuilder[0])
                         ));
             } else {
                 return builder.callClass(ClassCall.class, new Class[]{Object.class})
@@ -944,6 +947,15 @@ public abstract class PyStatement {
 
         public VarCallStatement(Token name) {
             this.name = name;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof CallBuilder<?>) {
+                return ((CallBuilder<?>) builder).callLocal(this.name.getText());
+            } else {
+                return builder;
+            }
         }
 
         @Override
