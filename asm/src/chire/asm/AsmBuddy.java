@@ -33,6 +33,7 @@ public class AsmBuddy {
                                 .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
                                 .setContent(builder -> builder.callStatic("st", String.class));
                     })
+
                     .declareStaticVar("st", String.class)
                     .setContent(builder -> builder.definitObj("setStaticVar"))
                     .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{

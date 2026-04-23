@@ -43,6 +43,12 @@ public class ClassAsm {
         this.outer = outer;
         cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, this.className, null, this.superClass, null);
+
+        if (outer != null) {
+            String[] nes = outer.className.split("\\$");
+            String[] nes2 = className.split("\\$");
+            cw.visitInnerClass(nes[nes.length-1]+"$"+nes2[nes2.length-1], nes[nes.length-1], nes2[nes2.length-1], ACC_PUBLIC | ACC_STATIC);
+        }
     }
 
     public ClassAsm(String className, Class<?> superClass) {
@@ -58,6 +64,10 @@ public class ClassAsm {
     }
 
     public ClassAsm defineClass(String className, String superClass){
+        String[] nes = this.className.split("\\$");
+        String[] nes2 = className.split("\\$");
+        cw.visitInnerClass(nes[nes.length-1]+"$"+nes2[nes2.length-1], nes[nes.length-1], nes2[nes2.length-1], ACC_PUBLIC | ACC_STATIC);
+
         return new ClassAsm(this.className+"$"+className, superClass, this);
     }
 
