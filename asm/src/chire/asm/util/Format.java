@@ -2,8 +2,17 @@ package chire.asm.util;
 
 import chire.asm.args.Args;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Format {
+
+    public static final Map<Class<?>, String> keywords = new HashMap<Class<?>, String>(){{
+        put(int.class, "I");
+    }};
+
     public static String formatPack(Class<?> clazz, boolean prefix) {
         String str = clazz.getName().replace(".", "/").replace(";", "");
 
@@ -37,7 +46,11 @@ public class Format {
     }
 
     public static String formatParameter(Class<?>[] parameterTypes, Class<?> returnType){
-        return formatPacks(parameterTypes)+(returnType==null?"V":(Format.formatPack(returnType)+";"));
+        if (keywords.containsKey(returnType)) {
+            return formatPacks(parameterTypes) + keywords.get(returnType);
+        } else {
+            return formatPacks(parameterTypes) + (returnType == null ? "V" : (Format.formatPack(returnType) + ";"));
+        }
     }
 
     public static String formatStrPack(String path, boolean arr) {

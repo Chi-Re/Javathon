@@ -153,12 +153,20 @@ public class CallBuilder<T> extends Builder<T>{
             this.parameters = parameters;
         }
 
+        public CallBuilder<T> setContent() {
+            return setContent(builder -> new CallBuilder<>(builder.classAsm, builder.type));
+        }
+
         public CallBuilder<T> setContent(AsmBudVisitor<T> builder) {
             return callBuilder.visit(builder.visit(new ParameterBuilder<>(classAsm, type, this.parameters)));
         }
 
         private void end(AsmBudVisitor.AsmCallBuilder<T> builder){
             callBuilder = builder;
+        }
+
+        public T breakCall() {
+            return create();
         }
     }
 
