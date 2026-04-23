@@ -794,6 +794,16 @@ public abstract class PyStatement {
                 } else {
                     return ((CallBuilder<?>) builder).definitObj(cast());
                 }
+            } else if (builder instanceof BlockBuilder.VarBuilder<?>) {
+                if (type == String.class) {
+                    return (Builder<?>) ((BlockBuilder.VarBuilder<?>) builder).setContent(
+                            bun -> bun.definitObj(RemoveQuotes.removeQuotes(token.getText()))
+                    );
+                } else {
+                    return (Builder<?>) ((BlockBuilder.VarBuilder<?>) builder).setContent(
+                            bun -> bun.definitObj(cast())
+                    );
+                }
             } else {
                 throw new RuntimeException("no key");
             }
