@@ -3,6 +3,7 @@ package chire.asm.dynamic.builder;
 import chire.asm.ClassAsm;
 import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.util.Format;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 
 public class BlockBuilder<T> extends Builder<T> {
@@ -91,10 +92,86 @@ public class BlockBuilder<T> extends Builder<T> {
         return setStaticVar(name, Format.formatPack(type));
     }
 
+    public class IfBuilder extends Builder<T> {
+        Label label = new Label();
+        Label exit = new Label();
+
+        public IfBuilder(ClassAsm classAsm,Class<T> type) {
+            super(classAsm, type);
+        }
+
+        public BlockBuilder<T> setContent(
+                AsmBudVisitor.AsmCallBuilder<T> condition,
+                AsmBudVisitor.IfBuilder<T> visitor
+        ) {
+            CallBuilder<T> callBuilder = condition.visit(new CallBuilder<>(classAsm, type));
+
+            callBuilder.classAsm.jumpInsn(Opcodes.IF_ICMPLE, label);
+
+            BlockBuilder<T> ke = visitor.visit(callBuilder.out());
+
+//            ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
+            ke.classAsm.mLabel(label);
+            ke.classAsm.mFrame(new Object[]{"java/lang/Integer", "java/lang/Integer"});
+            return ke;
+//            return new ElseBuilder(ke.classAsm, ke.type).setIn(exit);
+        }
+    }
+
+    public class ElseBuilder extends Builder<T> {
+        Label label = new Label();
+
+        Label exit;
+
+        public ElseBuilder(ClassAsm classAsm, Class<T> type) {
+            super(classAsm, type);
+        }
+
+        public ElseBuilder setIn(Label in) {
+            exit = in;
+            return this;
+        }
+
+        public ElseBuilder setContent(
+                AsmBudVisitor.IfBuilder<T> visitor
+        ) {
+            classAsm.jumpInsn(Opcodes.IF_ICMPLE, label);
+
+            BlockBuilder<T> ke = visitor.visit(create());
+
+            ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
+            ke.classAsm.mLabel(label);
+            return new ElseBuilder(ke.classAsm, ke.type).setIn(label);
+        }
+
+        public BlockBuilder<T> toElse(AsmBudVisitor.IfBuilder<T> visitor) {
+            BlockBuilder<T> builder = visitor.visit(create());
+
+            builder.classAsm.mLabel(exit);
+
+            return builder;
+        }
+    }
+
+    public IfBuilder ifCall() {
+        return new IfBuilder(classAsm, type);
+    }
+
+    public CallBuilder<T> callLocal(String name) {
+        return new CallBuilder<>(classAsm, type).callLocal(name);
+    }
+
     public CallBuilder.MethodBuilder<T> callClass(Class<?> owner, Class<?>[] parameters) {
         return new CallBuilder<>(classAsm, this.type).callClass(owner, parameters);
     }
 
+    public CallBuilder<T> callStatic(String var, Class<?> type) {
+        return new CallBuilder<>(classAsm, this.type).callStatic(var, type);
+    }
+
+    public CallBuilder<T> callStatic(String var, String type) {
+        return new CallBuilder<>(classAsm, this.type).callStatic(var, type);
+    }
     public CallBuilder.MethodBuilder<T> callMethod(Class<?> owner, String var, Class<?>[] parameters, Class<?> returnType) {
         return new CallBuilder<>(classAsm, this.type).callMethod(Opcodes.INVOKESTATIC, owner, var, parameters, returnType);
     }
