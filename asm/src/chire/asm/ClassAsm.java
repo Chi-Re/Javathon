@@ -25,9 +25,9 @@ public class ClassAsm {
 
     protected List<ClassBuilder.StaticBuild> staticVarBuilds = new ArrayList<>();
 
-    private String className;
+    public final String className;
 
-    private String superClass;
+    public final String superClass;
 
     private boolean initialize = false;
 
@@ -182,6 +182,10 @@ public class ClassAsm {
         } else {
             throw new RuntimeException("no key");
         }
+    }
+
+    public void invokeThis() {
+        mv.visitVarInsn(ALOAD, 0);
     }
 
     public void mVisitInsn(int opcodes) {

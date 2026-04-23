@@ -100,10 +100,11 @@ public class CallBuilder<T> extends Builder<T>{
             CallBuilder<T> callBuilder = new CallBuilder<>(classAsm, type);
 
             for (int i = 0; i < argSum; i++) {
+                if (i >= obj.length) break;
                 callBuilder = obj[i].visit(callBuilder);
             }
 
-            if (clazzPack != null) callBuilder = toVarargs(clazzPack, callBuilder, Arrays.copyOfRange(obj, argSum, obj.length));
+            if (clazzPack != null && obj.length > 0) callBuilder = toVarargs(clazzPack, callBuilder, Arrays.copyOfRange(obj, argSum, obj.length));
 
             return callBuilder;
         }
@@ -189,7 +190,7 @@ public class CallBuilder<T> extends Builder<T>{
         methodBuilder.end(builder -> {
             classAsm.invokeMethod(opcode, owner, var, Format.formatStrParameter(parameters, returnType));
 
-            if (returnType != null) classAsm.mVisitInsn(Opcodes.POP);
+//            if (returnType != null) classAsm.mVisitInsn(Opcodes.POP);
 
             return new CallBuilder<>(classAsm, type);
         });
@@ -199,6 +200,12 @@ public class CallBuilder<T> extends Builder<T>{
 
     public CallBuilder<T> callLocal(String name) {
         classAsm.invokeLocalVar(name);
+
+        return this;
+    }
+
+    public CallBuilder<T> callThis(){
+        classAsm.invokeThis();
 
         return this;
     }

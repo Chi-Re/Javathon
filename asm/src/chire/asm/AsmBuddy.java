@@ -27,6 +27,7 @@ public class AsmBuddy {
                     .setContent(builder -> {
                         return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
                     })
+
                     .setContent(cliBuil -> {
                         return cliBuil.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
                                 .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
@@ -55,8 +56,6 @@ public class AsmBuddy {
                     .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
                     .callMethod("java/io/PrintStream", "printf", new String[]{"Ljava/lang/String", "[Ljava/lang/Object"}, "Ljava/io/PrintStream")
                     .setContent(builder -> builder.definitPar(
-                            parBui -> parBui.callStatic("st", String.class),
-                            parBui -> parBui.callStatic("st", String.class),
                             parBui -> parBui.callStatic("st", String.class)
                     ))
                     .out()
@@ -67,7 +66,7 @@ public class AsmBuddy {
                     .setContent(builder -> builder.definitObj("setStaticVar"))
                     .make()
 
-                    .save().get("TestCl$OtherTestCl")
+                    .save().get("TestCl")
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
