@@ -264,21 +264,24 @@ public abstract class PyStatement {
         public Builder<?> build(Builder<?> builder) {
             Args args = new Args();
 
-            for (int i = 1; i < this.args.size(); i++) {
-                args.put(this.args.get(i).token.getText(), this.args.get(i).getType());
-            }
-
             if (builder instanceof ClassBuilder) {
 //                builder = ((ClassBuilder) builder).defineVar(Opcodes.ACC_STATIC, token.getText()+"$"+this.args.get(0).token.getText(), Object.class).setContent(CallBuilder::callThis);
                 FunctionDefinition fun;
 
                 if (builder instanceof ModuleBuilder) {
+                    for (ArgStatement arg : this.args) {
+                        args.put(arg.token.getText(), arg.getType());
+                    }
+
                     fun = ((ModuleBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, token.getText(), args);
                 } else {
-                    fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args);
-                }
+                    for (int i = 1; i < this.args.size(); i++) {
+                        args.put(this.args.get(i).token.getText(), this.args.get(i).getType());
+                    }
 
-                fun = fun.setVar(this.args.get(0).token.getText()).setContent(CallBuilder::callThis);
+                    fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args);
+                    fun = fun.setVar(this.args.get(0).token.getText()).setContent(CallBuilder::callThis);
+                }
 
                 for (PyStatement statement : this.statements) {
                     Builder<?> bui = statement.build(fun);
@@ -855,31 +858,51 @@ public abstract class PyStatement {
 
                 return callBuilder;
             } else if (builder instanceof ClassBuilder) {
-                return ((ClassBuilder) builder).setContent(cilnBui -> {
+                ClassBuilder classBuilder = ((ClassBuilder) builder).setContent(cilnBui -> {
                     if (!args.isEmpty()) {
-                        cilnBui = cilnBui.out()
-                                .callClass(ClassCall.class, new Class[]{})
-                                .setContent(CallBuilder.ParameterBuilder::definitObj)
-                                .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
-                                .setContent(bu -> bu.definitPar(
-                                        parBui -> parBui.definitObj(this.name.getText()),
-                                        parBui -> {
-                                            for (PyStatement arg : args) {
-                                                parBui = (CallBuilder<?>) arg.build(parBui);
-                                            }
-
-                                            return parBui;
-                                        }
-                                ));
+                        cilnBui = makeContent(cilnBui.out());
                     } else {
-                        cilnBui = cilnBui.out().callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
-                                .setContent(CallBuilder.ParameterBuilder::definitPar);
+                        cilnBui = makeContent(cilnBui.out());
                     }
 
                     return cilnBui;
                 });
-            } else {
+
+                if (builder instanceof ModuleBuilder) {
+                    return new ModuleBuilder(classBuilder.getClassAsm());
+                } else {
+                    return classBuilder;
+                }
+            } else if (builder instanceof FunctionDefinition) {
+                return makeContent((FunctionDefinition) builder);
+            }
+            else {
                 throw new RuntimeException("no key");
+            }
+        }
+
+        public CallBuilder makeContent(BlockBuilder<?> builder) {
+            if (!args.isEmpty()) {
+                return builder.callClass(ClassCall.class, new Class[]{Object.class})
+                        .setContent(clasBui -> clasBui.definitObj(Type.getType("L"+builder.getClassAsm().className+";")))
+                        .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
+                        .setContent(bu -> bu.definitPar(
+                                parBui -> parBui.definitObj(this.name.getText()),
+                                parBui -> {
+                                    for (PyStatement arg : args) {
+                                        parBui = (CallBuilder<?>) arg.build(parBui);
+                                    }
+
+                                    return parBui;
+                                }
+                        ));
+            } else {
+                return builder.callClass(ClassCall.class, new Class[]{Object.class})
+                        .setContent(clasBui -> clasBui.definitObj(Type.getType("L"+builder.getClassAsm().className+";")))
+                        .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
+                        .setContent(bu -> bu.definitPar(
+                                parBui -> parBui.definitObj(this.name.getText())
+                        ));
             }
         }
 
