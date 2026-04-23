@@ -96,7 +96,7 @@ public class ClassAsm {
         mv = cw.visitMethod(access, name, Format.formatArgs(args, returnType), null, null);
 
         for (String var : args.getArgNames()) {
-            varsKey.put(var, varsKey.size()+1);
+            varsKey.put(var, varsKey.size());
         }
 
         mv.visitCode();
@@ -188,7 +188,7 @@ public class ClassAsm {
 
     public void invokeLocalVar(String name) {
         if (varsKey.containsKey(name)) {
-            mv.visitVarInsn(ALOAD, varsKey.get(name)+1);
+            mv.visitVarInsn(ALOAD, varsKey.get(name));
         } else {
             throw new RuntimeException("no key");
         }
