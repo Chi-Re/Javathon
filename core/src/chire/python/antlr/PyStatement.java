@@ -264,11 +264,12 @@ public abstract class PyStatement {
         public Builder<?> build(Builder<?> builder) {
             Args args = new Args();
 
-            for (ArgStatement arg : this.args) {
-                args.put(arg.token.getText(), arg.getType());
+            for (int i = 1; i < this.args.size(); i++) {
+                args.put(this.args.get(i).token.getText(), this.args.get(i).getType());
             }
 
             if (builder instanceof ClassBuilder) {
+//                builder = ((ClassBuilder) builder).defineVar(Opcodes.ACC_STATIC, token.getText()+"$"+this.args.get(0).token.getText(), Object.class).setContent(CallBuilder::callThis);
                 FunctionDefinition fun;
 
                 if (builder instanceof ModuleBuilder) {
@@ -276,6 +277,8 @@ public abstract class PyStatement {
                 } else {
                     fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args);
                 }
+
+                fun = fun.setVar(this.args.get(0).token.getText()).setContent(CallBuilder::callThis);
 
                 for (PyStatement statement : this.statements) {
                     Builder<?> bui = statement.build(fun);
@@ -425,10 +428,19 @@ public abstract class PyStatement {
 
         public Builder<?> createBlock(Builder<?> builder) {
             if (key instanceof VarCallStatement) {
-                builder = ((BlockBuilder<?>) builder).callClass(ClassCall.class, new Class[]{Object.class})
-                        .setContent(bu ->
-                                bu.callStatic(((VarCallStatement) key).name.getText(), Class.class)
-                        );
+                String callName = ((VarCallStatement) key).name.getText();
+
+                if (builder.getType().equals(FunctionDefinition.class)) {
+                    builder = ((BlockBuilder<?>) builder).callClass(ClassCall.class, new Class[]{Object.class})
+                            .setContent(bu ->
+                                    bu.callLocal(callName)
+                            );
+                } else {
+                    builder = ((BlockBuilder<?>) builder).callClass(ClassCall.class, new Class[]{Object.class})
+                            .setContent(bu ->
+                                    bu.callStatic(callName, Class.class)
+                            );
+                }
             } else if (key instanceof SubCallStatement) {
                 builder = key.build(builder);
             } else {
@@ -443,11 +455,18 @@ public abstract class PyStatement {
                                 bu.definitObj(((VarCallStatement) call).name.getText())
                         );
             } else if (call instanceof FunCallStatement) {
-                builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
-                        .setContent(bu -> bu.definitPar(
-                                parBui -> parBui.definitObj(((FunCallStatement) call).name.getText()),
-                                parBui -> ((FunCallStatement) call).build(parBui)
-                        ));
+                if (((FunCallStatement) call).args.size() > 0) {
+                    builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
+                            .setContent(bu -> bu.definitPar(
+                                    parBui -> parBui.definitObj(((FunCallStatement) call).name.getText()),
+                                    parBui -> ((FunCallStatement) call).build(parBui)
+                            ));
+                } else {
+                    builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
+                            .setContent(bu -> bu.definitPar(
+                                    parBui -> parBui.definitObj(((FunCallStatement) call).name.getText())
+                            ));
+                }
             }
 
             return builder;
