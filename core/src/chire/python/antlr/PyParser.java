@@ -212,6 +212,10 @@ public class PyParser {
             case 41:
                 body.add(whileDeclaration());
                 break;
+
+            case 23, 26:
+                body.add(importDeclaration());
+                break;
         }
 
         return body;
@@ -241,7 +245,7 @@ public class PyParser {
                 case 60:
                     break;
 
-                case 45, 25, 41, 15:
+                case 45, 25, 41, 15, 23, 26:
                     body.addAll(bodyDeclaration());
                     break;
 
@@ -359,6 +363,10 @@ public class PyParser {
                             body.add(new PyStatement.ReturnStatement(assignment(1)));
                         }
                         break;
+
+                    case 23, 26:
+                        body.add(importDeclaration());
+                        break;
                 }
             }
         }
@@ -462,6 +470,10 @@ public class PyParser {
 
                 case 2:
                     return new PyStatement.IfStatement(ifStmt, body);
+
+                case 23, 26:
+                    body.add(importDeclaration());
+                    break;
             }
 
             this.current++;
