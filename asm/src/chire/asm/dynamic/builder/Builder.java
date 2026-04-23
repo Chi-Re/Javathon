@@ -4,6 +4,8 @@ import chire.asm.ClassAsm;
 import chire.asm.dynamic.AsmBudVisitor;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class Builder<T> {
     protected final ClassAsm classAsm;
@@ -33,6 +35,20 @@ public abstract class Builder<T> {
                      NoSuchMethodException ex) {
                 throw new RuntimeException(ex);
             }
+        }
+    }
+
+    protected T create(Object... args){
+        List<Class<?>> classes = new ArrayList<>();
+
+        for (Object arg : args) {
+            classes.add(arg.getClass());
+        }
+
+        try {
+            return type.getConstructor(classes.toArray(new Class[0])).newInstance(args);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
         }
     }
 }
