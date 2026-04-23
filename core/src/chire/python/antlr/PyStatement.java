@@ -459,7 +459,7 @@ public abstract class PyStatement {
                     builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
                             .setContent(bu -> bu.definitPar(
                                     parBui -> parBui.definitObj(((FunCallStatement) call).name.getText()),
-                                    parBui -> ((FunCallStatement) call).build(parBui)
+                                    parBui -> (CallBuilder) call.build(parBui)
                             ));
                 } else {
                     builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
@@ -847,13 +847,37 @@ public abstract class PyStatement {
         }
 
         @Override
-        public CallBuilder<?> build(Builder<?> builder) {
+        public Builder<?> build(Builder<?> builder) {
             if (builder instanceof CallBuilder<?> callBuilder) {
                 for (PyStatement arg : args) {
                     callBuilder = (CallBuilder<?>) arg.build(callBuilder);
                 }
 
                 return callBuilder;
+            } else if (builder instanceof ClassBuilder) {
+                return ((ClassBuilder) builder).setContent(cilnBui -> {
+                    if (!args.isEmpty()) {
+                        cilnBui = cilnBui.out()
+                                .callClass(ClassCall.class, new Class[]{})
+                                .setContent(CallBuilder.ParameterBuilder::definitObj)
+                                .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
+                                .setContent(bu -> bu.definitPar(
+                                        parBui -> parBui.definitObj(this.name.getText()),
+                                        parBui -> {
+                                            for (PyStatement arg : args) {
+                                                parBui = (CallBuilder<?>) arg.build(parBui);
+                                            }
+
+                                            return parBui;
+                                        }
+                                ));
+                    } else {
+                        cilnBui = cilnBui.out().callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
+                                .setContent(CallBuilder.ParameterBuilder::definitPar);
+                    }
+
+                    return cilnBui;
+                });
             } else {
                 throw new RuntimeException("no key");
             }
