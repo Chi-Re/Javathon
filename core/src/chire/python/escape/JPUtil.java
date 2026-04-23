@@ -19,9 +19,13 @@ public class JPUtil {
         }
     }
 
-    public static Object callStaticVar(Class<?> type, String name) {
+    public static Object callVar(Object type, String name) {
         try {
-            return type.getDeclaredField(name).get(null);
+            if (type instanceof Class<?>) {
+                return ((Class<?>) type).getDeclaredField(name).get(null);
+            } else {
+                return type.getClass().getDeclaredField(name).get(type);
+            }
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new RuntimeException(e);
         }

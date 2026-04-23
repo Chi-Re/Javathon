@@ -8,12 +8,10 @@ public class ClassCall {
     }
 
     public ClassCall call(String name) {
-        if (!(obj instanceof Class<?>)) throw new RuntimeException("no key");
-        return new ClassCall(JPUtil.callStaticVar((Class<?>) this.obj, name));
+        return new ClassCall(JPUtil.callVar(this.obj, name));
     }
 
     public ClassCall callMethod(String name, Object... args) {
-        if (obj instanceof Class<?>) throw new RuntimeException("no key");
         return new ClassCall(JPUtil.callMethod(this.obj, name, args));
     }
 }
