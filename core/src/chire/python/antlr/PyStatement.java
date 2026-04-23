@@ -737,6 +737,8 @@ public abstract class PyStatement {
                 return ((ClassBuilder.StaticVarBuilder) builder).setContent(builder1 -> builder1.definitObj(cast()));
             } else if (builder instanceof BlockBuilder.VarBuilder) {
                 return ((BlockBuilder.VarBuilder<FunctionDefinition>) builder).setContent(builder1 -> builder1.definitObj(cast()));
+            } else if (builder instanceof CallBuilder<?>) {
+                return ((CallBuilder<?>) builder).definitObj(cast());
             } else {
                 return builder;
             }
