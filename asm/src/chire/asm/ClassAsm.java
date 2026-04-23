@@ -182,7 +182,7 @@ public class ClassAsm {
             mv.visitVarInsn(ASTORE, varsKey.get(name));
         } else {
             varsKey.put(name, varsKey.size());
-            mv.visitVarInsn(ASTORE, varsKey.size());
+            mv.visitVarInsn(ASTORE, varsKey.size()-1);
         }
     }
 
@@ -236,6 +236,18 @@ public class ClassAsm {
             ldcInsn(objs[i-ICONST_0]);
             mv.visitInsn(AASTORE);
         }
+    }
+
+    public void jumpInsn(int opcod, Label label) {
+        mv.visitJumpInsn(opcod, label);
+    }
+
+    public void mLabel(Label label) {
+        mv.visitLabel(label);
+    }
+
+    public void mFrame(Object[] objects) {
+        mv.visitFrame(Opcodes.F_APPEND, 2, objects, 0, null);
     }
 
     public void toReturn(boolean returnValue) {
