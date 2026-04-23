@@ -178,11 +178,15 @@ public class ClassAsm {
     }
 
     public void varInsn(String name) {
+        varInsn(ASTORE, name);
+    }
+
+    public void varInsn(int opcode, String name) {
         if (varsKey.containsKey(name)) {
-            mv.visitVarInsn(ASTORE, varsKey.get(name));
+            mv.visitVarInsn(opcode, varsKey.get(name));
         } else {
             varsKey.put(name, varsKey.size());
-            mv.visitVarInsn(ASTORE, varsKey.size()-1);
+            mv.visitVarInsn(opcode, varsKey.size()-1);
         }
     }
 

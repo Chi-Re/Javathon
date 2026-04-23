@@ -41,17 +41,47 @@ public class AsmBuddy {
                     }})
 
                     .setVar("c")
-                    .setContent(builder -> builder.callClass(String.class, new Class[]{String.class}).setContent(
-                            builder1 -> builder1.definitObj("ddddd")
-                    ))
+                    .setContent(funBuil ->
+                            funBuil.definitObj(4)
+                    )
+                    .setVar("d")
+                    .setContent(funBuil ->
+                            funBuil.definitObj(3)
+                    )
 
-                    .callClass(String.class, new Class[]{String.class}).setContent(
-                            builder1 -> builder1.definitObj("sssss")
+                    .ifCall()
+                    .setContent(
+                            condition -> {
+                                return condition.callLocal("c").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent()
+                                        .callLocal("d").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent();
+                            },
+                            ifBuil -> ifBuil
+                                    .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                                    .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
+                                    .setContent(builder -> builder.callStatic("st", String.class))
+                                    .out(),
+                            Opcodes.IF_ICMPLE
+                    )
+                    .setContent(condition -> {
+                                return condition.callLocal("c").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent()
+                                        .callLocal("d").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent();
+                            },
+                            ifBuil -> ifBuil
+                            .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                            .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
+                            .setContent(builder -> builder.callStatic("st", String.class))
+                            .out(),
+                            Opcodes.IF_ICMPNE
+                    )
+                    .toElse(elseto -> elseto.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+                            .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
+                            .setContent(builder -> builder.callLocal("d"))
+                            .out()
                     )
 
                     .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
                     .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-                    .setContent(builder -> builder.callStatic("st", String.class))
+                    .setContent(builder -> builder.callLocal("c"))
                     .out()
 
                     .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)

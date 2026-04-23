@@ -92,56 +92,33 @@ public class BlockBuilder<T> extends Builder<T> {
         return setStaticVar(name, Format.formatPack(type));
     }
 
-    public class IfBuilder extends Builder<T> {
+    public class IfElseBuilder extends Builder<T> {
         Label label = new Label();
         Label exit = new Label();
 
-        public IfBuilder(ClassAsm classAsm,Class<T> type) {
+        public IfElseBuilder(ClassAsm classAsm, Class<T> type) {
             super(classAsm, type);
         }
 
-        public BlockBuilder<T> setContent(
-                AsmBudVisitor.AsmCallBuilder<T> condition,
-                AsmBudVisitor.IfBuilder<T> visitor
-        ) {
-            CallBuilder<T> callBuilder = condition.visit(new CallBuilder<>(classAsm, type));
-
-            callBuilder.classAsm.jumpInsn(Opcodes.IF_ICMPLE, label);
-
-            BlockBuilder<T> ke = visitor.visit(callBuilder.out());
-
-//            ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
-            ke.classAsm.mLabel(label);
-            ke.classAsm.mFrame(new Object[]{"java/lang/Integer", "java/lang/Integer"});
-            return ke;
-//            return new ElseBuilder(ke.classAsm, ke.type).setIn(exit);
-        }
-    }
-
-    public class ElseBuilder extends Builder<T> {
-        Label label = new Label();
-
-        Label exit;
-
-        public ElseBuilder(ClassAsm classAsm, Class<T> type) {
-            super(classAsm, type);
-        }
-
-        public ElseBuilder setIn(Label in) {
+        private IfElseBuilder setIn(Label in) {
             exit = in;
             return this;
         }
 
-        public ElseBuilder setContent(
-                AsmBudVisitor.IfBuilder<T> visitor
+        public IfElseBuilder setContent(
+                AsmBudVisitor.AsmCallBuilder<T> condition,
+                AsmBudVisitor.IfBuilder<T> visitor,
+                int opcode
         ) {
-            classAsm.jumpInsn(Opcodes.IF_ICMPLE, label);
+            CallBuilder<T> callBuilder = condition.visit(new CallBuilder<>(classAsm, type));
 
-            BlockBuilder<T> ke = visitor.visit(create());
+            callBuilder.classAsm.jumpInsn(opcode, label);
+
+            BlockBuilder<T> ke = visitor.visit(callBuilder.out());
 
             ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
             ke.classAsm.mLabel(label);
-            return new ElseBuilder(ke.classAsm, ke.type).setIn(label);
+            return new IfElseBuilder(ke.classAsm, ke.type).setIn(exit);
         }
 
         public BlockBuilder<T> toElse(AsmBudVisitor.IfBuilder<T> visitor) {
@@ -151,10 +128,14 @@ public class BlockBuilder<T> extends Builder<T> {
 
             return builder;
         }
+
+        public BlockBuilder<T> out() {
+            return new BlockBuilder<>(classAsm, type);
+        }
     }
 
-    public IfBuilder ifCall() {
-        return new IfBuilder(classAsm, type);
+    public IfElseBuilder ifCall() {
+        return new IfElseBuilder(classAsm, type);
     }
 
     public CallBuilder<T> callLocal(String name) {

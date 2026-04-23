@@ -1,12 +1,19 @@
 package chire.asm.test;
 
 public class Test {
-    public static Class System;
-
     public static void main(String[] param0) {
-        java.lang.String name = "sss";
-        java.lang.System.out.print(param0);
-        java.lang.System.out.print(name);
+        Integer a = 3;
+        Integer b = 4;
+
+        if (a>b) {
+            System.out.print("ssssss");
+        } else if (a==b) {
+            System.out.print("is elps");
+        }
+    }
+
+    public static boolean comparison(Integer k, Integer p) {
+        return k > p;
     }
 }
 
