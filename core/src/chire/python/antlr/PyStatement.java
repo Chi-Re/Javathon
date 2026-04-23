@@ -203,6 +203,21 @@ public abstract class PyStatement {
         }
 
         @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof ClassBuilder) {
+                builder = ((ClassBuilder) builder).defineClass(this.name.getText(), Object.class);
+
+                for (PyStatement statement : body) {
+                    builder = statement.build(builder);
+                }
+
+                return builder;
+            } else {
+                return builder;
+            }
+        }
+
+        @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {
             ArrayList<PyExecutor.PyInstruction> body = new ArrayList<>();
 
