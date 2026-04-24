@@ -205,31 +205,31 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public static class StaticBlockBuild implements StaticBuild {
-        private final AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content;
+        private final AsmBudVisitor.AsmBlockBuilder<ClinitDefinition> content;
 
-        public StaticBlockBuild(AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+        public StaticBlockBuild(AsmBudVisitor.AsmBlockBuilder<ClinitDefinition> content) {
             this.content = content;
         }
 
         @Override
         public ClinitDefinition visit(ClinitDefinition builder) {
-            return content.visit(new CallBuilder<>(builder.classAsm, builder.type)).out();
+            return (ClinitDefinition) content.visit(new BlockBuilder<>(builder.classAsm, builder.type));
         }
     }
 
-    public static class BlockBuilder extends Builder<AsmBuddy>{
-        public ClassBuilder setContent(AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
+    public static class ClinitBlockBuilder extends Builder<AsmBuddy>{
+        public ClassBuilder setContent(AsmBudVisitor.AsmBlockBuilder<ClinitDefinition> content) {
             this.classAsm.addClassVars(new StaticBlockBuild(content));
             return new ClassBuilder(classAsm);
         }
 
-        public BlockBuilder(ClassAsm classAsm, Class<AsmBuddy> type) {
+        public ClinitBlockBuilder(ClassAsm classAsm, Class<AsmBuddy> type) {
             super(classAsm, type);
         }
     }
 
-    public ClassBuilder setContent(AsmBudVisitor.AsmCallBuilder<ClinitDefinition> content) {
-        return new BlockBuilder(classAsm, type).setContent(content);
+    public ClassBuilder setContent(AsmBudVisitor.AsmBlockBuilder<ClinitDefinition> content) {
+        return new ClinitBlockBuilder(classAsm, type).setContent(content);
     }
 
     public ClassBuilder defineClass(String name, Class<?> superClass) {

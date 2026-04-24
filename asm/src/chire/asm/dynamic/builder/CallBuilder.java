@@ -218,10 +218,18 @@ public class CallBuilder<T> extends Builder<T>{
         return this;
     }
 
+    public CallBuilder<T> call(Class<?> owner, String var, Class<?> type) {
+        return call(Opcodes.GETSTATIC, owner, var, type);
+    }
+
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
         classAsm.invokeVar(opcode, owner, var, type);
 
         return this;
+    }
+
+    public CallBuilder<T> call(String owner, String var, String type) {
+        return call(Opcodes.GETSTATIC, owner, var, type);
     }
 
     public CallBuilder<T> call(int opcode, String owner, String var, String type) {

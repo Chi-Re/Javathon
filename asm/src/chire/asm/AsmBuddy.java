@@ -31,7 +31,7 @@ public class AsmBuddy {
                     .setContent(cliBuil -> {
                         return cliBuil.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
                                 .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-                                .setContent(builder -> builder.callStatic("st", String.class));
+                                .setContent(builder -> builder.callStatic("st", String.class)).out();
                     })
 
                     .declareStaticVar("st", String.class)
@@ -53,7 +53,7 @@ public class AsmBuddy {
                     .setContent(
                             condition -> {
                                 return condition.callLocal("c").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent()
-                                        .callLocal("d").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent();
+                                        .callLocal("d").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent().out();
                             },
                             ifBuil -> ifBuil
                                     .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
@@ -64,7 +64,7 @@ public class AsmBuddy {
                     )
                     .setContent(condition -> {
                                 return condition.callLocal("c").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent()
-                                        .callLocal("d").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent();
+                                        .callLocal("d").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent().out();
                             },
                             ifBuil -> ifBuil
                             .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)

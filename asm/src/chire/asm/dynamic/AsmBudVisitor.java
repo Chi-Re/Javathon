@@ -11,7 +11,11 @@ public interface AsmBudVisitor<T> {
         CallBuilder<T> visit(CallBuilder<T> builder);
     }
 
-    interface IfBuilder<T> {
-        BlockBuilder<T> visit(T builder);
+    interface AsmBlockBuilder<T extends BlockBuilder<T>> {
+        T visit(BlockBuilder<T> builder);
+    }
+
+     interface IfBuilder<T extends BlockBuilder<T>> {
+        BlockBuilder<T> visit(BlockBuilder<T> builder);
     }
 }

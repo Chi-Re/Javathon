@@ -11,6 +11,7 @@ public class Format {
 
     public static final Map<Class<?>, String> keywords = new HashMap<Class<?>, String>(){{
         put(int.class, "I");
+        put(boolean.class, "Z");
     }};
 
     public static String formatPack(Class<?> clazz, boolean prefix) {

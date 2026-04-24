@@ -6,7 +6,7 @@ import chire.asm.util.Format;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 
-public class BlockBuilder<T> extends Builder<T> {
+public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
     public BlockBuilder(ClassAsm classAsm, Class<T> type) {
         super(classAsm, type);
     }
@@ -106,15 +106,15 @@ public class BlockBuilder<T> extends Builder<T> {
         }
 
         public IfElseBuilder setContent(
-                AsmBudVisitor.AsmCallBuilder<T> condition,
+                AsmBudVisitor.AsmBlockBuilder<T> condition,
                 AsmBudVisitor.IfBuilder<T> visitor,
                 int opcode
         ) {
-            CallBuilder<T> callBuilder = condition.visit(new CallBuilder<>(classAsm, type));
+            BlockBuilder<T> callBuilder = condition.visit(new BlockBuilder<>(classAsm, type));
 
             callBuilder.classAsm.jumpInsn(opcode, label);
 
-            BlockBuilder<T> ke = visitor.visit(callBuilder.out());
+            BlockBuilder<T> ke = visitor.visit(callBuilder);
 
             ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
             ke.classAsm.mLabel(label);
@@ -167,5 +167,9 @@ public class BlockBuilder<T> extends Builder<T> {
 
     public CallBuilder<T> call(int opcode, Class<?> owner, String var, Class<?> type) {
         return new CallBuilder<>(classAsm,  this.type).call(opcode, owner, var, type);
+    }
+
+    public T out() {
+        return create();
     }
 }

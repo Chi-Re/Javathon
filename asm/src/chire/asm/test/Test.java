@@ -2,14 +2,16 @@ package chire.asm.test;
 
 public class Test {
     public static void main(String[] param0) {
-        Integer a = 3;
-        Integer b = 4;
+        Boolean c = true;
 
-        if (a>b) {
+        if (c) {
             System.out.print("ssssss");
-        } else if (a==b) {
-            System.out.print("is elps");
         }
+
+        //methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z", false);
+    }
+
+    static {
     }
 
     public static boolean comparison(Integer k, Integer p) {
