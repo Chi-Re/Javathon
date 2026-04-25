@@ -27,10 +27,10 @@ public abstract class Builder<T> {
 
     protected T create(){
         try {
-            return this.type.getDeclaredConstructor(classAsm.getClass(), Class.class).newInstance(classAsm, type);
+            return this.type.getDeclaredConstructor(ClassAsm.class, Class.class).newInstance(classAsm, type);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             try {
-                return this.type.getDeclaredConstructor(classAsm.getClass()).newInstance(classAsm);
+                return this.type.getDeclaredConstructor(ClassAsm.class).newInstance(classAsm);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException ex) {
                 throw new RuntimeException(ex);
@@ -46,7 +46,7 @@ public abstract class Builder<T> {
         }
 
         try {
-            return type.getConstructor(classes.toArray(new Class[0])).newInstance(args);
+            return type.getDeclaredConstructor(classes.toArray(new Class[0])).newInstance(args);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }

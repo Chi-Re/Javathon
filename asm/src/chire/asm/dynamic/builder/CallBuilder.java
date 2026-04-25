@@ -135,7 +135,7 @@ public class CallBuilder<T> extends Builder<T>{
 
         methodBuilder.end(builder -> {
             classAsm.invokeMethod(Opcodes.INVOKESPECIAL, owner, "<init>", Format.formatParameter(parameters, null));
-//            classAsm.mVisitInsn(Opcodes.POP); TODO 理应使用，但并没有，使用反而不能运行。
+//            classAsm.mVisitInsn(Opcodes.DUP); //TODO 理应使用，但并没有，使用反而不能运行。
 
             return new CallBuilder<>(classAsm, type);
         });

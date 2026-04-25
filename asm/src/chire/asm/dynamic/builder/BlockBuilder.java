@@ -130,6 +130,7 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         }
 
         public BlockBuilder<T> out() {
+            classAsm.mLabel(exit);
             return new BlockBuilder<>(classAsm, type);
         }
     }
