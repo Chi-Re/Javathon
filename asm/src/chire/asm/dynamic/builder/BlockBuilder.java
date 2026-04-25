@@ -162,6 +162,14 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         return new CallBuilder<>(classAsm, this.type).callMethod(Opcodes.INVOKESTATIC, owner, var, parameters, returnType);
     }
 
+    public CallBuilder<T> call(String owner, String var, String type) {
+        return call(Opcodes.GETSTATIC, owner, var, type);
+    }
+
+    public CallBuilder<T> call(Class<?> owner, String var, Class<?> type) {
+        return call(Opcodes.GETSTATIC, owner, var, type);
+    }
+
     public CallBuilder<T> call(int opcode, String owner, String var, String type) {
         return new CallBuilder<>(classAsm,  this.type).call(opcode, owner, var, type);
     }
