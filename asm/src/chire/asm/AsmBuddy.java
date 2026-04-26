@@ -1,11 +1,9 @@
 package chire.asm;
 
 import chire.asm.args.Args;
-import chire.asm.dynamic.AsmBudVisitor;
-import chire.asm.dynamic.builder.CallBuilder;
+import chire.asm.dynamic.builder.Builder;
 import chire.asm.dynamic.builder.ClassBuilder;
-import chire.asm.dynamic.definition.ClinitDefinition;
-import chire.asm.dynamic.definition.FunctionDefinition;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
@@ -13,88 +11,45 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Types;
-import java.util.List;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 public class AsmBuddy {
     private ClassAsm classAsm;
 
-    public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
         try (FileOutputStream fos = new FileOutputStream("cache/test/TestCl.class")) {
             fos.write(new AsmBuddy("TestCl", Object.class).create()
-                    .declareVar(Opcodes.ACC_PUBLIC, "a", Object.class)
+                    .declareStaticVar("System", Class.class)
+                    .setContent(builder -> builder.definitObj(Type.getType("Ljava/lang/System;")))
                     .setContent(builder -> {
-                        return builder.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class);
+                        return builder.ifCall()
+                                .setContent(
+                                        pd -> {
+                                            return pd.callMethod("chire/python/escape/JPUtil", "comparison", new String[]{"Ljava/lang/Integer", "Ljava/lang/Integer", "Ljava/lang/String"}, Type.getType(Boolean.class).toString())
+                                                    .setContent(qd -> qd.definitObj(1, 2, "sss"))._break();
+                                        },
+                                        ifBui -> {
+//                                            return ifBui.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
+//                                                    .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
+//                                                    .setContent(inn -> inn.callStatic("st", String.class))
+//                                                    ._break();
+
+                                            return ifBui.callMethod(
+                                                    "chire/python/escape/JPUtil",
+                                                    "callVar",
+                                                    new String[]{"Ljava/lang/Object", "Ljava/lang/String"},
+                                                    "Ljava/lang/Object"
+                                            ).setContent(bexbui -> {
+                                                return bexbui.definitPar(
+                                                        par -> par.callStatic("System", Class.class),
+                                                        par -> par.definitObj("out")
+                                                );
+                                            })._break();
+                                        },
+                                        Opcodes.IFEQ
+                                ).out().out();
                     })
-
-                    .setContent(cliBuil -> {
-                        return cliBuil.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                                .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-                                .setContent(builder -> builder.callStatic("st", String.class)).out();
-                    })
-
-                    .declareStaticVar("st", String.class)
-                    .setContent(builder -> builder.definitObj("setStaticVar"))
-                    .defineFunction(Opcodes.ACC_PUBLIC+Opcodes.ACC_STATIC, "main", new Args(){{
-                        put("args", String[].class);
-                    }})
-
-                    .setVar("c")
-                    .setContent(funBuil ->
-                            funBuil.definitObj(4)
-                    )
-                    .setVar("d")
-                    .setContent(funBuil ->
-                            funBuil.definitObj(3)
-                    )
-
-                    .ifCall()
-                    .setContent(
-                            condition -> {
-                                return condition.callLocal("c").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent()
-                                        .callLocal("d").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent().out();
-                            },
-                            ifBuil -> ifBuil
-                                    .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                                    .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-                                    .setContent(builder -> builder.callStatic("st", String.class))
-                                    .out(),
-                            Opcodes.IF_ICMPLE
-                    )
-                    .setContent(condition -> {
-                                return condition.callLocal("c").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent()
-                                        .callLocal("d").callMethod(Integer.class, "intValue", new Class[]{}, int.class).setContent().out();
-                            },
-                            ifBuil -> ifBuil
-                            .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                            .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-                            .setContent(builder -> builder.callStatic("st", String.class))
-                            .out(),
-                            Opcodes.IF_ICMPNE
-                    )
-                    .toElse(elseto -> elseto.call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                            .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-                            .setContent(builder -> builder.callLocal("d"))
-                            .out()
-                    )
-
-                    .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                    .callMethod("java/io/PrintStream", "println", new String[]{"Ljava/lang/Object",}, null)
-                    .setContent(builder -> builder.callLocal("c"))
-                    .out()
-
-                    .call(Opcodes.GETSTATIC, System.class, "out", PrintStream.class)
-                    .callMethod("java/io/PrintStream", "printf", new String[]{"Ljava/lang/String", "[Ljava/lang/Object"}, "Ljava/io/PrintStream")
-                    .setContent(builder -> builder.definitPar(
-                            parBui -> parBui.callStatic("st", String.class)
-                    ))
-                    .out()
-                    ._return()
-
-                    .defineClass("OtherTestCl", Object.class)
-                    .declareStaticVar("st", String.class)
-                    .setContent(builder -> builder.definitObj("setStaticVar"))
                     .make()
 
                     .save().get("TestCl")
@@ -111,7 +66,8 @@ public class AsmBuddy {
     }
 
     public AsmBuddy(String name, Class<?> superClass) {
-        this(new ClassAsm(name, superClass));
+        this(ClassAsm.create(new Class[]{String.class, Class.class}, new Object[]{name, superClass}));
+//        this(new ClassAsm(name, superClass));
     }
 
     public AsmBuddy(ClassAsm classAsm) {

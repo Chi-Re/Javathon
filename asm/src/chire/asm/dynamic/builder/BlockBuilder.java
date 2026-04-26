@@ -116,7 +116,8 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
 
             BlockBuilder<T> ke = visitor.visit(callBuilder);
 
-            ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
+//            ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
+            ke.classAsm.mVisitInsn(Opcodes.POP); //TODO 不存在可能导致未知问题，很奇怪。
             ke.classAsm.mLabel(label);
             return new IfElseBuilder(ke.classAsm, ke.type).setIn(exit);
         }
@@ -124,13 +125,13 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         public BlockBuilder<T> toElse(AsmBudVisitor.IfBuilder<T> visitor) {
             BlockBuilder<T> builder = visitor.visit(create());
 
-            builder.classAsm.mLabel(exit);
+//            builder.classAsm.mLabel(exit);
 
             return builder;
         }
 
         public BlockBuilder<T> out() {
-            classAsm.mLabel(exit);
+//            classAsm.mLabel(exit);
             return new BlockBuilder<>(classAsm, type);
         }
     }
