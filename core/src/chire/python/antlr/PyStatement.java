@@ -19,6 +19,7 @@ import org.antlr.v4.runtime.Token;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import java.io.PrintStream;
 import java.util.*;
 
 public abstract class PyStatement {
@@ -69,14 +70,14 @@ public abstract class PyStatement {
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ModuleBuilder) {
                 return new ModuleBuilder(
-                       ((ModuleBuilder) builder).declareStaticVar(this.name, Class.class).setContent(
+                       ((ModuleBuilder) builder).declareStaticVar(this.name, Object.class).setContent(
                                argb -> argb.definitObj(
                                        Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
                                )
                        ).getClassAsm()
                 );
             } else if (builder instanceof ClassBuilder) {
-                return ((ClassBuilder) builder).declareVar(this.name, Class.class).setContent(
+                return ((ClassBuilder) builder).declareVar(this.name, Object.class).setContent(
                         argb -> argb.definitObj(
                                 Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
                         )
@@ -288,7 +289,7 @@ public abstract class PyStatement {
                 for (PyStatement statement : this.statements) {
                     Builder<?> bui = statement.build(fun);
                     if (bui instanceof CallBuilder<?>) {
-                        fun = (FunctionDefinition) ((CallBuilder<?>) bui).out();
+                        fun = (FunctionDefinition) ((CallBuilder<?>) bui)._break();
                     } else {
                         fun = (FunctionDefinition) bui;
                     }
@@ -417,64 +418,49 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof BlockBuilder<?>) {
-                return createBlock(builder);
+                return createBlock((BlockBuilder<?>) builder);
             } else if (builder instanceof ModuleBuilder){
                 return new ModuleBuilder(((ModuleBuilder) builder).setContent(clinBui ->
-                        ((CallBuilder<ClinitDefinition>) createBlock(clinBui)).out()
+                        ((CallBuilder<ClinitDefinition>) createBlock(clinBui))._break()
                 ).getClassAsm());
             } else if (builder instanceof ClassBuilder){
                 return  ((ClassBuilder) builder).setContent(clinBui ->
-                        ((CallBuilder<ClinitDefinition>) createBlock(clinBui)).out()
+                        ((CallBuilder<ClinitDefinition>) createBlock(clinBui))._break()
                 );
             }
 
             throw new RuntimeException("no key");
         }
 
-        public Builder<?> createBlock(Builder<?> builder) {
-            if (key instanceof VarCallStatement) {
-                String callName = ((VarCallStatement) key).name.getText();
+        public <T extends BlockBuilder<T>> Builder<T> createBlock(BlockBuilder<T> builder) {
+            CallBuilder<T> outBuilder;
 
-                if (builder.getType().equals(FunctionDefinition.class)) {
-                    builder = ((BlockBuilder<?>) builder).callClass(ClassCall.class, new Class[]{Object.class})
-                            .setContent(bu ->
-                                    bu.callLocal(callName)
-                            );
-                } else {
-                    builder = ((BlockBuilder<?>) builder).callClass(ClassCall.class, new Class[]{Object.class})
-                            .setContent(bu ->
-                                    bu.callStatic(callName, Class.class)
-                            );
+            if (call instanceof VarCallStatement) {
+                outBuilder = builder.callMethod(JPUtil.class, "callVar", new Class[]{Object.class, String.class}, Object.class)
+                        .setContent(varBui ->  varBui.definitPar(
+                                argBui -> (CallBuilder) key.build(argBui),
+                                argBui -> argBui.definitObj(((VarCallStatement) call).name.getText())
+                        ));
+            } else if (call instanceof FunCallStatement) {
+                List<AsmBudVisitor.AsmCallBuilder> callBuilders = new ArrayList<>();
+
+                callBuilders.add(argBui -> (CallBuilder) key.build(((BlockBuilder)argBui._break())));
+                callBuilders.add(argBui -> argBui.definitObj(((FunCallStatement) call).name.getText()));
+
+                for (int i = 0; i < ((FunCallStatement) call).args.size(); i++) {
+                    int finalI = i;
+                    callBuilders.add(par -> (CallBuilder<?>) ((FunCallStatement) call).args.get(finalI).build(par));
                 }
-            } else if (key instanceof SubCallStatement) {
-                builder = key.build(builder);
+
+                outBuilder = builder.callMethod(JPUtil.class, "callMethod", new Class[]{Object.class, String.class, Object[].class}, Object.class)
+                        .setContent(varBui ->  varBui.definitPar(
+                                callBuilders.toArray(new AsmBudVisitor.AsmCallBuilder[0])
+                        ));
             } else {
                 throw new RuntimeException("no key");
             }
 
-            if (!(builder instanceof CallBuilder<?>)) throw new RuntimeException("no key");
-
-            if (call instanceof VarCallStatement) {
-                builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "call", new Class[]{String.class}, ClassCall.class)
-                        .setContent(bu ->
-                                bu.definitObj(((VarCallStatement) call).name.getText())
-                        );
-            } else if (call instanceof FunCallStatement) {
-                if (!((FunCallStatement) call).args.isEmpty()) {
-                    builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
-                            .setContent(bu -> bu.definitPar(
-                                    parBui -> parBui.definitObj(((FunCallStatement) call).name.getText()),
-                                    parBui -> (CallBuilder) call.build(parBui)
-                            ));
-                } else {
-                    builder = ((CallBuilder<?>) builder).callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
-                            .setContent(bu -> bu.definitPar(
-                                    parBui -> parBui.definitObj(((FunCallStatement) call).name.getText())
-                            ));
-                }
-            }
-
-            return builder;
+            return outBuilder;
         }
 
         @Override
@@ -646,18 +632,43 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ModuleBuilder) {
-                return ((ModuleBuilder) builder).setContent(clinBui -> {
-//                    BlockBuilder blockBuilder = clinBui.out().ifCall().setContent(
-//                            condition ->
-//                                    (CallBuilder) this.conditions.build(condition),
-//                            visitor -> {
-//                                return visitor;
-//                            },
-//                            Opcodes.IFEQ
-//                    ).out();
-                    return clinBui.out();
-                });
-            } else {
+                return new ModuleBuilder(((ModuleBuilder) builder).setContent(clinBui -> {
+                    return clinBui.ifCall().setContent(
+                            condition -> (ClinitDefinition) conditions.build(condition),
+                            visitor -> {
+                                for (PyStatement statement : this.statements) {
+                                    Builder<?> bui = statement.build(visitor);
+                                    if (bui instanceof CallBuilder<?>) {
+                                        visitor = (ClinitDefinition) ((CallBuilder<?>) bui)._break();
+                                    } else {
+                                        visitor = (ClinitDefinition) bui;
+                                    }
+                                }
+
+                                return visitor;
+                            },
+                            Opcodes.IFEQ
+                    ).out().out();
+                }).getClassAsm());
+            } if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder) builder).ifCall().setContent(
+                        condition -> (BlockBuilder<?>) conditions.build(condition),
+                        visitor -> {
+                            for (PyStatement statement : this.statements) {
+                                Builder<?> bui = statement.build(visitor);
+                                if (bui instanceof CallBuilder<?>) {
+                                    visitor = (BlockBuilder<?>) ((CallBuilder<?>) bui)._break();
+                                } else {
+                                    visitor = (BlockBuilder<?>) bui;
+                                }
+                            }
+
+                            return visitor;
+                        },
+                        Opcodes.IFEQ
+                ).out().out();
+            }
+            else {
                 return super.build(builder);
             }
         }
@@ -711,13 +722,13 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
-            if (builder instanceof CallBuilder<?>) {
-                return ((CallBuilder<?>) builder).callMethod(JPUtil.class, "comparison", new Class[]{Integer.class, Integer.class, String.class}, boolean.class)
-                        .setContent((AsmBudVisitor) builder1 -> builder1.definitPar(
-                                leftBui -> (CallBuilder) left.build(leftBui),
-                                rightBui -> (CallBuilder) right.build(rightBui),
-                                operatorBui -> operatorBui)
-                        );
+            if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder<?>) builder).callMethod(JPUtil.class, "comparison", new Class[]{Object.class, Object.class, String.class}, boolean.class)
+                        .setContent(budVis -> budVis.definitPar(
+                                left -> (CallBuilder) this.left.build(left),
+                                right -> (CallBuilder) this.right.build(right),
+                                operator -> operator.definitObj(this.operator.getText())
+                        ))._break();
             } else {
                 return builder;
             }
@@ -838,6 +849,16 @@ public abstract class PyStatement {
                             bun -> bun.definitObj(cast())
                     );
                 }
+            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
+                if (type == String.class) {
+                    return ((ClassBuilder.StaticVarBuilder) builder).setContent(
+                            bun -> bun.definitObj(RemoveQuotes.removeQuotes(token.getText()))
+                    );
+                } else {
+                    return ((ClassBuilder.StaticVarBuilder) builder).setContent(
+                            bun -> bun.definitObj(cast())
+                    );
+                }
             } else {
                 throw new RuntimeException("no key");
             }
@@ -944,14 +965,14 @@ public abstract class PyStatement {
                         .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
                         .setContent(bu -> bu.definitPar(
                                 callBuilders.toArray(new AsmBudVisitor.AsmCallBuilder[0])
-                        )).out();
+                        ))._break();
             } else {
                 return builder.callClass(ClassCall.class, new Class[]{Object.class})
                         .setContent(clasBui -> clasBui.definitObj(Type.getType("L"+builder.getClassAsm().className+";")))
                         .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
                         .setContent(bu -> bu.definitPar(
                                 parBui -> parBui.definitObj(this.name.getText())
-                        )).out();
+                        ))._break();
             }
         }
 
@@ -1001,7 +1022,11 @@ public abstract class PyStatement {
                 if (builder.getType().equals(ClinitDefinition.class)) {
                     return ((CallBuilder<?>) builder).call(builder.getClassAsm().className, this.name.getText(), Format.formatPack(Object.class));
                 } else {
-                    return ((CallBuilder<?>) builder).callLocal(this.name.getText());
+                    try {
+                        return ((CallBuilder<?>) builder).callLocal(this.name.getText());
+                    } catch (Exception e) {
+                        return ((CallBuilder<?>) builder).callStatic(this.name.getText(), Object.class);
+                    }
                 }
             } else {
                 return builder;
