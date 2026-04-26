@@ -20,6 +20,10 @@ public class JPUtil {
         }));
     }};
 
+    public static boolean comparison(Object k, Object p, String f) {
+        return true;
+    }
+
     public static Object newInstance(Class<?> type, Object... args) {
         List<Class<?>> classes = new ArrayList<>();
 
