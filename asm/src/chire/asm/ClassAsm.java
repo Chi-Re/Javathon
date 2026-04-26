@@ -4,9 +4,14 @@ import chire.asm.args.Args;
 import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.VarVisitor;
 import chire.asm.dynamic.builder.ClassBuilder;
+import chire.asm.util.CallLogger;
 import chire.asm.util.Format;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.objectweb.asm.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +38,8 @@ public class ClassAsm {
 
     private final ClassAsm outer;
 
+    static CallLogger logger = new CallLogger();
+
     public ClassAsm(String className, String superClass) {
         this(className, superClass, null);
     }
@@ -57,6 +64,22 @@ public class ClassAsm {
 
     public ClassAsm(String className, Class<?> superClass, ClassAsm outer) {
         this(className, Format.formatPack(superClass, false), outer);
+    }
+
+    public static ClassAsm create(Class<?>[] types, Object[] args) {
+        try {
+            return new ByteBuddy()
+                    .subclass(ClassAsm.class)
+                    .method(ElementMatchers.any())
+                    .intercept(MethodDelegation.to(logger))
+                    .make()
+                    .load(ClassAsm.class.getClassLoader())
+                    .getLoaded()
+                    .getConstructor(types)
+                    .newInstance(args);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public ClassAsm defineClass(String className, Class<?> superClass){
