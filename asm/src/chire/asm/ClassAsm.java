@@ -38,6 +38,8 @@ public class ClassAsm {
 
     private final ClassAsm outer;
 
+    private final List<String> levelStack = new ArrayList<>();
+
     static CallLogger logger = new CallLogger();
 
     public ClassAsm(String className, String superClass) {
@@ -337,5 +339,24 @@ public class ClassAsm {
 
     public void addClassVars(ClassBuilder.StaticBuild content) {
         staticVarBuilds.add(content);
+    }
+
+    public void setState(String state) {
+        this.levelStack.add(state);
+    }
+
+    public void setState(String state, Runnable runnable) {
+        setState(state);
+        runnable.run();
+        releaseState();
+    }
+
+    public String getState() {
+        if (levelStack.isEmpty()) return "null";
+        return this.levelStack.get(this.levelStack.size()-1);
+    }
+
+    public void releaseState() {
+        this.levelStack.remove(this.levelStack.size()-1);
     }
 }

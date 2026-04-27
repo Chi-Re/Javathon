@@ -250,7 +250,9 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         ClinitDefinition clinitBuilder = builder._return().defineClinit();
 
         for (StaticBuild callBuilder : classAsm.getClassStaticVars()) {
+            if (callBuilder instanceof StaticVarBuild) clinitBuilder.classAsm.setState("set-content-var");
             clinitBuilder = callBuilder.visit(clinitBuilder);
+            if (callBuilder instanceof StaticVarBuild) clinitBuilder.classAsm.releaseState();
         }
 
         clinitBuilder.classAsm.toReturn();

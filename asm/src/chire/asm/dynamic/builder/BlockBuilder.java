@@ -110,14 +110,16 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
                 AsmBudVisitor.IfBuilder<T> visitor,
                 int opcode
         ) {
+            classAsm.setState("set-content-if");
             BlockBuilder<T> callBuilder = condition.visit(new BlockBuilder<>(classAsm, type));
+            callBuilder.classAsm.releaseState();
 
             callBuilder.classAsm.jumpInsn(opcode, label);
 
             BlockBuilder<T> ke = visitor.visit(callBuilder);
 
 //            ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
-            ke.classAsm.mVisitInsn(Opcodes.POP); //TODO 不存在可能导致未知问题，很奇怪。
+//            ke.classAsm.mVisitInsn(Opcodes.POP); //TODO 不存在可能导致未知问题，很奇怪。
             ke.classAsm.mLabel(label);
             return new IfElseBuilder(ke.classAsm, ke.type).setIn(exit);
         }
