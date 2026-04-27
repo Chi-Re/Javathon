@@ -137,7 +137,7 @@ public class CallBuilder<T> extends Builder<T>{
             classAsm.invokeMethod(Opcodes.INVOKESPECIAL, owner, "<init>", Format.formatParameter(parameters, null));
 //            classAsm.mVisitInsn(Opcodes.DUP); //TODO 理应使用，但并没有，使用反而不能运行。
 
-            return new CallBuilder<>(classAsm, type);
+            return this;
         });
 
         return methodBuilder;
@@ -182,7 +182,7 @@ public class CallBuilder<T> extends Builder<T>{
 
 //            if (returnType != null) classAsm.mVisitInsn(Opcodes.POP);
 
-            return new CallBuilder<>(classAsm, type);
+            return this;
         });
 
         return methodBuilder;
@@ -200,7 +200,7 @@ public class CallBuilder<T> extends Builder<T>{
 
 //            if (returnType != null) classAsm.mVisitInsn(Opcodes.POP);
 
-            return new CallBuilder<>(classAsm, type);
+            return this;
         });
 
         return methodBuilder;
@@ -253,7 +253,7 @@ public class CallBuilder<T> extends Builder<T>{
     public CallBuilder<T> definitObj(Object obj) {
         classAsm.ldcInsn(obj);
 
-        return new CallBuilder<>(classAsm, type);
+        return this;
     }
 
     public T _break(){
