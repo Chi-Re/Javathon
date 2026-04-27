@@ -3,10 +3,7 @@ package chire.python.escape;
 import chire.python.lib.base.PyFunction;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JPUtil {
     public static final Map<String, PyFunction> funs = new HashMap<>(){{
@@ -21,7 +18,23 @@ public class JPUtil {
     }};
 
     public static boolean comparison(Object k, Object p, String f) {
-        return true;
+        if (k instanceof Integer && p instanceof Integer) {
+            return compareInt(((Integer) k), ((Integer) p), f);
+        }
+
+        return false;
+    }
+
+    private static boolean compareInt(Integer k, Integer p, String f) {
+        return switch (f) {
+            case ">" -> k > p;
+            case "<" -> k < p;
+            case "==" -> Objects.equals(k, p);
+            case ">=" -> compareInt(k, p, ">") || compareInt(k, p, "==");
+            case "<=" -> compareInt(k, p, "<") || compareInt(k, p, "==");
+            case "!=" -> !compareInt(k, p, "==");
+            default -> false;
+        };
     }
 
     public static Object newInstance(Class<?> type, Object... args) {
