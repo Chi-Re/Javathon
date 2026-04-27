@@ -19,7 +19,6 @@ import org.antlr.v4.runtime.Token;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import java.io.PrintStream;
 import java.util.*;
 
 public abstract class PyStatement {
@@ -427,6 +426,10 @@ public abstract class PyStatement {
                 return  ((ClassBuilder) builder).setContent(clinBui ->
                         ((CallBuilder<ClinitDefinition>) createBlock(clinBui))._break()
                 );
+            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
+                return ((ClassBuilder.StaticVarBuilder) builder).setContent(statBui -> {
+                    return (CallBuilder<ClinitDefinition>) createBlock(statBui._break());
+                });
             }
 
             throw new RuntimeException("no key");
@@ -652,7 +655,7 @@ public abstract class PyStatement {
                 }).getClassAsm());
             } if (builder instanceof BlockBuilder<?>) {
                 return ((BlockBuilder) builder).ifCall().setContent(
-                        condition -> (BlockBuilder<?>) conditions.build(condition),
+                        condition -> (BlockBuilder) conditions.build(condition),
                         visitor -> {
                             for (PyStatement statement : this.statements) {
                                 Builder<?> bui = statement.build(visitor);
@@ -1026,6 +1029,16 @@ public abstract class PyStatement {
                         return ((CallBuilder<?>) builder).callLocal(this.name.getText());
                     } catch (Exception e) {
                         return ((CallBuilder<?>) builder).callStatic(this.name.getText(), Object.class);
+                    }
+                }
+            } else if (builder instanceof BlockBuilder<?>) {
+                if (builder.getType().equals(ClinitDefinition.class)) {
+                    return ((BlockBuilder<?>) builder).call(builder.getClassAsm().className, this.name.getText(), Format.formatPack(Object.class));
+                } else {
+                    try {
+                        return ((BlockBuilder<?>) builder).callLocal(this.name.getText());
+                    } catch (Exception e) {
+                        return ((BlockBuilder<?>) builder).callStatic(this.name.getText(), Object.class);
                     }
                 }
             } else {
