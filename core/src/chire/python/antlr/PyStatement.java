@@ -14,6 +14,7 @@ import chire.python.escape.ClassCall;
 import chire.python.escape.JPUtil;
 import chire.python.lib.base.PyObject;
 import chire.python.util.SmartIndenter;
+import chire.python.util.Test;
 import chire.python.util.type.RemoveQuotes;
 import org.antlr.v4.runtime.Token;
 import org.objectweb.asm.Opcodes;
@@ -627,16 +628,23 @@ public abstract class PyStatement {
 
         public final ArrayList<PyStatement> statements;
 
+        public final IfStatement elseStatement;
+
         public IfStatement(PyStatement conditions, ArrayList<PyStatement> statements){
+            this(conditions, statements, null);
+        }
+
+        public IfStatement(PyStatement conditions, ArrayList<PyStatement> statements, IfStatement elseStatement){
             this.conditions = conditions;
             this.statements = statements;
+            this.elseStatement = elseStatement;
         }
 
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ModuleBuilder) {
                 return new ModuleBuilder(((ModuleBuilder) builder).setContent(clinBui -> {
-                    return clinBui.ifCall().setContent(
+                    return createElse(clinBui.ifCall().setContent(
                             condition -> (ClinitDefinition) conditions.build(condition),
                             visitor -> {
                                 for (PyStatement statement : this.statements) {
@@ -651,10 +659,10 @@ public abstract class PyStatement {
                                 return visitor;
                             },
                             Opcodes.IFEQ
-                    ).out().out();
+                    )).out();
                 }).getClassAsm());
             } if (builder instanceof BlockBuilder<?>) {
-                return ((BlockBuilder) builder).ifCall().setContent(
+                return createElse(((BlockBuilder) builder).ifCall().setContent(
                         condition -> (BlockBuilder) conditions.build(condition),
                         visitor -> {
                             for (PyStatement statement : this.statements) {
@@ -669,10 +677,33 @@ public abstract class PyStatement {
                             return visitor;
                         },
                         Opcodes.IFEQ
-                ).out().out();
+                )).out();
             }
             else {
                 return super.build(builder);
+            }
+        }
+
+        private <T extends BlockBuilder<T>> BlockBuilder<T> createElse(BlockBuilder<T>.IfElseBuilder elseBuilder) {
+            if (elseStatement == null) {
+                return elseBuilder.out();
+            } else if (elseStatement.conditions == null) {
+                return elseBuilder.toElse(toElseBui -> {
+                    for (PyStatement statement : elseStatement.statements) {
+                        Builder<T> builder = (Builder<T>) statement.build(toElseBui);
+
+                        if (builder instanceof CallBuilder<T>) {
+                            return ((CallBuilder<T>) builder)._break();
+                        } else {
+                            return (BlockBuilder<T>) builder;
+                        }
+                    }
+
+                    return toElseBui;
+                });
+            } else {
+                //TODO 未实现内容。
+                return elseBuilder.out();
             }
         }
 
@@ -692,7 +723,12 @@ public abstract class PyStatement {
             indenter.newLine().add("If{").newLine()
                     .indent()
                     .add("cond:").indent();
-            conditions.toString(indenter);
+
+            if (conditions != null) conditions.toString(indenter);
+
+            indenter.unindent().newLine().indent();
+
+            if (elseStatement != null) elseStatement.toString(indenter);
 
             indenter.unindent().newLine()
                     .add("stmt=[")

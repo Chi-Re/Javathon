@@ -441,11 +441,12 @@ public class PyParser {
         return ifDeclaration(0);
     }
 
-    private PyStatement ifDeclaration(int cur){
+    private PyStatement.IfStatement ifDeclaration(int cur){
         this.current += cur;
 
         var ifStmt = ifCondition();
         ArrayList<PyStatement> body = new ArrayList<>();
+        PyStatement.IfStatement elseStmt = null;
 
         while (!isEnd()) {
             switch (peek().getType()){
@@ -469,7 +470,13 @@ public class PyParser {
                     break;
 
                 case 2:
-                    return new PyStatement.IfStatement(ifStmt, body);
+                    if (last().getType() == 17) {
+                        elseStmt = ifDeclaration(1);
+                    } else if (last().getType() == 18) {
+                        elseStmt = ifDeclaration(1);
+                    }
+
+                    return new PyStatement.IfStatement(ifStmt, body, elseStmt);
 
                 case 23, 26:
                     body.add(importDeclaration());
@@ -479,7 +486,7 @@ public class PyParser {
             this.current++;
         }
 
-        return null;
+        throw new RuntimeException("no key");
     }
 
     private PyStatement ifCondition(){
