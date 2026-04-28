@@ -701,9 +701,12 @@ public abstract class PyStatement {
 
                     return toElseBui;
                 });
+            } else if (elseStatement.statements != null){
+                return elseBuilder.toElse(toElseBui -> {
+                    return (BlockBuilder<T>) elseStatement.build(toElseBui);
+                });
             } else {
-                //TODO 未实现内容。
-                return elseBuilder.out();
+                throw new RuntimeException("content is null!");
             }
         }
 
