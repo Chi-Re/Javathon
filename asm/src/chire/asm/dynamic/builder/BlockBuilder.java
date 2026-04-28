@@ -96,12 +96,14 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         Label label = new Label();
         Label exit = new Label();
 
+        AsmBudVisitor.IfBuilder<T> outBui;
+
         public IfElseBuilder(ClassAsm classAsm, Class<T> type) {
             super(classAsm, type);
         }
 
-        private IfElseBuilder setIn(Label in) {
-            exit = in;
+        private IfElseBuilder setIn(AsmBudVisitor.IfBuilder<T> outBui) {
+            this.outBui = outBui;
             return this;
         }
 
@@ -118,23 +120,26 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
 
             BlockBuilder<T> ke = visitor.visit(callBuilder);
 
-//            ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
-//            ke.classAsm.mVisitInsn(Opcodes.POP); //TODO 不存在可能导致未知问题，很奇怪。
-            ke.classAsm.mLabel(label);
-            return new IfElseBuilder(ke.classAsm, ke.type).setIn(exit);
+            return new IfElseBuilder(ke.classAsm, ke.type).setIn(ouB -> {
+                ouB.classAsm.mLabel(label);
+                return ouB;
+            });
         }
 
         public BlockBuilder<T> toElse(AsmBudVisitor.IfBuilder<T> visitor) {
-            BlockBuilder<T> builder = visitor.visit(create());
+            classAsm.jumpInsn(Opcodes.GOTO, exit);
+            BlockBuilder<T> builder = this.outBui.visit(new BlockBuilder<>(classAsm, type));
+            builder = visitor.visit(builder);
 
-//            builder.classAsm.mLabel(exit);
+            builder.classAsm.mLabel(exit);
 
             return builder;
         }
 
         public BlockBuilder<T> out() {
 //            classAsm.mLabel(exit);
-            return new BlockBuilder<>(classAsm, type);
+            BlockBuilder<T> blockBuilder = new BlockBuilder<>(classAsm, type);
+            return outBui.visit(blockBuilder);
         }
     }
 
