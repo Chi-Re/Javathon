@@ -12,10 +12,7 @@ import net.bytebuddy.matcher.ElementMatchers;
 import org.objectweb.asm.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -24,11 +21,11 @@ public class ClassAsm {
 
     private MethodVisitor mv = null;
 
-    private final Map<String, Integer> varsKey = new HashMap<>();
+    private final Map<String, Integer> varsKey = new LinkedHashMap<>();
 
-    protected List<ClassBuilder.ClassVarBuild> classVarBuilds = new ArrayList<>();
+    protected Map<String, ClassBuilder.ClassVarBuild> classVarBuilds = new LinkedHashMap<>();
 
-    protected List<ClassBuilder.StaticBuild> staticVarBuilds = new ArrayList<>();
+    protected Map<String, ClassBuilder.StaticBuild> staticVarBuilds = new LinkedHashMap<>();
 
     public final String className;
 
@@ -51,7 +48,7 @@ public class ClassAsm {
         this.superClass = superClass;
         this.outer = outer;
         cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, this.className, null, this.superClass, null);
+        cw.visit(V1_8, ACC_PUBLIC, this.className, null, this.superClass, null);
 
         if (outer != null) {
             String[] nes = outer.className.split("\\$");
@@ -104,10 +101,10 @@ public class ClassAsm {
         defineFunction(access, "<init>", args, null);
 
         mv.visitVarInsn(ALOAD, 0);
-        invokeMethod(Opcodes.INVOKESPECIAL, owner, "<init>", type);
+        invokeMethod(INVOKESPECIAL, owner, "<init>", type);
 
         mv.visitVarInsn(ALOAD, 0);
-        invokeMethod(Opcodes.INVOKESPECIAL, this.className, "$__init__$FieldInsn$", "()V");
+        invokeMethod(INVOKESPECIAL, this.className, "$__init__$FieldInsn$", "()V");
 
         initialize = true;
     }
@@ -254,7 +251,7 @@ public class ClassAsm {
         }
     }
     public void ldcInsns(String type, Object... objs){
-        int ICONST_NUM = Opcodes.ICONST_0 + objs.length;
+        int ICONST_NUM = ICONST_0 + objs.length;
 
         mv.visitInsn(ICONST_NUM);
         mv.visitTypeInsn(ANEWARRAY, type);
@@ -276,7 +273,7 @@ public class ClassAsm {
     }
 
     public void mFrame(Object[] objects) {
-        mv.visitFrame(Opcodes.F_APPEND, 2, objects, 0, null);
+        mv.visitFrame(F_APPEND, 2, objects, 0, null);
     }
 
     public void toReturn(boolean returnValue) {
@@ -325,20 +322,27 @@ public class ClassAsm {
         return outer;
     }
 
-    public List<ClassBuilder.ClassVarBuild> getClassVars(){
+    public Map<String, ClassBuilder.ClassVarBuild> getClassVars(){
         return classVarBuilds;
     }
 
-    public  List<ClassBuilder.StaticBuild> getClassStaticVars(){
+    public Map<String, ClassBuilder.StaticBuild> getClassStaticVars(){
         return staticVarBuilds;
     }
 
     public void addClassVars(ClassBuilder.ClassVarBuild content) {
-        classVarBuilds.add(content);
+        classVarBuilds.put(content.getName(), content);
     }
 
     public void addClassVars(ClassBuilder.StaticBuild content) {
-        staticVarBuilds.add(content);
+        String name = "Block&" + staticVarBuilds.size();
+
+        if (content instanceof ClassBuilder.StaticVarBuild) {
+            name = ((ClassBuilder.StaticVarBuild) content).getName();
+        }
+
+        if (staticVarBuilds.containsKey(name)) name += staticVarBuilds.size();
+        staticVarBuilds.put(name, content);
     }
 
     public void setState(String state) {

@@ -84,6 +84,10 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         public FunctionDefinition visit(FunctionDefinition builder) {
             return builder.setClassVar(access, name, returnType).setContent(content);
         }
+
+        public String getName() {
+            return name;
+        }
     }
 
     public static class StaticVarBuild implements StaticBuild {
@@ -104,6 +108,10 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         @Override
         public ClinitDefinition visit(ClinitDefinition builder) {
             return builder.setStaticVar(name, returnType).setContent(content);
+        }
+
+        public String getName() {
+            return name;
         }
     }
 
@@ -138,7 +146,9 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public StaticVarBuilder declareStaticVar(String name, Class<?> returnType) {
-        classAsm.defineClassVar(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, name, returnType);
+        if (!classAsm.getClassStaticVars().containsKey(name)) {
+            classAsm.defineClassVar(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, name, returnType);
+        }
 
         StaticVarBuilder builder = new StaticVarBuilder(classAsm, type);
         builder.setClassVars(name, returnType);
@@ -147,7 +157,9 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public StaticVarBuilder declareStaticVar(String name, String returnType) {
-        classAsm.defineClassVar(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, name, returnType);
+        if (!classAsm.getClassStaticVars().containsKey(name)) {
+            classAsm.defineClassVar(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, name, returnType);
+        }
 
         StaticVarBuilder builder = new StaticVarBuilder(classAsm, type);
         builder.setClassVars(name, Format.formatStrPack(returnType));
@@ -243,14 +255,14 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     private ClassAsm close() {
         FunctionDefinition builder = defineFunction(Opcodes.ACC_PRIVATE, "$__init__$FieldInsn$", new Args(), null);
 
-        for (ClassVarBuild callBuilder : classAsm.getClassVars()) {
+        for (ClassVarBuild callBuilder : classAsm.getClassVars().values()) {
             builder = callBuilder.visit(builder);
         }
 
         ClinitDefinition clinitBuilder = builder._return().defineClinit();
 
-        for (StaticBuild callBuilder : classAsm.getClassStaticVars()) {
-            if (callBuilder instanceof StaticVarBuild) clinitBuilder.classAsm.setState("set-content-var");
+        for (StaticBuild callBuilder : classAsm.getClassStaticVars().values()) {
+            if (callBuilder instanceof StaticVarBuild) clinitBuilder.classAsm.setState("set-content-clinit$"+((StaticVarBuild) callBuilder).name);
             clinitBuilder = callBuilder.visit(clinitBuilder);
             if (callBuilder instanceof StaticVarBuild) clinitBuilder.classAsm.releaseState();
         }

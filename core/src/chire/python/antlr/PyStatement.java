@@ -155,10 +155,18 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ModuleBuilder) {
-                return new ModuleBuilder(
-                        value.build(((ModuleBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)))
-                                .getClassAsm()
-                );
+//                if (builder.getClassAsm().getClassStaticVars().keySet().contains(name.getText())) {
+//                    return new ModuleBuilder(((ModuleBuilder) builder).setContent(clineBui -> {
+//                        return clineBui.setStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class))
+//                                .setContent(staticeVar -> {
+//                                    return (CallBuilder<ClinitDefinition>) value.build(staticeVar);
+//                                });
+//                    }).getClassAsm());
+//                } else {
+                    return new ModuleBuilder(
+                            value.build(((ModuleBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class))).getClassAsm()
+                    );
+//                }
             } else if (builder instanceof ClassBuilder) {
                 return value.build(((ClassBuilder) builder).declareVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
             } else if (builder instanceof FunctionDefinition){
