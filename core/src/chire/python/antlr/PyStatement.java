@@ -426,7 +426,7 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof CallBuilder<?>) {
-                var outCall = createBlock((BlockBuilder<?>) ((CallBuilder<?>) builder)._break());
+                Builder outCall = createBlock(((CallBuilder<?>) builder)._break());
 
                 return new CallBuilder<>(outCall.getClassAsm(), outCall.getType());
             }
@@ -978,7 +978,7 @@ public abstract class PyStatement {
 //                    callBuilder = (CallBuilder<?>) arg.build(callBuilder);
 //                }
 
-                var callbl = makeContent(((CallBuilder<BlockBuilder<?>>) builder)._break());
+                var callbl = makeContent(((CallBuilder<?>) builder)._break());
 
                 return new CallBuilder<>(callbl.getClassAsm(), callbl.getType());
             } else if (builder instanceof ClassBuilder) {

@@ -4,10 +4,10 @@ import chire.asm.ClassAsm;
 import chire.asm.dynamic.builder.BlockBuilder;
 import chire.asm.dynamic.builder.CallBuilder;
 
-public interface AsmBudVisitor<T> {
+public interface AsmBudVisitor<T extends BlockBuilder<T>> {
     CallBuilder<T> visit(CallBuilder.ParameterBuilder<T> builder);
 
-    interface AsmCallBuilder<T> {
+    interface AsmCallBuilder<T extends BlockBuilder<T>> {
         CallBuilder<T> visit(CallBuilder<T> builder);
     }
 

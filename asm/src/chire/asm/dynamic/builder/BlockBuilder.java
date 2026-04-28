@@ -17,7 +17,7 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         return new DefinitBuilder<>(classAsm, type);
     }
 
-    public static class VarBuilder<T> extends Builder<T> {
+    public static class VarBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         private String name;
         public VarBuilder(ClassAsm classAsm, Class<T> type) {
             super(classAsm, type);
@@ -35,7 +35,7 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         }
     }
 
-    public static class ClassVarBuilder<T> extends Builder<T> {
+    public static class ClassVarBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         private int opcode;
         private String name;
         private String varType;

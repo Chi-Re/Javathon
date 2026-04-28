@@ -3,6 +3,7 @@ package chire.asm.dynamic.builder;
 import chire.asm.ClassAsm;
 import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.VarVisitor;
+import chire.asm.dynamic.definition.ConstructDefinition;
 import chire.asm.util.Format;
 import org.objectweb.asm.Opcodes;
 
@@ -12,12 +13,12 @@ import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Opcodes.AASTORE;
 import static org.objectweb.asm.Opcodes.ICONST_0;
 
-public class CallBuilder<T> extends Builder<T>{
+public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
     public CallBuilder(ClassAsm classAsm, Class<T> type) {
         super(classAsm, type);
     }
 
-    public static class ParameterBuilder<T> extends Builder<T>{
+    public static class ParameterBuilder<T extends BlockBuilder<T>> extends Builder<T>{
         public final Object[] parameters;
 
         public ParameterBuilder(ClassAsm classAsm, Class<T> type, Object[] parameters) {
@@ -143,7 +144,7 @@ public class CallBuilder<T> extends Builder<T>{
         return methodBuilder;
     }
 
-    public static class MethodBuilder<T> extends Builder<T>{
+    public static class MethodBuilder<T extends BlockBuilder<T>> extends Builder<T>{
         AsmBudVisitor.AsmCallBuilder<T> callBuilder;
 
         public final Object[] parameters;
