@@ -1149,6 +1149,37 @@ public abstract class PyStatement {
         }
 
         @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder<?>) builder).callMethod(JPUtil.class, "operation", new Class[]{Object.class, Object.class, String.class}, Object.class)
+                        .setContent(logiBui -> logiBui.definitPar(
+                                logiPar -> (CallBuilder) left.build(logiPar),
+                                logiPar -> (CallBuilder) right.build(logiPar),
+                                logiPar -> logiPar.definitObj(operator != null ? operator.getText() : operatorStr)
+                        ));
+            } else if (builder instanceof CallBuilder<?>) {
+                return ((BlockBuilder<?>) ((CallBuilder<?>) builder)._break()).callMethod(JPUtil.class, "operation", new Class[]{Object.class, Object.class, String.class}, Object.class)
+                        .setContent(logiBui -> logiBui.definitPar(
+                                logiPar -> (CallBuilder) left.build(logiPar),
+                                logiPar -> (CallBuilder) right.build(logiPar),
+                                logiPar -> logiPar.definitObj(operator != null ? operator.getText() : operatorStr)
+                        ));
+            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
+                return ((ClassBuilder.StaticVarBuilder) builder).setContent(varBui -> {
+                    return (varBui._break()).callMethod(JPUtil.class, "operation", new Class[]{Object.class, Object.class, String.class}, Object.class)
+                            .setContent(logiBui -> logiBui.definitPar(
+                                    logiPar -> (CallBuilder) left.build(logiPar),
+                                    logiPar -> (CallBuilder) right.build(logiPar),
+                                    logiPar -> logiPar.definitObj(operator != null ? operator.getText() : operatorStr)
+                            ));
+                });
+            }
+            else {
+                throw new RuntimeException("no key");
+            }
+        }
+
+        @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {
             if (operator != null) {
                 return new PyExecutor.LogicalPy(left.build(builder), operator.getText(), right.build(builder));
