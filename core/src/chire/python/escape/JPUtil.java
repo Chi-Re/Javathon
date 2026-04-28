@@ -14,7 +14,11 @@ public class JPUtil {
             }
 
             return null;
-        }));
+        }, void.class));
+
+        put("int", new PyFunction(args -> {
+            return ((Integer) args[0]).intValue();
+        }, int.class));
     }};
 
     public static boolean comparison(Object k, Object p, String f) {
