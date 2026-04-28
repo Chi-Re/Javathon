@@ -417,7 +417,13 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
-            if (builder instanceof BlockBuilder<?>) {
+            if (builder instanceof CallBuilder<?>) {
+                var outCall = createBlock((BlockBuilder<?>) ((CallBuilder<?>) builder)._break());
+
+                return new CallBuilder<>(outCall.getClassAsm(), outCall.getType());
+            }
+
+            else if (builder instanceof BlockBuilder<?>) {
                 return createBlock((BlockBuilder<?>) builder);
             } else if (builder instanceof ModuleBuilder){
                 return new ModuleBuilder(((ModuleBuilder) builder).setContent(clinBui ->
@@ -959,12 +965,14 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
-            if (builder instanceof CallBuilder<?> callBuilder) {
-                for (PyStatement arg : args) {
-                    callBuilder = (CallBuilder<?>) arg.build(callBuilder);
-                }
+            if (builder instanceof CallBuilder<?>) {
+//                for (PyStatement arg : args) {
+//                    callBuilder = (CallBuilder<?>) arg.build(callBuilder);
+//                }
 
-                return callBuilder;
+                var callbl = makeContent(((CallBuilder<BlockBuilder<?>>) builder)._break());
+
+                return new CallBuilder<>(callbl.getClassAsm(), callbl.getType());
             } else if (builder instanceof ClassBuilder) {
                 ClassBuilder classBuilder = ((ClassBuilder) builder).setContent(cilnBui -> {
                     if (!args.isEmpty()) {
@@ -992,31 +1000,53 @@ public abstract class PyStatement {
         }
 
         public <T extends BlockBuilder<T>> BlockBuilder<T> makeContent(BlockBuilder<T> builder) {
+            List<AsmBudVisitor.AsmCallBuilder> callBuilders = new ArrayList<>();
+
+            callBuilders.add(argBui -> argBui.definitObj(Type.getType("L"+argBui.getClassAsm().className+";")));
+            callBuilders.add(argBui -> argBui.definitObj(name.getText()));
+
             if (!args.isEmpty()) {
-                List<AsmBudVisitor.AsmCallBuilder> callBuilders = new ArrayList<>();
-
-                callBuilders.add(parBui -> parBui.definitObj(this.name.getText()));
-
-                for (int i = 0; i < args.size(); i++) {
+                for (int i = 0; i < this.args.size(); i++) {
                     int finalI = i;
-                    callBuilders.add(par -> (CallBuilder<?>) args.get(finalI).build(par));
+                    callBuilders.add(par -> (CallBuilder<?>) this.args.get(finalI).build(par));
                 }
 
-                return builder.callClass(ClassCall.class, new Class[]{Object.class})
-                        .setContent(clasBui -> clasBui.definitObj(Type.getType("L"+builder.getClassAsm().className+";")))
-                        .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
-                        .setContent(bu -> bu.definitPar(
+                return builder.callMethod(JPUtil.class, "callMethod", new Class[]{Object.class, String.class, Object[].class}, Object.class)
+                        .setContent(varBui ->  varBui.definitPar(
                                 callBuilders.toArray(new AsmBudVisitor.AsmCallBuilder[0])
                         ))._break();
             } else {
-                return builder.callClass(ClassCall.class, new Class[]{Object.class})
-                        .setContent(clasBui -> clasBui.definitObj(Type.getType("L"+builder.getClassAsm().className+";")))
-                        .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
-                        .setContent(bu -> bu.definitPar(
-                                parBui -> parBui.definitObj(this.name.getText())
+                return builder.callMethod(JPUtil.class, "callMethod", new Class[]{Object.class, String.class, Object[].class}, Object.class)
+                        .setContent(varBui ->  varBui.definitPar(
+                                callBuilders.toArray(new AsmBudVisitor.AsmCallBuilder[0])
                         ))._break();
             }
         }
+
+//        public CallBuilder<?> makeContent(CallBuilder<?> builder) {
+//            List<AsmBudVisitor.AsmCallBuilder> callBuilders = new ArrayList<>();
+//
+//            callBuilders.add(parBui -> parBui.definitObj(this.name.getText()));
+//
+//            if (!args.isEmpty()) {
+//                for (int i = 0; i < args.size(); i++) {
+//                    int finalI = i;
+//                    callBuilders.add(par -> (CallBuilder<?>) args.get(finalI).build(par));
+//                }
+//            }
+//
+//            return builder.callMethod(JPUtil.class, "callMethod", new Class[]{Object.class, String.class, Object[].class}, Object.class)
+//                    .setContent(varBui ->  varBui.definitPar(
+//                            callBuilders.toArray(new AsmBudVisitor.AsmCallBuilder[0])
+//                    ));
+//
+//            return builder.callClass(ClassCall.class, new Class[]{Object.class})
+//                    .setContent(clasBui -> clasBui.definitObj(Type.getType("L"+builder.getClassAsm().className+";")))
+//                    .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
+//                    .setContent(bu -> bu.definitPar(
+//                            callBuilders.toArray(new AsmBudVisitor.AsmCallBuilder[0])
+//                    ));
+//        }
 
         @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {
