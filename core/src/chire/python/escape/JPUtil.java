@@ -12,14 +12,52 @@ public class JPUtil {
                 System.out.print(args[i]);
                 if (i + 1 < args.length) System.out.print(" ");
             }
+            System.out.println();
 
             return null;
         }, void.class));
 
         put("int", new PyFunction(args -> {
-            return ((Integer) args[0]).intValue();
+            return new BaseValue<>((int) args[0], int.class);
         }, int.class));
     }};
+
+    static class BaseValue<T> {
+        T value;
+
+        Class<T> type;
+
+        public BaseValue(T value, Class<T> type) {
+            this.value = value;
+            this.type = type;
+        }
+
+        public T getValue() {
+            return value;
+        }
+
+        public Class<T> getType() {
+            return type;
+        }
+    }
+
+    public static Object operation(Object k, Object p, String f) {
+        if (k instanceof Integer && p instanceof Integer) {
+            return operationInt((Integer) k, (Integer) p, f);
+        }
+
+        return -1;
+    }
+
+    public static Integer operationInt(Integer k, Integer p, String f) {
+        return switch (f) {
+            case "+" -> k + p;
+            case "-" -> k - p;
+            case "*" -> k * p;
+            case "/" -> k / p;
+            default -> throw new RuntimeException("no key");
+        };
+    }
 
     public static boolean comparison(Object k, Object p, String f) {
         if (k instanceof Integer && p instanceof Integer) {
@@ -69,9 +107,16 @@ public class JPUtil {
 
     public static Object callMethod(Object obj, String name, Object... args) {
         List<Class<?>> classes = new ArrayList<>();
+        List<Object> reArgs = new ArrayList<>();
 
         for (Object arg : args) {
+            if (arg instanceof BaseValue) {
+                classes.add(((BaseValue) arg).getType());
+                reArgs.add(((BaseValue) arg).getValue());
+                continue;
+            }
             classes.add(arg.getClass());
+            reArgs.add(arg);
         }
 
         try {
@@ -79,9 +124,9 @@ public class JPUtil {
 
             //TODO 可能存在int.class这一类的存在，未修复。
             if (obj instanceof Class<?>) {
-                return ((Class<?>) obj).getMethod(name, classes.toArray(new Class[0])).invoke(null, args);
+                return ((Class<?>) obj).getMethod(name, classes.toArray(new Class[0])).invoke(null, reArgs.toArray(new Object[0]));
             } else {
-                return obj.getClass().getMethod(name, classes.toArray(new Class[0])).invoke(obj, args);
+                return obj.getClass().getMethod(name, classes.toArray(new Class[0])).invoke(obj, reArgs.toArray(new Object[0]));
             }
 
         } catch (NoSuchMethodException e) {
