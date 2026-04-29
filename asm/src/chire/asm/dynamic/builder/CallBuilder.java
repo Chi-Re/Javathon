@@ -3,7 +3,9 @@ package chire.asm.dynamic.builder;
 import chire.asm.ClassAsm;
 import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.VarVisitor;
+import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.ConstructDefinition;
+import chire.asm.dynamic.definition.FunctionDefinition;
 import chire.asm.util.Format;
 import org.objectweb.asm.Opcodes;
 
@@ -253,8 +255,20 @@ public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
         return this;
     }
 
+    public CallBuilder<T> callStatic(Class<?> owner, String var, Class<?> type) {
+        classAsm.invokeStaticVar(Opcodes.GETSTATIC, owner, var, type);
+
+        return this;
+    }
+
     public CallBuilder<T> callStatic(String var, String type) {
         classAsm.invokeStaticVar(Opcodes.GETSTATIC, var, type);
+
+        return this;
+    }
+
+    public CallBuilder<T> callStatic(String owner, String var, String type) {
+        classAsm.invokeStaticVar(Opcodes.GETSTATIC, owner, var, type);
 
         return this;
     }
@@ -263,6 +277,36 @@ public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
         classAsm.ldcInsn(obj);
 
         return this;
+    }
+
+    public BlockBuilder.VarBuilder<T> setVar(String name) {
+        return new BlockBuilder<>(classAsm, this.type).setVar(name);
+    }
+
+    public BlockBuilder.ClassVarBuilder<T> setClassVar(int opcode, String name, Class<?> type) {
+        if (this.type.equals(ClinitDefinition.class)) throw new RuntimeException("no key");
+        return new BlockBuilder<>(classAsm, this.type).setClassVar(opcode, name, type);
+    }
+
+    public BlockBuilder.ClassVarBuilder<T> setClassVar(int opcode, String name, String type) {
+        if (this.type.equals(ClinitDefinition.class)) throw new RuntimeException("no key");
+        return new BlockBuilder<>(classAsm, this.type).setClassVar(opcode, name, type);
+    }
+
+    public BlockBuilder.ClassVarBuilder<T> setStaticVar(String name, String type) {
+        return new BlockBuilder<>(classAsm, this.type).setStaticVar(name, type);
+    }
+
+    public BlockBuilder.ClassVarBuilder<T> setStaticVar(String name, Class<?> type) {
+        return new BlockBuilder<>(classAsm, this.type).setStaticVar(name, type);
+    }
+
+    public BlockBuilder.ClassVarBuilder<T> setStaticVar(String owner, String name, String type) {
+        return new BlockBuilder<>(classAsm, this.type).setStaticVar(owner, name, type);
+    }
+
+    public BlockBuilder.ClassVarBuilder<T> setStaticVar(Class<?> owner, String name, Class<?> type) {
+        return new BlockBuilder<>(classAsm, this.type).setStaticVar(owner, name, type);
     }
 
     public T _break(){

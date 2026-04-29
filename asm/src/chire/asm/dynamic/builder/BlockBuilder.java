@@ -39,25 +39,39 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         private int opcode;
         private String name;
         private String varType;
+        private String owner;
 
         public ClassVarBuilder(ClassAsm classAsm, Class<T> type) {
             super(classAsm, type);
         }
 
         private void setVar(int opcode, String name, String type) {
+            setVar(opcode, null, name, type);
+        }
+
+        private void setVar(int opcode, String owner, String name, String type) {
             this.opcode = opcode;
             this.name = name;
             this.varType = type;
+            this.owner = owner;
         }
 
         private void setVar(int opcode, String name, Class<?> type) {
-            setVar(opcode, name, Format.formatPack(type));
+            setVar(opcode, null, name, type);
+        }
+
+        private void setVar(int opcode, Class<?> owner, String name, Class<?> type) {
+            setVar(opcode, owner == null ? null : Format.formatPack(owner, false), name, Format.formatPack(type));
         }
 
         public T setContent(AsmBudVisitor.AsmCallBuilder<T> visitor) {
             CallBuilder<T> builder = visitor.visit(new CallBuilder<>(classAsm, type));
 
-            builder.classAsm.invokeClassVarEnd(opcode, name, varType);
+            if (owner == null) {
+                builder.classAsm.invokeClassVarEnd(opcode, name, varType);
+            } else {
+                builder.classAsm.invokeStaticVar(opcode, owner, name, varType);
+            }
             return builder.create();
         }
     }
@@ -88,8 +102,25 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         return varBuilder;
     }
 
+    public ClassVarBuilder<T> setStaticVar(String owner, String name, String type) {
+        ClassVarBuilder<T> varBuilder = new ClassVarBuilder<>(this.classAsm, this.type);
+        varBuilder.setVar(Opcodes.PUTSTATIC, owner, name, type);
+
+        return varBuilder;
+    }
+
     public ClassVarBuilder<T> setStaticVar(String name, Class<?> type) {
-        return setStaticVar(name, Format.formatPack(type));
+        ClassVarBuilder<T> varBuilder = new ClassVarBuilder<>(this.classAsm, this.type);
+        varBuilder.setVar(Opcodes.PUTSTATIC, name, type);
+
+        return varBuilder;
+    }
+
+    public ClassVarBuilder<T> setStaticVar(Class<?> owner, String name, Class<?> type) {
+        ClassVarBuilder<T> varBuilder = new ClassVarBuilder<>(this.classAsm, this.type);
+        varBuilder.setVar(Opcodes.PUTSTATIC, owner, name, type);
+
+        return varBuilder;
     }
 
     public class IfElseBuilder extends Builder<T> {
