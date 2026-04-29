@@ -169,8 +169,12 @@ public abstract class PyStatement {
 //                }
             } else if (builder instanceof ClassBuilder) {
                 return value.build(((ClassBuilder) builder).declareVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
-            } else if (builder instanceof FunctionDefinition){
-                return value.build(((FunctionDefinition) builder).setVar(this.name.getText()));
+            } else if (builder instanceof BlockBuilder<?>){
+                if (builder.getType().equals(ClinitDefinition.class)) {
+                    return value.build(((ClinitDefinition) builder).setStaticVar(this.name.getText(), Object.class));
+                } else {
+                    return value.build(((BlockBuilder) builder).setVar(this.name.getText()));
+                }
             } else {
                 return builder;
             }
@@ -365,6 +369,55 @@ public abstract class PyStatement {
         public WhileStatement(PyStatement conditions, ArrayList<PyStatement> statements){
             this.conditions = conditions;
             this.statements = statements;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof ClassBuilder) {
+                ClassBuilder cont = ((ClassBuilder) builder).setContent(content -> {
+                    return content.whileCall().setContent(
+                            pd -> (ClinitDefinition) conditions.build(pd),
+                            whiCont -> {
+                                for (PyStatement statement : this.statements) {
+                                    Builder<?> bui = statement.build(whiCont);
+                                    if (bui instanceof CallBuilder<?>) {
+                                        whiCont = (BlockBuilder<ClinitDefinition>) ((CallBuilder) bui)._break();
+                                    } else {
+                                        whiCont = (BlockBuilder<ClinitDefinition>) bui;
+                                    }
+                                }
+
+                                return whiCont;
+                            },
+                            Opcodes.IFEQ
+                    ).out();
+                });
+
+                if (builder instanceof ModuleBuilder) {
+                    return new ModuleBuilder(cont.getClassAsm());
+                } else {
+                    return cont;
+                }
+            } else if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder)builder).whileCall().setContent(
+                        pd -> ((BlockBuilder<?>) conditions.build(pd)),
+                        whiCont -> {
+                            for (PyStatement statement : this.statements) {
+                                Builder<?> bui = statement.build(whiCont);
+                                if (bui instanceof CallBuilder<?>) {
+                                    whiCont = ((CallBuilder) bui)._break();
+                                } else {
+                                    whiCont = (BlockBuilder) bui;
+                                }
+                            }
+
+                            return whiCont;
+                        },
+                        Opcodes.IFEQ
+                );
+            }
+
+            throw new RuntimeException("no key");
         }
 
         @Override
@@ -702,8 +755,8 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
-            if (builder instanceof ModuleBuilder) {
-                return new ModuleBuilder(((ModuleBuilder) builder).setContent(clinBui -> {
+            if (builder instanceof ClassBuilder) {
+                ClassBuilder cont = ((ClassBuilder) builder).setContent(clinBui -> {
                     return createElse(clinBui.ifCall().setContent(
                             condition -> (ClinitDefinition) conditions.build(condition),
                             visitor -> {
@@ -720,7 +773,13 @@ public abstract class PyStatement {
                             },
                             Opcodes.IFEQ
                     )).out();
-                }).getClassAsm());
+                });
+
+                if (builder instanceof ModuleBuilder) {
+                    return new ModuleBuilder(cont.getClassAsm());
+                } else {
+                    return cont;
+                }
             } if (builder instanceof BlockBuilder<?>) {
                 return createElse(((BlockBuilder) builder).ifCall().setContent(
                         condition -> (BlockBuilder) conditions.build(condition),
@@ -1224,6 +1283,15 @@ public abstract class PyStatement {
             } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
                 return ((ClassBuilder.StaticVarBuilder) builder).setContent(varBui -> {
                     return (varBui._break()).callMethod(JPUtil.class, "operation", new Class[]{Object.class, Object.class, String.class}, Object.class)
+                            .setContent(logiBui -> logiBui.definitPar(
+                                    logiPar -> (CallBuilder) left.build(logiPar),
+                                    logiPar -> (CallBuilder) right.build(logiPar),
+                                    logiPar -> logiPar.definitObj(operator != null ? operator.getText() : operatorStr)
+                            ));
+                });
+            } else if (builder instanceof BlockBuilder.ClassVarBuilder) {
+                return ((BlockBuilder.ClassVarBuilder) builder).setContent(varBui -> {
+                    return varBui._break().callMethod(JPUtil.class, "operation", new Class[]{Object.class, Object.class, String.class}, Object.class)
                             .setContent(logiBui -> logiBui.definitPar(
                                     logiPar -> (CallBuilder) left.build(logiPar),
                                     logiPar -> (CallBuilder) right.build(logiPar),
