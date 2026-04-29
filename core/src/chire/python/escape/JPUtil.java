@@ -93,6 +93,18 @@ public class JPUtil {
         }
     }
 
+    public static void setVar(Object type, String name, Object value) {
+        try {
+            if (type instanceof Class<?>) {
+                ((Class<?>) type).getDeclaredField(name).set(null, value);
+            } else {
+                type.getClass().getDeclaredField(name).set(type, value);
+            }
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Object callVar(Object type, String name) {
         try {
             if (type instanceof Class<?>) {

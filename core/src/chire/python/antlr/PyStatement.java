@@ -423,6 +423,9 @@ public abstract class PyStatement {
             this.call = call;
         }
 
+        /**
+         * @return CallBuilder or ModuleBuilder
+         */
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof CallBuilder<?>) {
@@ -435,11 +438,11 @@ public abstract class PyStatement {
                 return createBlock((BlockBuilder<?>) builder);
             } else if (builder instanceof ModuleBuilder){
                 return new ModuleBuilder(((ModuleBuilder) builder).setContent(clinBui ->
-                        ((CallBuilder<ClinitDefinition>) createBlock(clinBui))._break()
+                        createBlock(clinBui)._break()
                 ).getClassAsm());
             } else if (builder instanceof ClassBuilder){
                 return  ((ClassBuilder) builder).setContent(clinBui ->
-                        ((CallBuilder<ClinitDefinition>) createBlock(clinBui))._break()
+                        createBlock(clinBui)._break()
                 );
             } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
                 return ((ClassBuilder.StaticVarBuilder) builder).setContent(statBui -> {
@@ -450,7 +453,7 @@ public abstract class PyStatement {
             throw new RuntimeException("no key");
         }
 
-        public <T extends BlockBuilder<T>> Builder<T> createBlock(BlockBuilder<T> builder) {
+        public <T extends BlockBuilder<T>> CallBuilder<T> createBlock(BlockBuilder<T> builder) {
             CallBuilder<T> outBuilder;
 
             if (call instanceof VarCallStatement) {
@@ -513,6 +516,49 @@ public abstract class PyStatement {
             this.key = key;
             this.call = call;
             this.var = var;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof ClassBuilder) {
+                return ((ClassBuilder) builder).setContent(contBui -> {
+                    return makeSubSet(contBui).out();
+                });
+            } else if (builder instanceof BlockBuilder<?>){
+                return makeSubSet((BlockBuilder<?>) builder);
+            }
+
+            return super.build(builder);
+        }
+
+        public <T extends BlockBuilder<T>> BlockBuilder<T> makeSubSet(BlockBuilder<T> builder) {
+//            if (call instanceof VarCallStatement) {
+//                return builder.callMethod(JPUtil.class, "callVar", new Class[]{Object.class, String.class}, Object.class).setContent(funBui -> {
+//                    return funBui.definitPar(
+//                            parBui -> (CallBuilder) key.build(parBui),
+//                            parBui -> parBui.definitObj(((VarCallStatement) call).name)
+//                    );
+//                })._break();
+//            } else if (call instanceof FunCallStatement) {
+//                return builder.callMethod(JPUtil.class, "callMethod", new Class[]{Object.class, String.class, Object[].class}, Object.class).setContent(funBui -> {
+//                    return funBui.definitPar(
+//                            parBui -> (CallBuilder) key.build(parBui),
+//                            parBui -> parBui.definitObj(((FunCallStatement) call).name)
+//                    );
+//                })._break();
+//            }
+
+            if (call instanceof VarCallStatement) {
+                return builder.callMethod(JPUtil.class, "setVar", new Class[]{Object.class, String.class, Object.class}, null).setContent(metbui -> {
+                    return metbui.definitPar(
+                            parBui -> ((CallBuilder<?>) key.build(builder)),
+                            parBui -> parBui.definitObj(((VarCallStatement) call).name.getText()),
+                            parBui -> (CallBuilder<?>) var.build(parBui)
+                    );
+                })._break();
+            }
+
+            throw new RuntimeException("no key");
         }
 
         @Override
@@ -1096,6 +1142,9 @@ public abstract class PyStatement {
             this.name = name;
         }
 
+        /**
+         * @return CallBuilder
+         */
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof CallBuilder<?>) {
