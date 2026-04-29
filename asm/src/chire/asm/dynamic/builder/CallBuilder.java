@@ -161,11 +161,8 @@ public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
         }
 
         public CallBuilder<T> setContent(AsmBudVisitor<T> builder) {
-
             classAsm.setState("set-content-method");
-            CallBuilder<T> cb = callBuilder.visit(builder.visit(new ParameterBuilder<>(classAsm, type, this.parameters)));
-
-            return cb;
+            return callBuilder.visit(builder.visit(new ParameterBuilder<>(classAsm, type, this.parameters)));
         }
 
         private void end(AsmBudVisitor.AsmCallBuilder<T> builder){
@@ -278,6 +275,30 @@ public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
 
         return this;
     }
+
+//    public static class SetBuilder<T extends BlockBuilder<T>> extends Builder<T> {
+//        private AsmBudVisitor.SetBlockBuilder<T> par;
+//
+//        public SetBuilder(ClassAsm classAsm, Class<T> type) {
+//            super(classAsm, type);
+//        }
+//
+//        public CallBuilder<T> setContent(AsmBudVisitor.AsmBlockBuilder<T> content) {
+//            return content.visit()
+//        }
+//
+//        public void setPar(AsmBudVisitor.SetBlockBuilder<T> par) {
+//            this.par = par;
+//        }
+//    }
+//
+//    public SetBuilder<T> definiPar(AsmBudVisitor.SetBlockBuilder<T> var) {
+//        SetBuilder<T> setBuilder = new SetBuilder<>(classAsm, type);
+//
+//        setBuilder.setPar(var);
+//
+//        return setBuilder;
+//    }
 
     public BlockBuilder.VarBuilder<T> setVar(String name) {
         return new BlockBuilder<>(classAsm, this.type).setVar(name);

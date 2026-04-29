@@ -41,20 +41,20 @@ public class ClassBuilder extends Builder<AsmBuddy> {
         }
     }
 
-    public static class StaticVarBuilder extends Builder<AsmBuddy> {
+    public static class StaticVarBuilder<T> extends Builder<T> {
         private String name;
         private String returnType;
 
-        public StaticVarBuilder(ClassAsm classAsm, Class<AsmBuddy> type) {
+        public StaticVarBuilder(ClassAsm classAsm, Class<T> type) {
             super(classAsm, type);
         }
 
-        private void setClassVars(String name, String returnType) {
+        protected void setClassVars(String name, String returnType) {
             this.name = name;
             this.returnType = returnType;
         }
 
-        private void setClassVars(String name, Class<?> returnType) {
+        protected void setClassVars(String name, Class<?> returnType) {
             setClassVars(name, Format.formatPack(returnType));
         }
 

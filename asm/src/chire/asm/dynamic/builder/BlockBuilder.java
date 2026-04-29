@@ -217,6 +217,22 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         return new CallBuilder<>(classAsm,  this.type).call(opcode, owner, var, type);
     }
 
+
+//    public ClassBuilder.StaticVarBuilder<T> declareStaticVar(String name, Class<?> returnType) {
+//        ClassBuilder.StaticVarBuilder<T> builder = new ClassBuilder.StaticVarBuilder<>(classAsm, type);
+//        builder.setClassVars(name, returnType);
+//
+//        return builder;
+//    }
+//
+//    public ClassBuilder.StaticVarBuilder declareStaticVar(String name, String returnType) {
+//        ClassBuilder.StaticVarBuilder builder = new ClassBuilder.StaticVarBuilder(classAsm, type);
+//        builder.setClassVars(name, Format.formatStrPack(returnType));
+//
+//        return builder;
+//    }
+
+
     public T out() {
         return create();
     }
