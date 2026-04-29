@@ -65,7 +65,10 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         }
 
         public T setContent(AsmBudVisitor.AsmCallBuilder<T> visitor) {
+
+            classAsm.setState("set-content-var");
             CallBuilder<T> builder = visitor.visit(new CallBuilder<>(classAsm, type));
+            classAsm.releaseState();
 
             if (owner == null) {
                 builder.classAsm.invokeClassVarEnd(opcode, name, varType);
@@ -176,6 +179,40 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
 
     public IfElseBuilder ifCall() {
         return new IfElseBuilder(classAsm, type);
+    }
+
+    public class WhileBuilder extends Builder<T> {
+        Label label = new Label();
+        Label exit = new Label();
+
+        public WhileBuilder(ClassAsm classAsm, Class<T> type) {
+            super(classAsm, type);
+        }
+
+        public BlockBuilder<T> setContent(
+                AsmBudVisitor.AsmBlockBuilder<T> condition,
+                AsmBudVisitor.IfBuilder<T> visitor,
+                int opcode
+        ) {
+            classAsm.mLabel(exit);
+
+            classAsm.setState("set-content-if");
+            BlockBuilder<T> callBuilder = condition.visit(new BlockBuilder<>(classAsm, type));
+            callBuilder.classAsm.releaseState();
+
+            callBuilder.classAsm.jumpInsn(opcode, label);
+
+            BlockBuilder<T> ke = visitor.visit(callBuilder);
+
+            ke.classAsm.jumpInsn(Opcodes.GOTO, exit);
+            ke.classAsm.mLabel(label);
+
+            return ke;
+        }
+    }
+
+    public WhileBuilder whileCall() {
+        return new WhileBuilder(classAsm, type);
     }
 
     public CallBuilder<T> callLocal(String name) {
