@@ -453,6 +453,53 @@ public abstract class PyStatement {
         }
     }
 
+    public static class ForStatement extends PyStatement {
+        private final Token variable;
+        private final PyStatement iterable;
+        private final ArrayList<PyStatement> body;
+
+        public ForStatement(Token variable, PyStatement iterable, ArrayList<PyStatement> body) {
+            this.variable = variable;
+            this.iterable = iterable;
+            this.body = body;
+        }
+
+
+
+        @Override
+        public PyExecutor.PyInstruction build(PyAssembler builder) {
+            return null;
+        }
+
+        @Override
+        public void toString(SmartIndenter indenter) {
+            indenter.newLine().add("For{").newLine();
+
+            indenter.indent().add("variable:").indent();
+
+            indenter.add(variable.getText());
+
+            indenter.unindent().newLine();
+            indenter.indent().add("iterable:").indent();
+
+            iterable.toString(indenter);
+
+            indenter.unindent().newLine()
+                    .add("body=[")
+                    .indent();;
+
+            for (PyStatement statement : body) {
+                statement.toString(indenter);
+            }
+
+            indenter.newLine()
+                    .unindent()
+                    .addLine("]")
+                    .unindent()
+                    .add("}");
+        }
+    }
+
     public static class PassStatement extends PyStatement{
         @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {

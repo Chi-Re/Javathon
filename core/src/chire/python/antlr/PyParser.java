@@ -59,6 +59,10 @@ public class PyParser {
                     statements.add(importDeclaration());
                     break;
 
+                case 22:
+                    statements.add(forDeclaration(1));
+                    break;
+
                 default:
                     break;
             }
@@ -67,6 +71,50 @@ public class PyParser {
         }
 
         return statements;
+    }
+
+    private PyStatement forDeclaration() {
+        return forDeclaration(0);
+    }
+
+    private PyStatement forDeclaration(int cur) {
+        this.current += cur;
+
+        //TODO 这里只支持了单变量循环，之后修改
+        if (peek().getType() != 45) throw new RuntimeException("no key");
+        Token variable = peek();
+
+        current += 2;
+
+        PyStatement iterable;
+
+        if (match(current+1, 44, 63, 88, 89, 90, 92, 60)){
+            iterable = varDeclaration();
+        } else if (match(current+1, 57)){
+            iterable = (methodCall());
+        } else if (match(current+1, 54)) {
+            iterable = (submethodCall(varCall()));
+        } else {
+            throw new RuntimeException("no key");
+        }
+
+        ArrayList<PyStatement> body = new ArrayList<>();
+
+        while (!isEnd()) {
+            switch (peek().getType()) {
+                case 2:
+                    return new PyStatement.ForStatement(variable, iterable, body);
+
+                default:
+                    body.addAll(bodyDeclaration());
+                    break;
+            }
+
+            current++;
+        }
+
+        throw new RuntimeException("no key");
+//        return new PyStatement.ForStatement(variable, iterable, bodyDeclaration(3));
     }
 
     private PyStatement importDeclaration() {
@@ -215,6 +263,10 @@ public class PyParser {
 
             case 23, 26:
                 body.add(importDeclaration());
+                break;
+
+            case 22:
+                body.add(forDeclaration(1));
                 break;
         }
 
