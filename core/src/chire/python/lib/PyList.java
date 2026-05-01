@@ -3,7 +3,8 @@ package chire.python.lib;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PyList {
+public class PyList implements Iterator<Object> {
+    private int cursor = 0;
     private final List<Object> data;
 
     // 构造方法
@@ -77,5 +78,21 @@ public class PyList {
     @Override
     public String toString() {
         return __str__();
+    }
+
+    public Iterator<Object> iterator(){
+        return data.iterator();
+    }
+
+    @Override
+    public boolean hasNext() {
+        return cursor < data.size();
+    }
+
+    @Override
+    public Object next() {
+        Object var = data.get(cursor);
+        cursor++;
+        return var;
     }
 }
