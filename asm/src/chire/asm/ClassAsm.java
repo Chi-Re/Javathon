@@ -119,6 +119,11 @@ public class ClassAsm {
         varsKey.clear();
         mv = cw.visitMethod(access, name, Format.formatArgs(args, returnType), null, null);
 
+        //TODO 由于varsKey的局限性，在此需要判断是否为内部方法，否则会导致 0号变量被错误识别。(占位就行)
+        if (access == ACC_PUBLIC) {
+            varsKey.put("this", 0);
+        }
+
         for (String var : args.getArgNames()) {
             varsKey.put(var, varsKey.size());
         }
