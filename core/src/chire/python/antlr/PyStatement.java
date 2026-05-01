@@ -1045,13 +1045,15 @@ public abstract class PyStatement {
         }
 
         private Number cast() {
+            Number num;
             if (Integer.class.equals(type)) {
-                return Integer.valueOf(token.getText());
+                return Integer.valueOf(token.getText()) * (range ? -1 : 1);
             } else if (Double.class.equals(type)) {
-                return Double.valueOf(token.getText());
+                return Double.valueOf(token.getText()) * (range ? -1 : 1);
             } else if (Float.class.equals(type)) {
-                return Float.valueOf(token.getText());
+                return Float.valueOf(token.getText()) * (range ? -1 : 1);
             }
+
             throw new RuntimeException("don't is num");
         }
 

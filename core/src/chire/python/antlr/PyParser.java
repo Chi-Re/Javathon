@@ -598,19 +598,23 @@ public class PyParser {
         switch (key.getType()) {
             case 3:
                 return new PyStatement.ConstStatement<>(key, String.class);
-            case 4:
+            case 4, 72:
+                boolean range = false;
+
+                if (peek().getType() == 72) {
+                    range = true;
+                    current++;
+                    key = peek();
+                }
+
                 PyStatement constStmt;
 
                 if (TypeChecker.isInteger(key.getText())) {
-                    if (match(this.current-1, 72, 89)) {
-                        constStmt = new PyStatement.NumberStatement<>(false, key, Integer.class);
-                    } else {
-                        constStmt = new PyStatement.NumberStatement<>(key, Integer.class);
-                    }
+                    constStmt = new PyStatement.NumberStatement<>(range, key, Integer.class);
                 } else if (TypeChecker.isFloatingPointNumber(key.getText())) {
-                    constStmt = new PyStatement.NumberStatement<>(key, Float.class);
+                    constStmt = new PyStatement.NumberStatement<>(range, key, Float.class);
                 } else {
-                    throw new RuntimeException("parser error");
+                    throw new RuntimeException("parser error "+peek());
                 }
 
                 if (match(this.current+1, 71, 72)) {
