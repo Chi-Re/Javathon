@@ -1,4 +1,4 @@
-package chire.python.escape;
+package chire.python.lib.escape;
 
 public class ClassCall {
     public final Object obj;

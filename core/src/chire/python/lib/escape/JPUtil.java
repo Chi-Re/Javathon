@@ -1,4 +1,4 @@
-package chire.python.escape;
+package chire.python.lib.escape;
 
 import chire.python.lib.PyList;
 import chire.python.lib.base.PyFunction;
