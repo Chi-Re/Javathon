@@ -2,6 +2,7 @@ package chire.asm.dynamic.builder;
 
 import chire.asm.ClassAsm;
 import chire.asm.dynamic.AsmBudVisitor;
+import chire.asm.dynamic.definition.FunctionDefinition;
 import chire.asm.util.Format;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -11,10 +12,10 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         super(classAsm, type);
     }
 
-    public DefinitBuilder<T> definitObj(Object obj) {
+    public CallBuilder<T> definitObj(Object obj) {
         classAsm.ldcInsn(obj);
 
-        return new DefinitBuilder<>(classAsm, type);
+        return new CallBuilder<>(classAsm, type);
     }
 
     public static class VarBuilder<T extends BlockBuilder<T>> extends Builder<T> {
@@ -27,8 +28,10 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
             this.name = name;
         }
 
-        public T setContent(AsmBudVisitor.AsmCallBuilder<T> visitor) {
-            CallBuilder<T> builder = visitor.visit(new CallBuilder<>(classAsm, type));
+        public T setContent(AsmBudVisitor.SetBlockBuilder<T> visitor) {
+            classAsm.setState("set-content-var");
+            CallBuilder<T> builder = visitor.visit(new BlockBuilder<>(classAsm, type));
+            classAsm.releaseState();
 
             builder.classAsm.varInsn(name);
             return builder.create();
@@ -254,6 +257,9 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         return new CallBuilder<>(classAsm,  this.type).call(opcode, owner, var, type);
     }
 
+    public CallBuilder<T> callThis(){
+        return new CallBuilder<>(classAsm, type).callThis();
+    }
 
 //    public ClassBuilder.StaticVarBuilder<T> declareStaticVar(String name, Class<?> returnType) {
 //        ClassBuilder.StaticVarBuilder<T> builder = new ClassBuilder.StaticVarBuilder<>(classAsm, type);

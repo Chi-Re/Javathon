@@ -2,6 +2,7 @@ package chire.asm.dynamic.definition;
 
 import chire.asm.ClassAsm;
 import chire.asm.dynamic.builder.BlockBuilder;
+import chire.asm.dynamic.builder.CallBuilder;
 import chire.asm.dynamic.builder.ClassBuilder;
 
 public class ClinitDefinition extends BlockBuilder<ClinitDefinition> {
@@ -26,6 +27,11 @@ public class ClinitDefinition extends BlockBuilder<ClinitDefinition> {
 
     public ClassVarBuilder<ClinitDefinition> setStaticVar(String name, String type) {
         return super.setStaticVar(name, type);
+    }
+
+    @Override
+    public CallBuilder<ClinitDefinition> callThis() {
+        throw new UnsupportedOperationException("Customization is not supported.");
     }
 
     public ClassBuilder _back(){
