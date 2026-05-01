@@ -70,11 +70,13 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ClassBuilder) {
-                return ((ClassBuilder) builder).declareStaticVar(this.name, Object.class).setContent(
+                ClassBuilder classBuilder = ((ClassBuilder) builder).declareStaticVar(this.name, Object.class).setContent(
                         argb -> argb.definitObj(
                                 Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
                         )
                 );
+
+                return builder instanceof ModuleBuilder ? new ModuleBuilder(classBuilder.getClassAsm()) : classBuilder;
             } else if (builder instanceof BlockBuilder<?>){
                 return ((FunctionDefinition) builder).setVar(this.name).setContent(
                         argb -> argb.definitObj(
@@ -148,7 +150,10 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ClassBuilder) {
-                return value.build(((ClassBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
+                ClassBuilder classBuilder =
+                        (ClassBuilder) value.build(((ClassBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
+
+                return builder instanceof ModuleBuilder ? new ModuleBuilder(classBuilder.getClassAsm()) : classBuilder;
             } else if (builder instanceof BlockBuilder<?>){
                 if (builder.getType().equals(ClinitDefinition.class)) {
                     return value.build(((ClinitDefinition) builder).setStaticVar(this.name.getText(), Object.class));
@@ -207,7 +212,11 @@ public abstract class PyStatement {
                 }
 
                 if (cbuilder.getClassAsm().getOuter() != null) {
-                    return new ClassBuilder(cbuilder.make().getClassAsm().closeInnerClass());
+                    if (builder instanceof ModuleBuilder) {
+                        return new ModuleBuilder(cbuilder.make().getClassAsm().closeInnerClass());
+                    } else {
+                        return new ClassBuilder(cbuilder.make().getClassAsm().closeInnerClass());
+                    }
                 } else {
                     return cbuilder;
                 }
