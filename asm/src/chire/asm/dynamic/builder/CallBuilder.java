@@ -107,7 +107,7 @@ public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
                 callBuilder = obj[i].visit(callBuilder);
             }
 
-            if (clazzPack != null && obj.length > 0) callBuilder = toVarargs(clazzPack, callBuilder, Arrays.copyOfRange(obj, argSum, obj.length));
+            if (clazzPack != null) callBuilder = toVarargs(clazzPack, callBuilder, Arrays.copyOfRange(obj, argSum, obj.length));
 
             return callBuilder;
         }
