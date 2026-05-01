@@ -245,11 +245,11 @@ public class ClassBuilder extends Builder<AsmBuddy> {
     }
 
     public ClassBuilder defineClass(String name, Class<?> superClass) {
-        return new ClassBuilder(close().defineClass(name, superClass));
+        return new ClassBuilder(classAsm.defineClass(name, superClass));
     }
 
     public ClassBuilder defineClass(String name, String superClass) {
-        return new ClassBuilder(close().defineClass(name, superClass));
+        return new ClassBuilder(classAsm.defineClass(name, superClass));
     }
 
     private ClassAsm close() {

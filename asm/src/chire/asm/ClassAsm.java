@@ -35,6 +35,8 @@ public class ClassAsm {
 
     private final ClassAsm outer;
 
+    private final Map<String, byte[]> innerClasses = new HashMap<>();
+
     private final List<String> levelStack = new ArrayList<>();
 
     static CallLogger logger = new CallLogger();
@@ -166,11 +168,19 @@ public class ClassAsm {
     }
 
     public void invokeStaticVar(int opcode, String name, Class<?> type) {
-        invokeStaticVar(opcode, name, Format.formatPack(type));
+        invokeStaticVar(opcode, this.className, name, Format.formatPack(type));
+    }
+
+    public void invokeStaticVar(int opcode, Class<?> owner, String name, Class<?> type) {
+        invokeStaticVar(opcode, Format.formatPack(owner, false), name, Format.formatPack(type));
     }
 
     public void invokeStaticVar(int opcode, String name, String type) {
-        mv.visitFieldInsn(opcode, this.className, name, type+";");
+        invokeStaticVar(opcode, this.className, name, type);
+    }
+
+    public void invokeStaticVar(int opcode, String owner, String name, String type) {
+        mv.visitFieldInsn(opcode, owner, name, type+";");
     }
 
     public void invokeVar(int opcode, String owner, String name, String type){
@@ -302,20 +312,27 @@ public class ClassAsm {
         cw.visitEnd();
     }
 
+    public ClassAsm closeInnerClass() {
+        outer.innerClasses.putAll(getByte());
+
+        return this.getOuter();
+    }
+
     public Map<String, byte[]> getByte(){
-        HashMap<String, byte[]> bytes = new HashMap<>();
+//        HashMap<String, byte[]> bytes = new HashMap<>();
+//
+//        ClassAsm classAsm = this;
+//
+//        for (;;) {
+//            bytes.put(classAsm.className, classAsm.cw.toByteArray());
+//
+//            classAsm = classAsm.outer;
+//
+//            if (classAsm == null) break;
+//        }
+        this.innerClasses.put(className, this.cw.toByteArray());
 
-        ClassAsm classAsm = this;
-
-        for (;;) {
-            bytes.put(classAsm.className, classAsm.cw.toByteArray());
-
-            classAsm = classAsm.outer;
-
-            if (classAsm == null) break;
-        }
-
-        return bytes;
+        return innerClasses;
     }
 
     public ClassAsm getOuter() {
