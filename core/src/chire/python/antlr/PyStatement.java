@@ -69,16 +69,8 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
-            if (builder instanceof ModuleBuilder) {
-                return new ModuleBuilder(
-                       ((ModuleBuilder) builder).declareStaticVar(this.name, Object.class).setContent(
-                               argb -> argb.definitObj(
-                                       Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
-                               )
-                       ).getClassAsm()
-                );
-            } else if (builder instanceof ClassBuilder) {
-                return ((ClassBuilder) builder).declareVar(this.name, Object.class).setContent(
+            if (builder instanceof ClassBuilder) {
+                return ((ClassBuilder) builder).declareStaticVar(this.name, Object.class).setContent(
                         argb -> argb.definitObj(
                                 Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
                         )
@@ -155,21 +147,8 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
-            if (builder instanceof ModuleBuilder) {
-//                if (builder.getClassAsm().getClassStaticVars().keySet().contains(name.getText())) {
-//                    return new ModuleBuilder(((ModuleBuilder) builder).setContent(clineBui -> {
-//                        return clineBui.setStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class))
-//                                .setContent(staticeVar -> {
-//                                    return (CallBuilder<ClinitDefinition>) value.build(staticeVar);
-//                                });
-//                    }).getClassAsm());
-//                } else {
-                    return new ModuleBuilder(
-                            value.build(((ModuleBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class))).getClassAsm()
-                    );
-//                }
-            } else if (builder instanceof ClassBuilder) {
-                return value.build(((ClassBuilder) builder).declareVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
+            if (builder instanceof ClassBuilder) {
+                return value.build(((ClassBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
             } else if (builder instanceof BlockBuilder<?>){
                 if (builder.getType().equals(ClinitDefinition.class)) {
                     return value.build(((ClinitDefinition) builder).setStaticVar(this.name.getText(), Object.class));
@@ -511,47 +490,8 @@ public abstract class PyStatement {
                     .out();
                 });
 
-                if (builder instanceof ModuleBuilder) {
-                    return new ModuleBuilder(cont.getClassAsm());
-                } else {
-                    return cont;
-                }
+                return cont;
             }
-//            else if (builder instanceof BlockBuilder<?>) {
-//                return ((BlockBuilder) builder).setVar("for$"+variable.getText()).setContent(forVar -> {
-//                    return forVar.callMethod(JPUtil.class, "iterator", new Class[]{Object.class}, Iterator.class).setContent(iterBui -> {
-//                        return iterBui.definitPar(
-//                                parbui -> (CallBuilder) iterable.build(parbui)
-//                        );
-//                    });
-//                }).whileCall().setContent(
-//                        pd ->
-//                                pd.callLocal("for$"+variable.getText())
-//                                        .callMethod(Iterator.class, "hasNext", new Class[]{}, boolean.class)
-//                                        .setContent(CallBuilder.ParameterBuilder::definitPar)
-//                                        ._break(),
-//                        whiCont -> {
-//                            whiCont = whiCont.setVar(variable.getText())
-//                                    .setContent(vatBui -> {
-//                                        return vatBui.callLocal("for$"+variable.getText())
-//                                                .callMethod(Iterator.class, "next", new Class[]{}, Object.class)
-//                                                .setContent(CallBuilder.ParameterBuilder::definitPar);
-//                                    }).out();
-//
-//                            for (PyStatement statement : this.body) {
-//                                Builder<?> bui = statement.build(whiCont);
-//                                if (bui instanceof CallBuilder<?>) {
-//                                    whiCont = (BlockBuilder<ClinitDefinition>) ((CallBuilder) bui)._break();
-//                                } else {
-//                                    whiCont = (BlockBuilder<ClinitDefinition>) bui;
-//                                }
-//                            }
-//
-//                            return whiCont;
-//                        },
-//                        Opcodes.IFEQ
-//                );
-//            }
 
             throw new RuntimeException("no key");
         }
@@ -722,22 +662,6 @@ public abstract class PyStatement {
         }
 
         public <T extends BlockBuilder<T>> BlockBuilder<T> makeSubSet(BlockBuilder<T> builder) {
-//            if (call instanceof VarCallStatement) {
-//                return builder.callMethod(JPUtil.class, "callVar", new Class[]{Object.class, String.class}, Object.class).setContent(funBui -> {
-//                    return funBui.definitPar(
-//                            parBui -> (CallBuilder) key.build(parBui),
-//                            parBui -> parBui.definitObj(((VarCallStatement) call).name)
-//                    );
-//                })._break();
-//            } else if (call instanceof FunCallStatement) {
-//                return builder.callMethod(JPUtil.class, "callMethod", new Class[]{Object.class, String.class, Object[].class}, Object.class).setContent(funBui -> {
-//                    return funBui.definitPar(
-//                            parBui -> (CallBuilder) key.build(parBui),
-//                            parBui -> parBui.definitObj(((FunCallStatement) call).name)
-//                    );
-//                })._break();
-//            }
-
             if (call instanceof VarCallStatement) {
                 return builder.callMethod(JPUtil.class, "setVar", new Class[]{Object.class, String.class, Object.class}, null).setContent(metbui -> {
                     return metbui.definitPar(
@@ -1216,10 +1140,6 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof CallBuilder<?>) {
-//                for (PyStatement arg : args) {
-//                    callBuilder = (CallBuilder<?>) arg.build(callBuilder);
-//                }
-
                 var callbl = makeContent(((CallBuilder<?>) builder)._break());
 
                 return new CallBuilder<>(callbl.getClassAsm(), callbl.getType());
@@ -1270,31 +1190,6 @@ public abstract class PyStatement {
                         ))._break();
             }
         }
-
-//        public CallBuilder<?> makeContent(CallBuilder<?> builder) {
-//            List<AsmBudVisitor.AsmCallBuilder> callBuilders = new ArrayList<>();
-//
-//            callBuilders.add(parBui -> parBui.definitObj(this.name.getText()));
-//
-//            if (!args.isEmpty()) {
-//                for (int i = 0; i < args.size(); i++) {
-//                    int finalI = i;
-//                    callBuilders.add(par -> (CallBuilder<?>) args.get(finalI).build(par));
-//                }
-//            }
-//
-//            return builder.callMethod(JPUtil.class, "callMethod", new Class[]{Object.class, String.class, Object[].class}, Object.class)
-//                    .setContent(varBui ->  varBui.definitPar(
-//                            callBuilders.toArray(new AsmBudVisitor.AsmCallBuilder[0])
-//                    ));
-//
-//            return builder.callClass(ClassCall.class, new Class[]{Object.class})
-//                    .setContent(clasBui -> clasBui.definitObj(Type.getType("L"+builder.getClassAsm().className+";")))
-//                    .callMethod(ClassCall.class, "callMethod", new Class[]{String.class, Object[].class}, ClassCall.class)
-//                    .setContent(bu -> bu.definitPar(
-//                            callBuilders.toArray(new AsmBudVisitor.AsmCallBuilder[0])
-//                    ));
-//        }
 
         @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {
