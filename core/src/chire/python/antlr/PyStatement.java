@@ -221,13 +221,18 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof ClassBuilder) {
-                builder = ((ClassBuilder) builder).defineClass(this.name.getText(), Object.class);
+                ClassBuilder cbuilder = ((ClassBuilder) builder).defineClass(this.name.getText(), Object.class);
 
                 for (PyStatement statement : body) {
-                    builder = statement.build(builder);
+                    cbuilder = (ClassBuilder) statement.build(cbuilder);
                 }
 
-                return builder;
+                if (cbuilder.getClassAsm().getOuter() != null) {
+                    return new ClassBuilder(cbuilder.make().getClassAsm().closeInnerClass());
+                } else {
+                    return cbuilder;
+                }
+
             } else {
                 return builder;
             }
@@ -1234,10 +1239,8 @@ public abstract class PyStatement {
                 } else {
                     return classBuilder;
                 }
-            } else if (builder instanceof FunctionDefinition) {
-                return makeContent((FunctionDefinition) builder);
-            } else if (builder instanceof ClinitDefinition) {
-                return makeContent((ClinitDefinition) builder);
+            } else if (builder instanceof BlockBuilder<?>) {
+                return makeContent((BlockBuilder<?>) builder);
             }
             else {
                 throw new RuntimeException("no key");
