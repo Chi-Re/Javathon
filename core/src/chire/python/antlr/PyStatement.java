@@ -12,6 +12,7 @@ import chire.asm.util.Format;
 import chire.python.asm.ModuleBuilder;
 import chire.python.escape.ClassCall;
 import chire.python.escape.JPUtil;
+import chire.python.lib.PyList;
 import chire.python.lib.base.PyObject;
 import chire.python.util.SmartIndenter;
 import chire.python.util.Test;
@@ -82,7 +83,7 @@ public abstract class PyStatement {
                                 Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
                         )
                 );
-            } else if (builder instanceof FunctionDefinition){
+            } else if (builder instanceof BlockBuilder<?>){
                 return ((FunctionDefinition) builder).setVar(this.name).setContent(
                         argb -> argb.definitObj(
                                 Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
@@ -295,7 +296,7 @@ public abstract class PyStatement {
                     }
 
                     fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args);
-                    fun = fun.setVar(this.args.get(0).token.getText()).setContent(CallBuilder::callThis);
+                    fun = fun.setVar(this.args.get(0).token.getText()).setContent(BlockBuilder::callThis);
                 }
 
                 for (PyStatement statement : this.statements) {
@@ -464,7 +465,91 @@ public abstract class PyStatement {
             this.body = body;
         }
 
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof ClassBuilder) {
+                ClassBuilder cont = ((ClassBuilder) builder).setContent(content -> {
+                    return content.setVar("for$"+variable.getText()).setContent(forVar -> {
+                        return forVar.callMethod(JPUtil.class, "iterator", new Class[]{Object.class}, PyList.class).setContent(iterBui -> {
+                            return iterBui.definitPar(
+                                    parbui -> (CallBuilder) iterable.build(parbui)
+                            );
+                        });
+                    })
+                    .whileCall().setContent(
+                            pd ->
+                                    pd.callLocal("for$"+variable.getText())
+                                            .callMethod(PyList.class, "hasNext", new Class[]{}, boolean.class)
+                                            .setContent(CallBuilder.ParameterBuilder::definitPar)
+                                            ._break(),
+                            whiCont -> {
+                                whiCont = whiCont.setVar(variable.getText())
+                                        .setContent(vatBui -> {
+                                            return vatBui.callLocal("for$"+variable.getText())
+                                                    .callMethod(PyList.class, "next", new Class[]{}, Object.class)
+                                                    .setContent(CallBuilder.ParameterBuilder::definitPar);
+                                        }).out();
 
+                                for (PyStatement statement : this.body) {
+                                    Builder<?> bui = statement.build(whiCont);
+                                    if (bui instanceof CallBuilder<?>) {
+                                        whiCont = (BlockBuilder<ClinitDefinition>) ((CallBuilder) bui)._break();
+                                    } else {
+                                        whiCont = (BlockBuilder<ClinitDefinition>) bui;
+                                    }
+                                }
+
+                                return whiCont;
+                            },
+                            Opcodes.IFEQ
+                    )
+                    .out();
+                });
+
+                if (builder instanceof ModuleBuilder) {
+                    return new ModuleBuilder(cont.getClassAsm());
+                } else {
+                    return cont;
+                }
+            }
+//            else if (builder instanceof BlockBuilder<?>) {
+//                return ((BlockBuilder) builder).setVar("for$"+variable.getText()).setContent(forVar -> {
+//                    return forVar.callMethod(JPUtil.class, "iterator", new Class[]{Object.class}, Iterator.class).setContent(iterBui -> {
+//                        return iterBui.definitPar(
+//                                parbui -> (CallBuilder) iterable.build(parbui)
+//                        );
+//                    });
+//                }).whileCall().setContent(
+//                        pd ->
+//                                pd.callLocal("for$"+variable.getText())
+//                                        .callMethod(Iterator.class, "hasNext", new Class[]{}, boolean.class)
+//                                        .setContent(CallBuilder.ParameterBuilder::definitPar)
+//                                        ._break(),
+//                        whiCont -> {
+//                            whiCont = whiCont.setVar(variable.getText())
+//                                    .setContent(vatBui -> {
+//                                        return vatBui.callLocal("for$"+variable.getText())
+//                                                .callMethod(Iterator.class, "next", new Class[]{}, Object.class)
+//                                                .setContent(CallBuilder.ParameterBuilder::definitPar);
+//                                    }).out();
+//
+//                            for (PyStatement statement : this.body) {
+//                                Builder<?> bui = statement.build(whiCont);
+//                                if (bui instanceof CallBuilder<?>) {
+//                                    whiCont = (BlockBuilder<ClinitDefinition>) ((CallBuilder) bui)._break();
+//                                } else {
+//                                    whiCont = (BlockBuilder<ClinitDefinition>) bui;
+//                                }
+//                            }
+//
+//                            return whiCont;
+//                        },
+//                        Opcodes.IFEQ
+//                );
+//            }
+
+            throw new RuntimeException("no key");
+        }
 
         @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {
@@ -1049,11 +1134,11 @@ public abstract class PyStatement {
                 }
             } else if (builder instanceof BlockBuilder.VarBuilder<?>) {
                 if (type == String.class) {
-                    return (Builder<?>) ((BlockBuilder.VarBuilder<?>) builder).setContent(
+                    return ((BlockBuilder.VarBuilder<?>) builder).setContent(
                             bun -> bun.definitObj(RemoveQuotes.removeQuotes(token.getText()))
                     );
                 } else {
-                    return (Builder<?>) ((BlockBuilder.VarBuilder<?>) builder).setContent(
+                    return ((BlockBuilder.VarBuilder<?>) builder).setContent(
                             bun -> bun.definitObj(cast())
                     );
                 }
@@ -1254,24 +1339,25 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof CallBuilder<?>) {
-                if (builder.getType().equals(ClinitDefinition.class)) {
-                    return ((CallBuilder<?>) builder).call(builder.getClassAsm().className, this.name.getText(), Format.formatPack(Object.class));
-                } else {
-                    try {
-                        return ((CallBuilder<?>) builder).callLocal(this.name.getText());
-                    } catch (Exception e) {
+                try {
+                    return ((CallBuilder<?>) builder).callLocal(this.name.getText());
+                } catch (Exception e) {
+                    //TODO 这里需要支持获取本地类中的变量，理论上讲。
+//                    if (builder.getType().equals(ClinitDefinition.class)) {
                         return ((CallBuilder<?>) builder).callStatic(this.name.getText(), Object.class);
-                    }
+//                    } else {
+//                        try {
+//                            return ((CallBuilder) builder)
+//                        } catch (Exception e) {
+//                            return ((CallBuilder<?>) builder).callStatic(this.name.getText(), Object.class);
+//                        }
+//                    }
                 }
             } else if (builder instanceof BlockBuilder<?>) {
-                if (builder.getType().equals(ClinitDefinition.class)) {
-                    return ((BlockBuilder<?>) builder).call(builder.getClassAsm().className, this.name.getText(), Format.formatPack(Object.class));
-                } else {
-                    try {
-                        return ((BlockBuilder<?>) builder).callLocal(this.name.getText());
-                    } catch (Exception e) {
-                        return ((BlockBuilder<?>) builder).callStatic(this.name.getText(), Object.class);
-                    }
+                try {
+                    return ((BlockBuilder<?>) builder).callLocal(this.name.getText());
+                } catch (Exception e) {
+                    return ((BlockBuilder<?>) builder).callStatic(this.name.getText(), Object.class);
                 }
             } else {
                 return builder;

@@ -1,9 +1,12 @@
 package chire.python.escape;
 
+import chire.python.lib.PyList;
 import chire.python.lib.base.PyFunction;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class JPUtil {
     public static final Map<String, PyFunction> funs = new HashMap<>(){{
@@ -20,6 +23,13 @@ public class JPUtil {
         put("int", new PyFunction(args -> {
             return new BaseValue<>((int) args[0], int.class);
         }, int.class));
+
+        put("range", new PyFunction<>(args -> {
+            return new PyList(IntStream.iterate((Integer) args[0], n -> n + 1)
+                    .limit((Integer) args[1]-1)
+                    .boxed()
+                    .collect(Collectors.toList()));
+        }, PyList.class));
     }};
 
     static class BaseValue<T> {
@@ -38,6 +48,14 @@ public class JPUtil {
 
         public Class<T> getType() {
             return type;
+        }
+    }
+
+    public static PyList iterator(Object key) {
+        if (key instanceof PyList) {
+            return ((PyList) key);
+        } else {
+            throw new RuntimeException("no key");
         }
     }
 
