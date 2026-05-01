@@ -718,6 +718,9 @@ public class PyParser {
                     return varCall();
                 }
 
+            case 57:
+                return assignment(1);
+
             default:
                 throw new RuntimeException("parser error");
         }
