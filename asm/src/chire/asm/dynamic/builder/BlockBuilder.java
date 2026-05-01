@@ -7,6 +7,8 @@ import chire.asm.util.Format;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 
+import static org.objectweb.asm.Opcodes.GETFIELD;
+
 public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
     public BlockBuilder(ClassAsm classAsm, Class<T> type) {
         super(classAsm, type);
@@ -275,6 +277,13 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
 //        return builder;
 //    }
 
+    public CallBuilder<T> callClassVar(String var, String type) {
+        return new CallBuilder<>(classAsm, this.type).callClassVar(var, type);
+    }
+
+    public CallBuilder<T> callClassVar(String var, Class<?> type) {
+        return new CallBuilder<>(classAsm, this.type).callClassVar(var, type);
+    }
 
     public T out() {
         return create();

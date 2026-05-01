@@ -246,6 +246,19 @@ public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
         return this;
     }
 
+    public CallBuilder<T> callClassVar(String var, String type) {
+        classAsm.invokeStaticVar(GETFIELD, var, type);
+
+        return this;
+    }
+
+    public CallBuilder<T> callClassVar(String var, Class<?> type) {
+        CallBuilder<T> callBuilder = callThis();
+        callBuilder.classAsm.invokeStaticVar(GETFIELD, var, type);
+
+        return callBuilder;
+    }
+
     public CallBuilder<T> callStatic(String var, Class<?> type) {
         classAsm.invokeStaticVar(Opcodes.GETSTATIC, var, type);
 
