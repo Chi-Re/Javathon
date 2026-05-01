@@ -708,6 +708,30 @@ public abstract class PyStatement {
         }
 
         @Override
+        public Builder<?> build(Builder<?> builder) {
+            AsmBudVisitor.AsmCallBuilder[] callBuilders = new AsmBudVisitor.AsmCallBuilder[list.size()];
+
+            for (int i = 0; i < list.size(); i++) {
+                int finalI = i;
+                callBuilders[i] = builder1 -> (CallBuilder) list.get(finalI).build(builder1);
+            }
+
+            if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder) builder).callMethod(JPUtil.class, "asPyList", new Class[]{Object[].class}, PyList.class).setContent(funBui -> {
+                    return funBui.definitPar(callBuilders);
+                });
+            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
+                return ((ClassBuilder.StaticVarBuilder<?>) builder).setContent(statBui -> {
+                    return statBui._break().callMethod(JPUtil.class, "asPyList", new Class[]{Object[].class}, PyList.class).setContent(funBui -> {
+                        return funBui.definitPar(callBuilders);
+                    });
+                });
+            }
+
+            throw new RuntimeException("no key:"+builder.getClass());
+        }
+
+        @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {
             ArrayList<PyExecutor.PyInstruction> instructions = new ArrayList<>();
 

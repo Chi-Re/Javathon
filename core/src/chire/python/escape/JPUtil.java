@@ -51,6 +51,10 @@ public class JPUtil {
         }
     }
 
+    public static PyList asPyList(Object... objects) {
+        return new PyList(objects);
+    }
+
     public static PyList iterator(Object key) {
         if (key instanceof PyList) {
             return ((PyList) key);
