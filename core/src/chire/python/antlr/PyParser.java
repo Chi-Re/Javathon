@@ -484,10 +484,15 @@ public class PyParser {
 
             case 44:
                 return new PyStatement.VarStatement(previous(), null);
-        }
 
-        return null;
+            default:
+                throw new RuntimeException("parser error in "+key);
+        }
     }
+
+//    private PyStatement tupleDeclaration(){
+//
+//    }
 
     private PyStatement ifDeclaration(){
         return ifDeclaration(0);
@@ -685,6 +690,9 @@ public class PyParser {
             case 31:
                 return new PyStatement.NoneStatement();
 
+            case 57:
+                return tupleDeclaration();
+
             default:
                 throw new RuntimeException("parser error in "+key);
         }
@@ -733,6 +741,26 @@ public class PyParser {
     private PyStatement varCall(int current){
         this.current += current;
         return new PyStatement.VarCallStatement(peek());
+    }
+
+    private PyStatement tupleDeclaration() {
+        ArrayList<PyStatement> args = new ArrayList<>();
+
+        while (!isEnd()) {
+            current++;
+            switch (peek().getType()) {
+                case 4, 3, 38, 45:
+                    args.add(assignment());
+                    break;
+
+                case 59:
+                    break;
+                case 58:
+                    return new PyStatement.TupleStatement(args);
+            }
+        }
+
+        throw new RuntimeException("no args");
     }
 
     private PyStatement listAssignment() {

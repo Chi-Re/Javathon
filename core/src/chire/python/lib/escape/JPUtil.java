@@ -62,6 +62,10 @@ public class JPUtil {
         }
     }
 
+    public static PyTuple asPyTuple(Object... objects) {
+        return PyTuple.of(objects);
+    }
+
     public static PyList asPyList(Object... objects) {
         return new PyList(objects);
     }

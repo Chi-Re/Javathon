@@ -10,6 +10,7 @@ import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
 import chire.asm.util.Format;
 import chire.python.asm.ModuleBuilder;
+import chire.python.lib.PyTuple;
 import chire.python.lib.escape.JPArgs;
 import chire.python.lib.escape.JPUtil;
 import chire.python.lib.PyList;
@@ -725,6 +726,55 @@ public abstract class PyStatement {
             var.toString(indenter);
 
             indenter.unindent().newLine().unindent().add("}");
+        }
+    }
+
+    public static class TupleStatement extends PyStatement {
+        public final ArrayList<PyStatement> list;
+
+        public TupleStatement(ArrayList<PyStatement> list){
+            this.list = list;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            AsmBudVisitor.AsmCallBuilder[] callBuilders = new AsmBudVisitor.AsmCallBuilder[list.size()];
+
+            for (int i = 0; i < list.size(); i++) {
+                int finalI = i;
+                callBuilders[i] = builder1 -> (CallBuilder) list.get(finalI).build(builder1);
+            }
+
+            if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder) builder).callMethod(JPUtil.class, "asPyTuple", new Class[]{Object[].class}, PyTuple.class).setContent(funBui -> {
+                    return funBui.definitPar(callBuilders);
+                });
+            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
+                return ((ClassBuilder.StaticVarBuilder<?>) builder).setContent(statBui -> {
+                    return statBui._break().callMethod(JPUtil.class, "asPyTuple", new Class[]{Object[].class}, PyTuple.class).setContent(funBui -> {
+                        return funBui.definitPar(callBuilders);
+                    });
+                });
+            }
+
+            throw new RuntimeException("no key:"+builder.getClass());
+        }
+
+        @Override
+        public PyExecutor.PyInstruction build(PyAssembler builder) {
+            return null;
+        }
+
+        @Override
+        public void toString(SmartIndenter indenter) {
+            indenter.newLine().add("Tuple(")
+                    .indent();
+
+            for (PyStatement statement : this.list) {
+                statement.toString(indenter);
+            }
+
+            indenter.newLine().unindent().add(")");
         }
     }
 
