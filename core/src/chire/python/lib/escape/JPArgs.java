@@ -1,16 +1,17 @@
 package chire.python.lib.escape;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class JPArgs {
     private final Map<String, Object> args = new LinkedHashMap<>();
 
-    private final String[] keys;
+    private final List<String> keys;
 
     public JPArgs(String... keys) {
-        this.keys = keys;
+        this.keys = List.of(keys);
     }
 
     public void setArgs(JPArg... args) {
@@ -24,7 +25,23 @@ public class JPArgs {
             } else if (keyMode) {
                 throw new RuntimeException("no key");
             } else {
-                this.args.put(this.keys[i], args[i].object);
+                this.args.put(this.keys.get(i), args[i].object);
+            }
+        }
+    }
+
+    public void setArgs(Object... objects) {
+        boolean keyMode = false;
+
+        for (int i = 0; i < objects.length; i++) {
+            if (objects[i] instanceof JPArg) {
+                keyMode = true;
+
+                args.put(((JPArg) objects[i]).key, ((JPArg) objects[i]).object);
+            } else if (keyMode){
+                throw new RuntimeException("no key");
+            } else {
+                args.put(this.keys.get(i), objects[i]);
             }
         }
     }

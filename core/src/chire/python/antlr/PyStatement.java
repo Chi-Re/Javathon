@@ -274,10 +274,9 @@ public abstract class PyStatement {
         public Builder<?> build(Builder<?> builder) {
             Args args = new Args();
 
-            args.put("fun$args", JPArgs.JPArg[].class);
+            args.put("fun$args", Object[].class);
 
             if (builder instanceof ClassBuilder) {
-//                builder = ((ClassBuilder) builder).defineVar(Opcodes.ACC_STATIC, token.getText()+"$"+this.args.get(0).token.getText(), Object.class).setContent(CallBuilder::callThis);
                 FunctionDefinition fun;
 
                 if (builder instanceof ModuleBuilder) {
@@ -301,7 +300,7 @@ public abstract class PyStatement {
                         })
                 );
 
-                fun = fun.callLocal("for$jp$args").callMethod(JPArgs.class, "setArgs", new Class[]{JPArgs.JPArg[].class}, null).setContent(argArg -> {
+                fun = fun.callLocal("for$jp$args").callMethod(JPArgs.class, "setArgs", new Class[]{Object[].class}, null).setContent(argArg -> {
                     return argArg.callLocal("fun$args");
                 })._break();
 
