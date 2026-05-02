@@ -1,6 +1,7 @@
 package chire.python.lib.escape;
 
 import chire.python.lib.PyList;
+import chire.python.lib.PyTuple;
 import chire.python.lib.base.PyFunction;
 
 import java.lang.reflect.InvocationTargetException;
@@ -10,23 +11,33 @@ import java.util.stream.IntStream;
 
 public class JPUtil {
     public static final Map<String, PyFunction> funs = new HashMap<>(){{
-        put("print", new PyFunction(args -> {
-            for (int i = 0; i < args.length; i++) {
-                System.out.print(args[i]);
-                if (i + 1 < args.length) System.out.print(" ");
-            }
-            System.out.println();
+        put("print", new PyFunction(
+                new String[]{"*args", "end"},
+                args -> {
+                    PyTuple iargs = ((PyTuple) args.get("args"));
+                    String sep = args.getOrDefault("sep", " ").toString();
+                    String end = args.getOrDefault("end", "\n").toString();
 
-            return null;
-        }, void.class));
+                    for (int i = 0; i < iargs.size(); i++) {
+                        System.out.print(iargs.get(i));
 
-        put("int", new PyFunction(args -> {
-            return new BaseValue<>((int) args[0], int.class);
+                        if (i + 1 < iargs.size()) System.out.print(sep);
+                    }
+
+                    System.out.print(end);
+
+                    return null;
+                },
+                void.class
+        ));
+
+        put("int", new PyFunction(new String[]{"obj"}, args -> {
+            return new BaseValue<>((int) args.get("obj"), int.class);
         }, int.class));
 
-        put("range", new PyFunction<>(args -> {
-            return new PyList(IntStream.iterate((Integer) args[0], n -> n + 1)
-                    .limit((Integer) args[1]-1)
+        put("range", new PyFunction<>(new String[]{"in", "to"}, args -> {
+            return new PyList(IntStream.iterate((Integer) args.get("in"), n -> n + 1)
+                    .limit((Integer) args.get("to")-1)
                     .boxed()
                     .collect(Collectors.toList()));
         }, PyList.class));
