@@ -828,10 +828,16 @@ public abstract class PyStatement {
         public final Token token;
 
         public final TypeStatement type;
+        public final PyStatement body;
 
         public ArgStatement(Token token, TypeStatement type){
+            this(token, type, null);
+        }
+
+        public ArgStatement(Token token, TypeStatement type, PyStatement body){
             this.token = token;
             this.type = type;
+            this.body = body;
         }
 
         public String getType(){
@@ -1174,6 +1180,58 @@ public abstract class PyStatement {
                     .add("key=").add(token.getText())
                     .add(", ")
                     .add("type=").add(type.toString())
+                    .add("}");
+        }
+    }
+
+    public static class ParametersStatement extends PyStatement {
+        private final Token name;
+        private final PyStatement content;
+
+        public ParametersStatement(Token name, PyStatement content) {
+            this.name = name;
+            this.content = content;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder) builder).callClass(JPArgs.JPArg.class, new Class[]{String.class, Object.class}).setContent(clazzCont -> {
+                    return clazzCont.definitPar(
+                            parBui -> parBui.definitObj(name.getText()),
+                            parBui -> (CallBuilder) content.build(parBui)
+                    );
+                });
+            } else if (builder instanceof CallBuilder<?>) {
+                return ((CallBuilder) builder).callClass(JPArgs.JPArg.class, new Class[]{String.class, Object.class}).setContent(clazzCont -> {
+                    return clazzCont.definitPar(
+                            parBui -> parBui.definitObj(name.getText()),
+                            parBui -> (CallBuilder) content.build(parBui)
+                    );
+                });
+            }
+
+            throw new RuntimeException("no key");
+        }
+
+        @Override
+        public PyExecutor.PyInstruction build(PyAssembler builder) {
+            return null;
+        }
+
+        @Override
+        public void toString(SmartIndenter indenter) {
+            indenter.newLine().addLine("Par{")
+                    .indent()
+                    .add("name=").addLine(name.getText())
+                    .add("content=[");
+
+            indenter.indent();
+            content.toString(indenter);
+            indenter.unindent().newLine();
+
+            indenter.addLine("]")
+                    .unindent()
                     .add("}");
         }
     }

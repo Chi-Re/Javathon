@@ -765,8 +765,16 @@ public class PyParser {
         while (!isEnd()) {
             current++;
             switch (peek().getType()) {
-                case 4, 3, 38, 45:
+                case 4, 3, 38:
                     args.add(assignment());
+                    break;
+
+                case 45:
+                    if (last().getType() == 63) {
+                        args.add(new PyStatement.ParametersStatement(peek(), assignment(2)));
+                    } else {
+                        args.add(assignment());
+                    }
                     break;
 
                 case 59:
