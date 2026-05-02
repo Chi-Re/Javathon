@@ -1,5 +1,6 @@
 package chire.python.lib.escape;
 
+import chire.python.lib.PyDict;
 import chire.python.lib.PyList;
 import chire.python.lib.PyTuple;
 import chire.python.lib.base.PyFunction;
@@ -60,6 +61,18 @@ public class JPUtil {
         public Class<T> getType() {
             return type;
         }
+    }
+
+    public static PyDict asPyDict(Object... objects) {
+        if (objects.length % 2 != 0) throw new RuntimeException("no key");
+
+        PyDict dict = new PyDict();
+
+        for (int i = 0; i < objects.length; i+=2) {
+            dict.setdefault(objects[i], objects[i+1]);
+        }
+
+        return dict;
     }
 
     public static PyTuple asPyTuple(Object... objects) {

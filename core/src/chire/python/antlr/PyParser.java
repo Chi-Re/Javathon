@@ -5,7 +5,10 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PyParser {
     private final CommonTokenStream tokenStream;
@@ -490,10 +493,6 @@ public class PyParser {
         }
     }
 
-//    private PyStatement tupleDeclaration(){
-//
-//    }
-
     private PyStatement ifDeclaration(){
         return ifDeclaration(0);
     }
@@ -693,6 +692,9 @@ public class PyParser {
             case 57:
                 return tupleDeclaration();
 
+            case 77:
+                return dictDeclaration();
+
             default:
                 throw new RuntimeException("parser error in "+key);
         }
@@ -741,6 +743,26 @@ public class PyParser {
     private PyStatement varCall(int current){
         this.current += current;
         return new PyStatement.VarCallStatement(peek());
+    }
+
+    private PyStatement dictDeclaration() {
+        Map<PyStatement, PyStatement> args = new LinkedHashMap<>();
+
+        while (!isEnd()) {
+            current++;
+            switch (peek().getType()) {
+                case 4, 3, 38, 45:
+                    args.put(assignment(), assignment(2));
+                    break;
+
+                case 77:
+                    break;
+                case 78:
+                    return new PyStatement.DictStatement(args);
+            }
+        }
+
+        throw new RuntimeException("no args");
     }
 
     private PyStatement tupleDeclaration() {

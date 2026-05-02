@@ -123,4 +123,9 @@ public class PyDict {
     public PyDict copy() {
         return new PyDict(new LinkedHashMap<>(this.data));
     }
+
+    @Override
+    public String toString() {
+        return __str__();
+    }
 }

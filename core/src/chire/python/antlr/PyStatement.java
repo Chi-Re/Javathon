@@ -10,6 +10,7 @@ import chire.asm.dynamic.definition.ClinitDefinition;
 import chire.asm.dynamic.definition.FunctionDefinition;
 import chire.asm.util.Format;
 import chire.python.asm.ModuleBuilder;
+import chire.python.lib.PyDict;
 import chire.python.lib.PyTuple;
 import chire.python.lib.escape.JPArgs;
 import chire.python.lib.escape.JPUtil;
@@ -22,8 +23,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 public abstract class PyStatement {
     public abstract PyExecutor.PyInstruction build(PyAssembler builder);
@@ -726,6 +725,62 @@ public abstract class PyStatement {
             var.toString(indenter);
 
             indenter.unindent().newLine().unindent().add("}");
+        }
+    }
+
+    public static class DictStatement extends PyStatement {
+        private final Map<PyStatement, PyStatement> args;
+
+        public DictStatement(Map<PyStatement, PyStatement> args) {
+            this.args = args;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            List<AsmBudVisitor.AsmCallBuilder> list = new ArrayList<>();
+
+            PyStatement[] ks = args.keySet().toArray(new PyStatement[0]);
+            PyStatement[] vs = args.values().toArray(new PyStatement[0]);
+
+            for (int i = 0; i < args.size(); i++) {
+                int finalI = i;
+                list.add(builder1 -> (CallBuilder) ks[finalI].build(builder1));
+                list.add(builder1 -> (CallBuilder) vs[finalI].build(builder1));
+            }
+
+            if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder) builder).callMethod(JPUtil.class, "asPyDict", new Class[]{Object[].class}, PyDict.class).setContent(funBui -> {
+                    return funBui.definitPar(list.toArray(new AsmBudVisitor.AsmCallBuilder[0]));
+                });
+            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
+                return ((ClassBuilder.StaticVarBuilder<?>) builder).setContent(statBui -> {
+                    return statBui._break().callMethod(JPUtil.class, "asPyDict", new Class[]{Object[].class}, PyDict.class).setContent(funBui -> {
+                        return funBui.definitPar(list.toArray(new AsmBudVisitor.AsmCallBuilder[0]));
+                    });
+                });
+            }
+
+            throw new RuntimeException("no key:"+builder.getClass());
+        }
+
+        @Override
+        public PyExecutor.PyInstruction build(PyAssembler builder) {
+            return null;
+        }
+
+        @Override
+        public void toString(SmartIndenter indenter) {
+            indenter.newLine().add("Dict{")
+                    .indent();
+
+            for (PyStatement statement : this.args.keySet()) {
+                statement.toString(indenter);
+                indenter.add(" : ").indent();
+                args.get(statement).toString(indenter);
+                indenter.unindent().add(",");
+            }
+
+            indenter.newLine().unindent().add("}");
         }
     }
 
