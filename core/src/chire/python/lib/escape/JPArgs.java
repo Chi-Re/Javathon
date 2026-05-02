@@ -37,8 +37,8 @@ public class JPArgs {
                 for (int j = i; j < objects.length; j++) {
                     list.add(objects[j]);
 
+                    i = j;
                     if (j + 1 < objects.length && objects[j + 1] instanceof JPArg) {
-                        i = j;
                         break;
                     }
                 }
