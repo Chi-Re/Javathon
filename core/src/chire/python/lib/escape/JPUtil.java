@@ -89,6 +89,22 @@ public class JPUtil {
         }
     }
 
+    public static Object getSerial(Object instance, Object key) {
+        if (instance instanceof PyDict) {
+            return ((PyDict) instance).__getitem__(key);
+        }
+        if (instance instanceof PyList) {
+            if (!(key instanceof Integer)) throw new RuntimeException("no key");
+            return ((PyList) instance).__getitem__((Integer) key);
+        }
+        if (instance instanceof PyTuple) {
+            if (!(key instanceof Integer)) throw new RuntimeException("no key");
+            return ((PyTuple) instance).get((Integer) key);
+        }
+
+        throw new RuntimeException("no key");
+    }
+
     public static void setSerial(Object instance, Object key, Object value) {
         if (instance instanceof PyDict) {
             ((PyDict) instance).update(key, value);
@@ -103,6 +119,8 @@ public class JPUtil {
         if (instance instanceof PyTuple) {
             throw new RuntimeException("no key");
         }
+
+        throw new RuntimeException("no key");
     }
 
     public static PyDict asPyDict(Object... objects) {
