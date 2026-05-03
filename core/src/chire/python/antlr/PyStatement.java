@@ -152,7 +152,7 @@ public abstract class PyStatement {
         }
 
         VarStatement(Token name, PyStatement value) {
-            this(name, value, null);
+            this(name, null, value, null);
         }
 
         @Override
