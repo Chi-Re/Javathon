@@ -202,7 +202,7 @@ public class PyParser {
         var key = peek();
         switch (key.getType()) {
             case 45:
-                if (match(current+1, 44, 63, 88, 89, 90, 92, 60, 64)){
+                if (match(current+1, 63, 88, 89, 90, 92, 60, 64)){
                     body.add(varDeclaration());
                 } else if (match(current+1, 57)){
                     body.add(methodCall());
