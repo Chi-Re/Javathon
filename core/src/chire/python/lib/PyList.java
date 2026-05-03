@@ -77,6 +77,18 @@ public class PyList extends PyObject implements Iterator<Object> {
         return data.contains(item);
     }
 
+    public void addAll(PyList list) {
+        this.data.addAll(list.data);
+    }
+
+    public void addAll(Collection list) {
+        this.data.addAll(list);
+    }
+
+    public PyList copy() {
+        return new PyList(this.data);
+    }
+
     @Override
     public String toString() {
         return __str__();
