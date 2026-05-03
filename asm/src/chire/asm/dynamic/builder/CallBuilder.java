@@ -162,7 +162,10 @@ public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
 
         public CallBuilder<T> setContent(AsmBudVisitor<T> builder) {
             classAsm.setState("set-content-method");
-            return callBuilder.visit(builder.visit(new ParameterBuilder<>(classAsm, type, this.parameters)));
+            CallBuilder<T> cont = builder.visit(new ParameterBuilder<>(classAsm, type, this.parameters));
+            classAsm.releaseState();
+
+            return callBuilder.visit(cont);
         }
 
         private void end(AsmBudVisitor.AsmCallBuilder<T> builder){
@@ -182,7 +185,6 @@ public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
         MethodBuilder<T> methodBuilder = new MethodBuilder<>(classAsm, type, parameters);
 
         methodBuilder.end(builder -> {
-            classAsm.releaseState();
             classAsm.invokeMethod(opcode, owner, var, Format.formatParameter(parameters, returnType));
 
             if (returnType != null && !classAsm.getState().contains("content")) {
