@@ -27,48 +27,7 @@ public class PyParser {
 
     public ArrayList<PyStatement> parse(){
         while (!isEnd()){
-            Token token = peek();
-
-            //System.out.println(token);
-
-            switch (token.getType()) {
-                case 45:
-                    if (match(current+1, 44, 63, 88, 89, 90, 92, 60, 64)){
-                        statements.add(varDeclaration());
-                    } else if (match(current+1, 57)){
-                        statements.add(methodCall());
-                    } else if (match(current+1, 54)) {
-                        statements.add(submethodCall(varCall()));
-                    }
-                    break;
-
-                case 15:
-                    statements.add(defDeclaration());
-                    break;
-
-                case 25:
-                    statements.add(ifDeclaration());
-                    break;
-
-                case 41:
-                    statements.add(whileDeclaration());
-                    break;
-
-                case 13:
-                    statements.add(classDeclaration(1));
-                    break;
-
-                case 23, 26:
-                    statements.add(importDeclaration());
-                    break;
-
-                case 22:
-                    statements.add(forDeclaration(1));
-                    break;
-
-                default:
-                    break;
-            }
+            statements.addAll(bodyDeclaration());
 
             current++;
         }
@@ -241,13 +200,13 @@ public class PyParser {
         ArrayList<PyStatement> body = new ArrayList<>();
 
         var key = peek();
-        switch (key.getType()){
+        switch (key.getType()) {
             case 45:
-                if (match(current+1, 44, 63, 88, 89, 90, 92)){
+                if (match(current+1, 44, 63, 88, 89, 90, 92, 60, 64)){
                     body.add(varDeclaration());
                 } else if (match(current+1, 57)){
                     body.add(methodCall());
-                }else if (match(current+1, 54)) {
+                } else if (match(current+1, 54)) {
                     body.add(submethodCall(varCall()));
                 }
                 break;
@@ -264,12 +223,19 @@ public class PyParser {
                 body.add(whileDeclaration());
                 break;
 
+            case 13:
+                body.add(classDeclaration(1));
+                break;
+
             case 23, 26:
                 body.add(importDeclaration());
                 break;
 
             case 22:
                 body.add(forDeclaration(1));
+                break;
+
+            default:
                 break;
         }
 
@@ -499,7 +465,8 @@ public class PyParser {
 
             case 44:
                 //TODO 这里在创建时未处理空结构的问题。很明显，我应该默认None
-                return new PyStatement.VarStatement(previous(), null);
+                throw new RuntimeException("parser error in "+key);
+//                return new PyStatement.VarStatement(previous(), null);
 
             default:
                 throw new RuntimeException("parser error in "+key);
@@ -664,10 +631,12 @@ public class PyParser {
                     throw new RuntimeException("parser error");
                 }
 
-            case 45:
+            case 45, 64:
                 PyStatement varmetStmt;
 
-                if (match(this.current+1, 57)){
+                if (key.getType() == 64) {
+                    varmetStmt = listAssignment();
+                } else if (match(this.current+1, 57)){
                     varmetStmt = methodCall();
                 } else if (match(this.current+1, 64)) {
                     current++;
@@ -702,9 +671,6 @@ public class PyParser {
                 } else {
                     return varmetStmt;
                 }
-
-            case 64:
-                return listAssignment();
 
             case 31:
                 return new PyStatement.NoneStatement();
