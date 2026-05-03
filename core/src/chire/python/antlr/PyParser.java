@@ -498,6 +498,7 @@ public class PyParser {
                         ));
 
             case 44:
+                //TODO 这里在创建时未处理空结构的问题。很明显，我应该默认None
                 return new PyStatement.VarStatement(previous(), null);
 
             default:
