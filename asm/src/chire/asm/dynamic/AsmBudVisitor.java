@@ -19,7 +19,11 @@ public interface AsmBudVisitor<T extends BlockBuilder<T>> {
         BlockBuilder<T> visit(BlockBuilder<T> builder);
     }
 
-    interface SetBlockBuilder<T extends BlockBuilder<T>> {
+    interface SetCallBuilder<T extends BlockBuilder<T>> {
         CallBuilder<T> visit(BlockBuilder<T> builder);
+    }
+
+    interface SetBlockBuilder<T extends BlockBuilder<T>> {
+        BlockBuilder<T> visit(BlockBuilder<T> builder);
     }
 }

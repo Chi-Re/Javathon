@@ -30,13 +30,22 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
             this.name = name;
         }
 
-        public T setContent(AsmBudVisitor.SetBlockBuilder<T> visitor) {
+        public T setContent(AsmBudVisitor.SetCallBuilder<T> visitor) {
             classAsm.setState("set-content-var");
             CallBuilder<T> builder = visitor.visit(new BlockBuilder<>(classAsm, type));
             classAsm.releaseState();
 
             builder.classAsm.varInsn(name);
-            return builder.create();
+            return builder._break();
+        }
+
+        public T setBlockContent(AsmBudVisitor.SetBlockBuilder<T> visitor) {
+            classAsm.setState("set-content-var");
+            BlockBuilder<T> builder = visitor.visit(new BlockBuilder<>(classAsm, type));
+            classAsm.releaseState();
+
+            builder.classAsm.varInsn(name);
+            return builder.out();
         }
     }
 
