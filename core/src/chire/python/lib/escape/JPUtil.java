@@ -42,6 +42,32 @@ public class JPUtil {
                     .boxed()
                     .collect(Collectors.toList()));
         }, PyList.class));
+
+        put("len", new PyFunction<>(new String[]{"item"}, args -> {
+            Object item = args.get("item");
+
+            if (item instanceof PyList) {
+                return ((PyList) item).__len__();
+            }
+            if (item instanceof PyDict) {
+                return ((PyDict) item).__len__();
+            }
+            if (item instanceof PyTuple) {
+                return ((PyTuple) item).size();
+            }
+
+            if (item instanceof Map<?,?>) {
+                return ((Map<?, ?>) item).size();
+            }
+            if (item instanceof Collection<?>) {
+                return ((Collection<?>) item).size();
+            }
+
+            if (item instanceof String) {
+                return ((String) item).length();
+            }
+            throw new RuntimeException("no key");
+        }, Integer.class));
     }};
 
     static class BaseValue<T> {
