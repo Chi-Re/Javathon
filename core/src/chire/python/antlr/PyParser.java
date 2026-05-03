@@ -668,7 +668,14 @@ public class PyParser {
 
                 if (match(this.current+1, 57)){
                     varmetStmt = methodCall();
-                } else {
+                } else if (match(this.current+1, 64)) {
+                    current++;
+                    varmetStmt = new PyStatement.IndexStatement(key, assignment(1));
+
+                    if (last().getType() == 65) current++;
+                    else throw new RuntimeException("no key");
+                }
+                else {
                     varmetStmt = varCall();
                 }
 

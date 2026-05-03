@@ -199,19 +199,6 @@ public abstract class PyStatement {
                 throw new RuntimeException("no key");
             }
 
-//            if (builder instanceof ClassBuilder) {
-//                ClassBuilder classBuilder =
-//                        (ClassBuilder) value.build(((ClassBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
-//
-//                return builder instanceof ModuleBuilder ? new ModuleBuilder(classBuilder.getClassAsm()) : classBuilder;
-//            } else if (builder instanceof BlockBuilder<?>){
-//                if (builder.getType().equals(ClinitDefinition.class)) {
-//                    return value.build(((ClinitDefinition) builder).setStaticVar(this.name.getText(), Object.class));
-//                } else {
-//                    return value.build(((BlockBuilder) builder).setVar(this.name.getText()));
-//                }
-//            }
-
             if (builder instanceof ClassBuilder) {
                 ClassBuilder classBuilder = ((ClassBuilder) builder).declareStaticVar(
                         this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)
@@ -256,10 +243,77 @@ public abstract class PyStatement {
 
             indenter.newLine().unindent().add("index:").indent();
             if (index != null) index.toString(indenter);
-//            indenter.unindent()
-//                    .newLine()
-//                    .add("type:").indent();
-//            type.toString();
+            indenter.unindent().newLine()
+                    .unindent()
+                    .add("}");
+        }
+    }
+
+    public static class IndexStatement extends PyStatement {
+        private final Token name;
+        private final PyStatement index;
+
+        public IndexStatement(Token name, PyStatement index) {
+            this.name = name;
+            this.index = index;
+        }
+
+        @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder<?>) builder).callMethod(JPUtil.class, "getSerial", new Class[]{Object.class, Object.class}, Object.class).setContent(methBui -> {
+                    return methBui.definitPar(
+                            par -> {
+                                if (builder.getType().equals(ClinitDefinition.class)) {
+                                    return par.callStatic(name.getText(), Object.class);
+                                }
+
+                                try {
+                                    return par.callLocal(name.getText());
+                                } catch (Exception e) {
+                                    return par.callStatic(name.getText(), Object.class);
+                                }
+                            },
+                            par -> (CallBuilder) index.build(par)
+                    );
+                });
+            } else if (builder instanceof CallBuilder<?>) {
+                return ((CallBuilder) builder)._break().callMethod(JPUtil.class, "getSerial", new Class[]{Object.class, Object.class}, Object.class).setContent(methBui -> {
+                    return methBui.definitPar(
+                            par -> {
+                                if (builder.getType().equals(ClinitDefinition.class)) {
+                                    return par.callStatic(name.getText(), Object.class);
+                                }
+
+                                try {
+                                    return par.callLocal(name.getText());
+                                } catch (Exception e) {
+                                    return par.callStatic(name.getText(), Object.class);
+                                }
+                            },
+                            par -> (CallBuilder) index.build(par)
+                    );
+                });
+            }
+
+            throw new RuntimeException("no key");
+        }
+
+        @Override
+        public PyExecutor.PyInstruction build(PyAssembler builder) {
+            return null;
+        }
+
+        @Override
+        public void toString(SmartIndenter indenter) {
+            indenter.newLine().add("Index{").newLine()
+                    .indent()
+                    .add("name=").add(name.getText()).newLine()
+                    .add("index:").indent();
+            if (index != null) index.toString(indenter);
+
+//            indenter.newLine().unindent().add("content:").indent();
+//            if (content != null) content.toString(indenter);
             indenter.unindent().newLine()
                     .unindent()
                     .add("}");
