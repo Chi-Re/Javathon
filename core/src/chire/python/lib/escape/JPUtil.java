@@ -4,6 +4,7 @@ import chire.python.lib.PyDict;
 import chire.python.lib.PyList;
 import chire.python.lib.PyTuple;
 import chire.python.lib.base.PyFunction;
+import chire.python.lib.base.PyObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -156,7 +157,28 @@ public class JPUtil {
             return operationInt((Integer) k, (Integer) p, f);
         }
 
+        if (f.equals("*")) {
+            if ((k instanceof PyList && p instanceof Integer)) {
+                return operationSerial((PyObject) k, (Integer) p);
+            } else if (p instanceof PyList && k instanceof Integer) {
+                return operationSerial((PyObject) p, (Integer) k);
+            }
+        }
+
         return -1;
+    }
+
+
+    public static Object operationSerial(PyObject serial, Integer p) {
+        if (serial instanceof PyList) {
+            PyList lis = new PyList();
+            for (int i = 0; i < p; i++) {
+                lis.addAll((PyList) serial);
+            }
+            return lis;
+        }
+
+        throw new RuntimeException("no key");
     }
 
     public static Integer operationInt(Integer k, Integer p, String f) {
