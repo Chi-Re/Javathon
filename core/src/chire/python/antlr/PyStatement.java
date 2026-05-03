@@ -19,6 +19,7 @@ import chire.python.lib.base.PyObject;
 import chire.python.util.SmartIndenter;
 import chire.python.util.type.RemoveQuotes;
 import org.antlr.v4.runtime.Token;
+import org.checkerframework.checker.units.qual.C;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
@@ -198,16 +199,42 @@ public abstract class PyStatement {
                 throw new RuntimeException("no key");
             }
 
+//            if (builder instanceof ClassBuilder) {
+//                ClassBuilder classBuilder =
+//                        (ClassBuilder) value.build(((ClassBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
+//
+//                return builder instanceof ModuleBuilder ? new ModuleBuilder(classBuilder.getClassAsm()) : classBuilder;
+//            } else if (builder instanceof BlockBuilder<?>){
+//                if (builder.getType().equals(ClinitDefinition.class)) {
+//                    return value.build(((ClinitDefinition) builder).setStaticVar(this.name.getText(), Object.class));
+//                } else {
+//                    return value.build(((BlockBuilder) builder).setVar(this.name.getText()));
+//                }
+//            }
+
             if (builder instanceof ClassBuilder) {
-                ClassBuilder classBuilder =
-                        (ClassBuilder) value.build(((ClassBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
+                ClassBuilder classBuilder = ((ClassBuilder) builder).declareStaticVar(
+                        this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)
+                ).setContent(setContent -> (CallBuilder) value.build(setContent));
 
                 return builder instanceof ModuleBuilder ? new ModuleBuilder(classBuilder.getClassAsm()) : classBuilder;
             } else if (builder instanceof BlockBuilder<?>){
                 if (builder.getType().equals(ClinitDefinition.class)) {
-                    return value.build(((ClinitDefinition) builder).setStaticVar(this.name.getText(), Object.class));
+                    return ((ClinitDefinition) builder).setStaticVar(this.name.getText(), Object.class).setContent(setContent -> {
+                        return (CallBuilder<ClinitDefinition>) value.build(setContent);
+                    });
                 } else {
-                    return value.build(((BlockBuilder) builder).setVar(this.name.getText()));
+                    return ((BlockBuilder<?>) builder).setVar(this.name.getText()).setBlockContent(setContent -> {
+                        Builder<?> ke = value.build(setContent);
+
+                        if (ke instanceof CallBuilder<?>) {
+                            return ((CallBuilder) ke)._break();
+                        } else if (ke instanceof BlockBuilder<?>) {
+                            return ((BlockBuilder) ke);
+                        }
+
+                        throw new RuntimeException("no key");
+                    });
                 }
             }
 
@@ -654,10 +681,6 @@ public abstract class PyStatement {
                 return  ((ClassBuilder) builder).setContent(clinBui ->
                         createBlock(clinBui)._break()
                 );
-            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
-                return ((ClassBuilder.StaticVarBuilder) builder).setContent(statBui -> {
-                    return (CallBuilder<ClinitDefinition>) createBlock(statBui._break());
-                });
             }
 
             throw new RuntimeException("no key");
@@ -800,14 +823,12 @@ public abstract class PyStatement {
             }
 
             if (builder instanceof BlockBuilder<?>) {
-                return ((BlockBuilder) builder).callMethod(JPUtil.class, "asPyDict", new Class[]{Object[].class}, PyDict.class).setContent(funBui -> {
+                return ((BlockBuilder<?>) builder).callMethod(JPUtil.class, "asPyDict", new Class[]{Object[].class}, PyDict.class).setContent(funBui -> {
                     return funBui.definitPar(list.toArray(new AsmBudVisitor.AsmCallBuilder[0]));
                 });
-            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
-                return ((ClassBuilder.StaticVarBuilder<?>) builder).setContent(statBui -> {
-                    return statBui._break().callMethod(JPUtil.class, "asPyDict", new Class[]{Object[].class}, PyDict.class).setContent(funBui -> {
-                        return funBui.definitPar(list.toArray(new AsmBudVisitor.AsmCallBuilder[0]));
-                    });
+            } else if (builder instanceof CallBuilder<?>) {
+                return ((CallBuilder<?>) builder)._break().callMethod(JPUtil.class, "asPyDict", new Class[]{Object[].class}, PyDict.class).setContent(funBui -> {
+                    return funBui.definitPar(list.toArray(new AsmBudVisitor.AsmCallBuilder[0]));
                 });
             }
 
@@ -852,14 +873,12 @@ public abstract class PyStatement {
             }
 
             if (builder instanceof BlockBuilder<?>) {
-                return ((BlockBuilder) builder).callMethod(JPUtil.class, "asPyTuple", new Class[]{Object[].class}, PyTuple.class).setContent(funBui -> {
+                return ((BlockBuilder<?>) builder).callMethod(JPUtil.class, "asPyTuple", new Class[]{Object[].class}, PyTuple.class).setContent(funBui -> {
                     return funBui.definitPar(callBuilders);
                 });
-            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
-                return ((ClassBuilder.StaticVarBuilder<?>) builder).setContent(statBui -> {
-                    return statBui._break().callMethod(JPUtil.class, "asPyTuple", new Class[]{Object[].class}, PyTuple.class).setContent(funBui -> {
-                        return funBui.definitPar(callBuilders);
-                    });
+            } else if (builder instanceof CallBuilder<?>) {
+                return ((CallBuilder<?>) builder)._break().callMethod(JPUtil.class, "asPyTuple", new Class[]{Object[].class}, PyTuple.class).setContent(funBui -> {
+                    return funBui.definitPar(callBuilders);
                 });
             }
 
@@ -905,11 +924,9 @@ public abstract class PyStatement {
                 return ((BlockBuilder) builder).callMethod(JPUtil.class, "asPyList", new Class[]{Object[].class}, PyList.class).setContent(funBui -> {
                     return funBui.definitPar(callBuilders);
                 });
-            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
-                return ((ClassBuilder.StaticVarBuilder<?>) builder).setContent(statBui -> {
-                    return statBui._break().callMethod(JPUtil.class, "asPyList", new Class[]{Object[].class}, PyList.class).setContent(funBui -> {
-                        return funBui.definitPar(callBuilders);
-                    });
+            } else if (builder instanceof CallBuilder<?>) {
+                return ((CallBuilder) builder)._break().callMethod(JPUtil.class, "asPyList", new Class[]{Object[].class}, PyList.class).setContent(funBui -> {
+                    return funBui.definitPar(callBuilders);
                 });
             }
 
@@ -1217,17 +1234,13 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
-            if (builder instanceof ClassBuilder.VarBuilder) {
-                return ((ClassBuilder.VarBuilder) builder).setContent(builder1 -> builder1.definitObj(cast()));
-            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
-                return ((ClassBuilder.StaticVarBuilder) builder).setContent(builder1 -> builder1.definitObj(cast()));
-            } else if (builder instanceof BlockBuilder.VarBuilder) {
-                return ((BlockBuilder.VarBuilder<FunctionDefinition>) builder).setContent(builder1 -> builder1.definitObj(cast()));
+            if (builder instanceof BlockBuilder<?>) {
+                return ((BlockBuilder) builder).definitObj(cast());
             } else if (builder instanceof CallBuilder<?>) {
                 return ((CallBuilder<?>) builder).definitObj(cast());
-            } else {
-                return builder;
             }
+
+            throw new RuntimeException("no key");
         }
 
         @Override
@@ -1278,29 +1291,15 @@ public abstract class PyStatement {
                 } else {
                     return ((CallBuilder<?>) builder).definitObj(cast());
                 }
-            } else if (builder instanceof BlockBuilder.VarBuilder<?>) {
+            } else if (builder instanceof BlockBuilder<?>) {
                 if (type == String.class) {
-                    return ((BlockBuilder.VarBuilder<?>) builder).setContent(
-                            bun -> bun.definitObj(RemoveQuotes.removeQuotes(token.getText()))
-                    );
+                    return ((BlockBuilder<?>) builder).definitObj(RemoveQuotes.removeQuotes(token.getText()));
                 } else {
-                    return ((BlockBuilder.VarBuilder<?>) builder).setContent(
-                            bun -> bun.definitObj(cast())
-                    );
+                    return ((BlockBuilder<?>) builder).definitObj(cast());
                 }
-            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
-                if (type == String.class) {
-                    return ((ClassBuilder.StaticVarBuilder) builder).setContent(
-                            bun -> bun.definitObj(RemoveQuotes.removeQuotes(token.getText()))
-                    );
-                } else {
-                    return ((ClassBuilder.StaticVarBuilder) builder).setContent(
-                            bun -> bun.definitObj(cast())
-                    );
-                }
-            } else {
-                throw new RuntimeException("no key");
             }
+
+            throw new RuntimeException("no key");
         }
 
         @Override
@@ -1580,28 +1579,9 @@ public abstract class PyStatement {
                                 logiPar -> (CallBuilder) right.build(logiPar),
                                 logiPar -> logiPar.definitObj(operator != null ? operator.getText() : operatorStr)
                         ));
-            } else if (builder instanceof ClassBuilder.StaticVarBuilder) {
-                return ((ClassBuilder.StaticVarBuilder) builder).setContent(varBui -> {
-                    return (varBui._break()).callMethod(JPUtil.class, "operation", new Class[]{Object.class, Object.class, String.class}, Object.class)
-                            .setContent(logiBui -> logiBui.definitPar(
-                                    logiPar -> (CallBuilder) left.build(logiPar),
-                                    logiPar -> (CallBuilder) right.build(logiPar),
-                                    logiPar -> logiPar.definitObj(operator != null ? operator.getText() : operatorStr)
-                            ));
-                });
-            } else if (builder instanceof BlockBuilder.ClassVarBuilder) {
-                return ((BlockBuilder.ClassVarBuilder) builder).setContent(varBui -> {
-                    return varBui._break().callMethod(JPUtil.class, "operation", new Class[]{Object.class, Object.class, String.class}, Object.class)
-                            .setContent(logiBui -> logiBui.definitPar(
-                                    logiPar -> (CallBuilder) left.build(logiPar),
-                                    logiPar -> (CallBuilder) right.build(logiPar),
-                                    logiPar -> logiPar.definitObj(operator != null ? operator.getText() : operatorStr)
-                            ));
-                });
             }
-            else {
-                throw new RuntimeException("no key");
-            }
+
+            throw new RuntimeException("no key");
         }
 
         @Override
