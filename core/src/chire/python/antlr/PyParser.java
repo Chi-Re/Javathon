@@ -583,11 +583,10 @@ public class PyParser {
             case 3:
                 return new PyStatement.ConstStatement<>(key, String.class);
             case 4, 72, 71:
-                boolean range;
-
-                range = peek().getType() == 72;
+                boolean range = true;
 
                 if (match(current, 71, 72)) {
+                    range = peek().getType() != 72;
                     current++;
                     key = peek();
                 }
