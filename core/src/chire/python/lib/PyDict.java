@@ -1,9 +1,11 @@
 package chire.python.lib;
 
+import chire.python.lib.base.PyObject;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PyDict {
+public class PyDict extends PyObject {
     private final LinkedHashMap<Object, Object> data;
 
     public PyDict() {

@@ -1,9 +1,11 @@
 package chire.python.lib;
 
+import chire.python.lib.base.PyObject;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PyList implements Iterator<Object> {
+public class PyList extends PyObject implements Iterator<Object> {
     private int cursor = 0;
     private final List<Object> data;
 

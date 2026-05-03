@@ -1,5 +1,7 @@
 package chire.python.lib;
 
+import chire.python.lib.base.PyObject;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -11,7 +13,7 @@ import java.util.Objects;
  * 可包含任意类型和数量的元素，支持比较、连接、重复、切片、包含检查等操作。
  * 使用方式：Tuple t = Tuple.of(1, "a", true);
  */
-public final class PyTuple implements Iterable<Object>, Comparable<PyTuple>, Serializable {
+public final class PyTuple extends PyObject implements Iterable<Object>, Comparable<PyTuple>, Serializable {
 
     private static final long serialVersionUID = 1L;
     private static final PyTuple EMPTY = new PyTuple(new Object[0]);
