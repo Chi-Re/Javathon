@@ -177,6 +177,7 @@ public class JPUtil {
                 reArgs.add(((BaseValue) arg).getValue());
                 continue;
             }
+            //TODO 如何存在java传递的错误类型，arg将为null，所以这里暂时如此
             classes.add(arg.getClass());
             reArgs.add(arg);
         }
