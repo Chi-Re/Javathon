@@ -136,10 +136,16 @@ public abstract class PyStatement {
         public PyStatement value;
 
         public TypeStatement type;
+        private final PyStatement index;
 
         public VarStatement(Token name, PyStatement value, TypeStatement type) {
+            this(name, null, value, type);
+        }
+
+        public VarStatement(Token name, PyStatement index, PyStatement value, TypeStatement type) {
             if (name == null) throw new RuntimeException("name 不能为空");
             this.name = name;
+            this.index = index;
             this.value = value;
             this.type = type;
         }
@@ -150,6 +156,48 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
+            if (index != null) {
+                if (builder instanceof ClassBuilder) {
+                    ClassBuilder classBuilder = ((ClassBuilder) builder).setContent(clazzBui -> {
+                        return clazzBui.callMethod(JPUtil.class, "setSerial", new Class[]{Object.class, Object.class, Object.class}, null).setContent(mathBui -> {
+                            return mathBui.definitPar(
+                                    par -> par.callStatic(name.getText(), Object.class),
+                                    par -> (CallBuilder) index.build(par),
+                                    par -> (CallBuilder) value.build(par)
+                            );
+                        })._break();
+                    });
+
+                    return builder instanceof ModuleBuilder ? new ModuleBuilder(classBuilder.getClassAsm()) : classBuilder;
+                } else if (builder instanceof BlockBuilder<?>){
+                    if (builder.getType().equals(ClinitDefinition.class)) {
+                        return ((BlockBuilder) builder).callMethod(JPUtil.class, "setSerial", new Class[]{Object.class, Object.class, Object.class}, null).setContent(mathBui -> {
+                            return mathBui.definitPar(
+                                    par -> par.callStatic(name.getText(), Object.class),
+                                    par -> (CallBuilder) index.build(par),
+                                    par -> (CallBuilder) value.build(par)
+                            );
+                        })._break();
+                    } else {
+                        return ((BlockBuilder) builder).callMethod(JPUtil.class, "setSerial", new Class[]{Object.class, Object.class, Object.class}, null).setContent(mathBui -> {
+                            return mathBui.definitPar(
+                                    par -> {
+                                        try {
+                                            return par.callLocal(name.getText());
+                                        } catch (Exception e) {
+                                            return par.callStatic(name.getText(), Object.class);
+                                        }
+                                    },
+                                    par -> (CallBuilder) index.build(par),
+                                    par -> (CallBuilder) value.build(par)
+                            );
+                        })._break();
+                    }
+                }
+
+                throw new RuntimeException("no key");
+            }
+
             if (builder instanceof ClassBuilder) {
                 ClassBuilder classBuilder =
                         (ClassBuilder) value.build(((ClassBuilder) builder).declareStaticVar(this.name.getText(), this.type != null ? this.type.toType() : Format.formatPack(Object.class)));
@@ -161,9 +209,9 @@ public abstract class PyStatement {
                 } else {
                     return value.build(((BlockBuilder) builder).setVar(this.name.getText()));
                 }
-            } else {
-                return builder;
             }
+
+            throw new RuntimeException("no key");
         }
 
         @Override
@@ -178,6 +226,9 @@ public abstract class PyStatement {
                     .add("name=").add(name.getText()).newLine()
                     .add("value:").indent();
             if (value != null) value.toString(indenter);
+
+            indenter.newLine().unindent().add("index:").indent();
+            if (index != null) index.toString(indenter);
 //            indenter.unindent()
 //                    .newLine()
 //                    .add("type:").indent();

@@ -96,6 +96,10 @@ public class PyDict {
         throw new IllegalStateException("Failed to pop item from dictionary");
     }
 
+    public void update(Object key, Object value) {
+        data.put(key, value);
+    }
+
     public void update(PyDict other) {
         data.putAll(other.data);
     }

@@ -63,6 +63,22 @@ public class JPUtil {
         }
     }
 
+    public static void setSerial(Object instance, Object key, Object value) {
+        if (instance instanceof PyDict) {
+            ((PyDict) instance).update(key, value);
+            return;
+        }
+
+        if (instance instanceof PyList && key instanceof Integer) {
+            ((PyList) instance).__setitem__((Integer) key, value);
+            return;
+        }
+
+        if (instance instanceof PyTuple) {
+            throw new RuntimeException("no key");
+        }
+    }
+
     public static PyDict asPyDict(Object... objects) {
         if (objects.length % 2 != 0) throw new RuntimeException("no key");
 
