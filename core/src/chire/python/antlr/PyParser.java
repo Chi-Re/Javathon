@@ -194,6 +194,9 @@ public class PyParser {
         return bodyDeclaration(0);
     }
 
+    private final int[] bodyIndex = new int[]{
+            45, 15, 25, 41, 13, 23, 26, 22
+    };
     private ArrayList<PyStatement> bodyDeclaration(int cur){
         this.current += cur;
 
@@ -258,20 +261,22 @@ public class PyParser {
         while (!isEnd()) {
             current++;
 
-            Token key = peek();
+            if (match(current, bodyIndex)) {
+                body.addAll(bodyDeclaration());
+                continue;
+            }
 
-            switch (key.getType()) {
+            switch (peek().getType()) {
                 case 1://"    "
                 case 44:
                 case 60:
                     break;
 
-                case 45, 25, 41, 15, 23, 26:
-                    body.addAll(bodyDeclaration());
-                    break;
-
                 case 2:
                     return new PyStatement.ClassStatement(class_token, body);
+
+                default:
+                    break;
             }
         }
 
@@ -289,29 +294,31 @@ public class PyParser {
         ArrayList<PyStatement> body = new ArrayList<>();
 
         while (!isEnd()) {
-            switch (peek().getType()){
-                case 44, 1:
-                    break;
+            if (match(current, bodyIndex)) {
+                body.addAll(bodyDeclaration());
+            } else {
+                switch (peek().getType()) {
+                    case 44, 1:
+                        break;
 
-                case 45:
-                case 25:
-                    body.addAll(bodyDeclaration());
-                    break;
+                    case 11:
+                        body.add(new PyStatement.BreakStatement());
+                        break;
 
-                case 11:
-                    body.add(new PyStatement.BreakStatement());
-                    break;
+                    case 37:
+                        if (match(this.current + 1, 44)) {
+                            body.add(new PyStatement.ReturnStatement());
+                        } else {
+                            body.add(new PyStatement.ReturnStatement(assignment(1)));
+                        }
+                        break;
 
-                case 37:
-                    if (match(this.current+1, 44)) {
-                        body.add(new PyStatement.ReturnStatement());
-                    } else {
-                        body.add(new PyStatement.ReturnStatement(assignment(1)));
-                    }
-                    break;
+                    case 2:
+                        return new PyStatement.WhileStatement(ifStmt, body);
 
-                case 2:
-                    return new PyStatement.WhileStatement(ifStmt, body);
+                    default:
+                        break;
+                }
             }
 
             this.current++;
@@ -363,15 +370,17 @@ public class PyParser {
 
             while (!isEnd()) {
                 current++;
+                var peek = peek();
 
-                switch (peek().getType()) {
-                    case 1://"    "
+                if (match(current, bodyIndex)) {
+                    body.addAll(bodyDeclaration());
+                    continue;
+                }
+
+                switch (peek.getType()) {
+                    case 1://"    " 长度不固定，根据缩进确定
                     case 44:
                     case 60:
-                        break;
-
-                    case 45, 25, 41:
-                        body.addAll(bodyDeclaration());
                         break;
 
                     case 2:
@@ -485,38 +494,41 @@ public class PyParser {
         PyStatement.IfStatement elseStmt = null;
 
         while (!isEnd()) {
-            switch (peek().getType()){
-                case 44, 1:
-                    break;
+            if (match(current, bodyIndex)) {
+                body.addAll(bodyDeclaration());
+            } else {
+                switch (peek().getType()) {
+                    case 44, 1:
+                        break;
 
-                case 37:
-                    if (match(this.current+1, 44)) {
-                        body.add(new PyStatement.ReturnStatement());
-                    } else {
-                        body.add(new PyStatement.ReturnStatement(assignment(1)));
-                    }
-                    break;
+                    case 37:
+                        if (match(this.current + 1, 44)) {
+                            body.add(new PyStatement.ReturnStatement());
+                        } else {
+                            body.add(new PyStatement.ReturnStatement(assignment(1)));
+                        }
+                        break;
 
-                case 45, 25, 41:
-                    body.addAll(bodyDeclaration());
-                    break;
+                    case 11:
+                        body.add(new PyStatement.BreakStatement());
+                        break;
 
-                case 11:
-                    body.add(new PyStatement.BreakStatement());
-                    break;
+                    case 2:
+                        if (last().getType() == 17) {
+                            elseStmt = ifDeclaration(1);
+                        } else if (last().getType() == 18) {
+                            elseStmt = ifDeclaration(1);
+                        }
 
-                case 2:
-                    if (last().getType() == 17) {
-                        elseStmt = ifDeclaration(1);
-                    } else if (last().getType() == 18) {
-                        elseStmt = ifDeclaration(1);
-                    }
+                        return new PyStatement.IfStatement(ifStmt, body, elseStmt);
 
-                    return new PyStatement.IfStatement(ifStmt, body, elseStmt);
+                    case 23, 26:
+                        body.add(importDeclaration());
+                        break;
 
-                case 23, 26:
-                    body.add(importDeclaration());
-                    break;
+                    default:
+                        break;
+                }
             }
 
             this.current++;
@@ -849,8 +861,8 @@ public class PyParser {
         return previous();
     }
 
-    private boolean match(int current, Integer... types) {
-        for (Integer type : types) {
+    private boolean match(int current, int... types) {
+        for (int type : types) {
             if (tokenStream.get(current).getType() == type) {
                 return true;
             }
