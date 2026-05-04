@@ -291,25 +291,32 @@ public class ClassAsm {
         mv.visitFrame(F_APPEND, 2, objects, 0, null);
     }
 
-    public void end(boolean returnValue) {
+    public void toReturn(boolean returnValue) {
         if (returnValue) {
             mv.visitInsn(ARETURN);
         } else {
             mv.visitInsn(RETURN);
         }
+    }
 
-        mv.visitMaxs(0, 0);
-        mv.visitEnd();
+    public void endReturn(boolean returnValue) {
+        toReturn(returnValue);
+        end();
+    }
+
+    public void endReturn() {
+        endReturn(false);
     }
 
     public void end() {
-        end(false);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
     }
 
     public void closeClass(){
         if (!initialize) {
             defineConstruct(ACC_PUBLIC, new Args(), this.superClass, "()V");
-            end();
+            endReturn();
 
             initialize = true;
         }

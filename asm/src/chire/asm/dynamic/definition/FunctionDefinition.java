@@ -10,10 +10,10 @@ public class FunctionDefinition extends BlockBuilder<FunctionDefinition> {
         super(classAsm, FunctionDefinition.class);
     }
 
-    public ClassBuilder _return(boolean retu) {
-        classAsm.end(retu);
+    public FunctionDefinition _return(boolean retu) {
+        classAsm.toReturn(retu);
 
-        return new ClassBuilder(classAsm);
+        return this;
     }
 
     @Override
@@ -26,15 +26,19 @@ public class FunctionDefinition extends BlockBuilder<FunctionDefinition> {
         return super.setClassVar(opcode, name, type);
     }
 
-    public ClassBuilder _return() {
+    public FunctionDefinition _return() {
         return _return(false);
     }
 
-    public ClassBuilder _return(AsmBudVisitor.AsmBlockBuilder<FunctionDefinition> builder) {
+    public FunctionDefinition _return(AsmBudVisitor.AsmBlockBuilder<FunctionDefinition> builder) {
         this.classAsm.setState("set-content-return");
         FunctionDefinition functionDefinition = builder.visit(this);
         functionDefinition.classAsm.releaseState();
 
         return functionDefinition._return(true);
+    }
+
+    public ClassBuilder _back(){
+        return new ClassBuilder(this.classAsm);
     }
 }

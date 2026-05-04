@@ -25,7 +25,7 @@ public class ConstructDefinition extends BlockBuilder<ConstructDefinition> {
     }
 
     public ClassBuilder _back(){
-        classAsm.end();
+        classAsm.toReturn(false);
         return new ClassBuilder(classAsm);
     }
 }
