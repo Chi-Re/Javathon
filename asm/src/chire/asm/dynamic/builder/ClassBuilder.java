@@ -267,7 +267,7 @@ public class ClassBuilder extends Builder<AsmBuddy> {
             if (callBuilder instanceof StaticVarBuild) clinitBuilder.classAsm.releaseState();
         }
 
-        clinitBuilder.classAsm.toReturn();
+        clinitBuilder.classAsm.end();
 
         clinitBuilder.classAsm.closeClass();
 

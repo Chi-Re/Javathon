@@ -1,6 +1,7 @@
 package chire.asm.dynamic.definition;
 
 import chire.asm.ClassAsm;
+import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.builder.BlockBuilder;
 import chire.asm.dynamic.builder.ClassBuilder;
 
@@ -10,7 +11,7 @@ public class FunctionDefinition extends BlockBuilder<FunctionDefinition> {
     }
 
     public ClassBuilder _return(boolean retu) {
-        classAsm.toReturn(retu);
+        classAsm.end(retu);
 
         return new ClassBuilder(classAsm);
     }
@@ -27,5 +28,13 @@ public class FunctionDefinition extends BlockBuilder<FunctionDefinition> {
 
     public ClassBuilder _return() {
         return _return(false);
+    }
+
+    public ClassBuilder _return(AsmBudVisitor.AsmBlockBuilder<FunctionDefinition> builder) {
+        this.classAsm.setState("set-content-return");
+        FunctionDefinition functionDefinition = builder.visit(this);
+        functionDefinition.classAsm.releaseState();
+
+        return functionDefinition._return(true);
     }
 }

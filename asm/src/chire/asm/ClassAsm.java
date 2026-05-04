@@ -291,7 +291,7 @@ public class ClassAsm {
         mv.visitFrame(F_APPEND, 2, objects, 0, null);
     }
 
-    public void toReturn(boolean returnValue) {
+    public void end(boolean returnValue) {
         if (returnValue) {
             mv.visitInsn(ARETURN);
         } else {
@@ -302,14 +302,14 @@ public class ClassAsm {
         mv.visitEnd();
     }
 
-    public void toReturn() {
-        toReturn(false);
+    public void end() {
+        end(false);
     }
 
     public void closeClass(){
         if (!initialize) {
             defineConstruct(ACC_PUBLIC, new Args(), this.superClass, "()V");
-            toReturn();
+            end();
 
             initialize = true;
         }
