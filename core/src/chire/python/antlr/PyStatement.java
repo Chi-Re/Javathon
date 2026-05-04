@@ -612,46 +612,47 @@ public abstract class PyStatement {
 
         @Override
         public Builder<?> build(Builder<?> builder) {
+            AsmBudVisitor.AsmBlockBuilder blockBuilder = content -> {
+                return content.setVar("for$"+variable.getText()).setContent(forVar -> {
+                    return forVar.callMethod(JPUtil.class, "iterator", new Class[]{Object.class}, PyList.class).setContent(iterBui -> {
+                        return iterBui.definitPar(
+                                parbui -> (CallBuilder) iterable.build(parbui)
+                        );
+                    });
+                })
+                .whileCall().setContent(
+                    pd ->
+                            pd.callLocal("for$"+variable.getText())
+                                    .callMethod(PyList.class, "hasNext", new Class[]{}, boolean.class)
+                                    .setContent(CallBuilder.ParameterBuilder::definitPar)
+                                    ._break(),
+                    whiCont -> {
+                        whiCont = whiCont.setVar(variable.getText()).setContent(vatBui -> vatBui.callLocal("for$"+variable.getText())
+                                .callMethod(PyList.class, "next", new Class[]{}, Object.class)
+                                .setContent(CallBuilder.ParameterBuilder::definitPar)).out();
+
+                        for (PyStatement statement : this.body) {
+                            Builder<?> bui = statement.build(whiCont);
+                            if (bui instanceof CallBuilder<?>) {
+                                whiCont = ((CallBuilder) bui)._break();
+                            } else {
+                                whiCont = (BlockBuilder) bui;
+                            }
+                        }
+
+                        return whiCont;
+                    },
+                    Opcodes.IFEQ
+                )
+                .out();
+            };
+
             if (builder instanceof ClassBuilder) {
-                ClassBuilder cont = ((ClassBuilder) builder).setContent(content -> {
-                    return content.setVar("for$"+variable.getText()).setContent(forVar -> {
-                        return forVar.callMethod(JPUtil.class, "iterator", new Class[]{Object.class}, PyList.class).setContent(iterBui -> {
-                            return iterBui.definitPar(
-                                    parbui -> (CallBuilder) iterable.build(parbui)
-                            );
-                        });
-                    })
-                    .whileCall().setContent(
-                            pd ->
-                                    pd.callLocal("for$"+variable.getText())
-                                            .callMethod(PyList.class, "hasNext", new Class[]{}, boolean.class)
-                                            .setContent(CallBuilder.ParameterBuilder::definitPar)
-                                            ._break(),
-                            whiCont -> {
-                                whiCont = whiCont.setVar(variable.getText())
-                                        .setContent(vatBui -> {
-                                            return vatBui.callLocal("for$"+variable.getText())
-                                                    .callMethod(PyList.class, "next", new Class[]{}, Object.class)
-                                                    .setContent(CallBuilder.ParameterBuilder::definitPar);
-                                        }).out();
+                ClassBuilder cont = ((ClassBuilder) builder).setContent(blockBuilder);
 
-                                for (PyStatement statement : this.body) {
-                                    Builder<?> bui = statement.build(whiCont);
-                                    if (bui instanceof CallBuilder<?>) {
-                                        whiCont = (BlockBuilder<ClinitDefinition>) ((CallBuilder) bui)._break();
-                                    } else {
-                                        whiCont = (BlockBuilder<ClinitDefinition>) bui;
-                                    }
-                                }
-
-                                return whiCont;
-                            },
-                            Opcodes.IFEQ
-                    )
-                    .out();
-                });
-
-                return cont;
+                return builder instanceof ModuleBuilder ? new ModuleBuilder(cont.getClassAsm()) : cont;
+            } else if (builder instanceof BlockBuilder<?>) {
+                return blockBuilder.visit((BlockBuilder<?>) builder);
             }
 
             throw new RuntimeException("no key");
