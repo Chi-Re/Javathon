@@ -247,6 +247,10 @@ public class ClassAsm {
         mv.visitTypeInsn(opcode, type);
     }
 
+    public void mVisitIntInsn(int opcode, int type) {
+        mv.visitIntInsn(opcode, type);
+    }
+
     public void ldcInsn(Object obj){
         //Java 8不支持var，每个类型都需要特定类型字节码支持。
         if (obj instanceof Boolean) {

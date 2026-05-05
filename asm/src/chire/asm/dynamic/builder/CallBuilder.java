@@ -113,16 +113,14 @@ public class CallBuilder<T extends BlockBuilder<T>> extends Builder<T>{
         }
 
         private CallBuilder<T> toVarargs(String clazzPack, CallBuilder<T> callBuilder, AsmBudVisitor.AsmCallBuilder<T>... objs) {
-            int ICONST_NUM = Opcodes.ICONST_0 + objs.length;
-
-            callBuilder.classAsm.mVisitInsn(ICONST_NUM);
+            callBuilder.classAsm.mVisitIntInsn(Opcodes.BIPUSH, objs.length);
             callBuilder.classAsm.mVisitTypeInsn(ANEWARRAY, clazzPack);
 
-            for (int i = ICONST_0; i < ICONST_NUM; i++) {
+            for (int i = 0; i < objs.length; i++) {
                 callBuilder.classAsm.mVisitInsn(DUP);
-                callBuilder.classAsm.mVisitInsn(i);
+                callBuilder.classAsm.mVisitIntInsn(Opcodes.BIPUSH, i);
 
-                callBuilder = objs[i-ICONST_0].visit(callBuilder);
+                callBuilder = objs[i].visit(callBuilder);
 
                 callBuilder.classAsm.mVisitInsn(AASTORE);
             }
