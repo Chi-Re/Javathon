@@ -40,12 +40,12 @@ public class JPUtil {
         put("range", new PyFunction<>(new String[]{"in", "to"}, args -> {
             if (args.size() == 2) {
                 return new PyList(IntStream.iterate((Integer) args.get("in"), n -> n + 1)
-                        .limit((Integer) args.get("to")-1)
+                        .limit((Integer) args.get("to"))
                         .boxed()
                         .collect(Collectors.toList()));
             } else if (args.size() == 1) {
                 return new PyList(IntStream.iterate(0, n -> n + 1)
-                        .limit((Integer) args.get("in")-1)
+                        .limit((Integer) args.get("in"))
                         .boxed()
                         .collect(Collectors.toList()));
             } else {
@@ -276,6 +276,32 @@ public class JPUtil {
             }
             //TODO 如何存在java传递的错误类型，arg将为null，所以这里暂时如此
             classes.add(arg.getClass());
+            reArgs.add(arg);
+        }
+
+        try {
+            if (obj == null) throw new NoSuchMethodException();
+
+            //TODO 可能存在int.class这一类的存在，未修复。
+            if (obj instanceof Class<?>) {
+                return ((Class<?>) obj).getMethod(name, classes.toArray(new Class[0])).invoke(null, reArgs.toArray(new Object[0]));
+            } else {
+                return obj.getClass().getMethod(name, classes.toArray(new Class[0])).invoke(obj, reArgs.toArray(new Object[0]));
+            }
+
+        } catch (NoSuchMethodException e) {
+            return callObj(obj, name, args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object callObj(Object obj, String name, Object... args) {
+        List<Class<?>> classes = new ArrayList<>();
+        List<Object> reArgs = new ArrayList<>();
+
+        for (Object arg : args) {
+            classes.add(Object.class);
             reArgs.add(arg);
         }
 
