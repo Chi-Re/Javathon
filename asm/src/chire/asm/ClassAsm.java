@@ -261,6 +261,8 @@ public class ClassAsm {
         } else if (obj instanceof Double) {
             mv.visitLdcInsn(obj);
             mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false);
+        } else if (obj == null) {
+            mv.visitInsn(Opcodes.ACONST_NULL);
         } else {
             mv.visitLdcInsn(obj);
         }
