@@ -39,6 +39,8 @@ public class FunctionDefinition extends BlockBuilder<FunctionDefinition> {
     }
 
     public ClassBuilder _back(){
+        this.classAsm.end();
+
         return new ClassBuilder(this.classAsm);
     }
 }
