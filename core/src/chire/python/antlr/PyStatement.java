@@ -412,9 +412,9 @@ public abstract class PyStatement {
                 FunctionDefinition fun;
 
                 if (builder instanceof ModuleBuilder) {
-                    fun = ((ModuleBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, token.getText(), args);
+                    fun = ((ModuleBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, token.getText(), args, Object.class);
                 } else {
-                    fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args);
+                    fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args, Object.class);
                     fun = fun.setVar(this.args.get(0).token.getText()).setContent(BlockBuilder::callThis);
 
                     this.args.remove(0);
@@ -454,9 +454,9 @@ public abstract class PyStatement {
                 }
 
                 if (builder instanceof ModuleBuilder) {
-                    return new ModuleBuilder(fun._return().getClassAsm());
+                    return new ModuleBuilder(fun._return(re -> re.definitObj(null)._break()).getClassAsm());
                 } else {
-                    return fun._return();
+                    return fun._return(re -> re.definitObj(null)._break())._back();
                 }
             } else {
                 return builder;
@@ -1036,6 +1036,29 @@ public abstract class PyStatement {
         }
 
         @Override
+        public Builder<?> build(Builder<?> builder) {
+            if (builder instanceof FunctionDefinition) {
+                if (returnStmt != null) {
+                    return ((FunctionDefinition) builder)._return(ret -> {
+                        Builder<FunctionDefinition> res = (Builder<FunctionDefinition>) returnStmt.build(builder);
+
+                        if (res instanceof CallBuilder<FunctionDefinition>) {
+                            return ((CallBuilder<FunctionDefinition>) res)._break();
+                        } else if (res instanceof BlockBuilder<FunctionDefinition>) {
+                            return ((BlockBuilder<FunctionDefinition>) res).out();
+                        }
+
+                        throw new RuntimeException("no key");
+                    });
+                } else {
+                    return ((FunctionDefinition) builder)._return(re -> re.definitObj(null)._break())._back();
+                }
+            }
+
+            throw new RuntimeException("no key");
+        }
+
+        @Override
         public PyExecutor.PyInstruction build(PyAssembler builder) {
             return new PyExecutor.ReturnPy(returnStmt.build(builder));
         }
@@ -1135,7 +1158,7 @@ public abstract class PyStatement {
                             for (PyStatement statement : this.statements) {
                                 Builder<?> bui = statement.build(visitor);
                                 if (bui instanceof CallBuilder<?>) {
-                                    visitor = (BlockBuilder<?>) ((CallBuilder<?>) bui)._break();
+                                    visitor = ((CallBuilder<?>) bui)._break();
                                 } else {
                                     visitor = (BlockBuilder<?>) bui;
                                 }
