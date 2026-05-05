@@ -406,42 +406,22 @@ public abstract class PyStatement {
         public Builder<?> build(Builder<?> builder) {
             Args args = new Args();
 
-            args.put("fun$args", Object[].class);
-
             if (builder instanceof ClassBuilder) {
                 FunctionDefinition fun;
 
                 if (builder instanceof ModuleBuilder) {
+                    for (ArgStatement arg : this.args) {
+                        args.put(arg.token.getText(), Object.class);
+                    }
+
                     fun = ((ModuleBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, token.getText(), args, Object.class);
                 } else {
+                    for (int i = 1; i < this.args.size(); i++) {
+                        args.put(this.args.get(i).token.getText(), Object.class);
+                    }
+
                     fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args, Object.class);
                     fun = fun.setVar(this.args.get(0).token.getText()).setContent(BlockBuilder::callThis);
-
-                    this.args.remove(0);
-                }
-
-                fun = fun.setVar("for$jp$args").setContent(varCont ->
-                        varCont.callClass(JPArgs.class, new Class[]{String[].class}).setContent(claszzCont -> {
-                            List<Object> list = new ArrayList<>();
-
-                            for (ArgStatement argStatement : this.args) {
-                                list.add(argStatement.token.getText());
-                            }
-
-                            return claszzCont.definitObj(list.toArray(new Object[0]));
-                        })
-                );
-
-                fun = fun.callLocal("for$jp$args").callMethod(JPArgs.class, "setArgs", new Class[]{Object[].class}, null).setContent(argArg -> {
-                    return argArg.callLocal("fun$args");
-                })._break();
-
-                for (ArgStatement argStatement : this.args) {
-                    fun = fun.setVar(argStatement.token.getText()).setContent(varCont ->
-                            varCont.callLocal("for$jp$args").callMethod(JPArgs.class, "get", new Class[]{String.class}, Object.class).setContent(callVar -> {
-                                return callVar.definitObj(argStatement.token.getText());
-                            })
-                    );
                 }
 
                 for (PyStatement statement : this.statements) {
