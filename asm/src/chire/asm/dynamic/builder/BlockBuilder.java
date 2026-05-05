@@ -294,6 +294,10 @@ public class BlockBuilder<T extends BlockBuilder<T>> extends Builder<T> {
         return new CallBuilder<>(classAsm, this.type).callClassVar(var, type);
     }
 
+    public CallBuilder<T> toCall() {
+        return new CallBuilder<>(classAsm, this.type);
+    }
+
     public T out() {
         return create();
     }
