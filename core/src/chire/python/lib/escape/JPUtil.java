@@ -38,10 +38,19 @@ public class JPUtil {
         }, int.class));
 
         put("range", new PyFunction<>(new String[]{"in", "to"}, args -> {
-            return new PyList(IntStream.iterate((Integer) args.get("in"), n -> n + 1)
-                    .limit((Integer) args.get("to")-1)
-                    .boxed()
-                    .collect(Collectors.toList()));
+            if (args.size() == 2) {
+                return new PyList(IntStream.iterate((Integer) args.get("in"), n -> n + 1)
+                        .limit((Integer) args.get("to")-1)
+                        .boxed()
+                        .collect(Collectors.toList()));
+            } else if (args.size() == 1) {
+                return new PyList(IntStream.iterate(0, n -> n + 1)
+                        .limit((Integer) args.get("in")-1)
+                        .boxed()
+                        .collect(Collectors.toList()));
+            } else {
+                throw new RuntimeException("no key");
+            }
         }, PyList.class));
 
         put("len", new PyFunction<>(new String[]{"item"}, args -> {
@@ -192,7 +201,12 @@ public class JPUtil {
         };
     }
 
-    public static boolean comparison(Object k, Object p, String f) {
+    /**对于部分操作来讲，更可控*/
+    public static boolean toBoolean(Object object) {
+        return (boolean) object;
+    }
+
+    public static Boolean comparison(Object k, Object p, String f) {
         if (k instanceof Integer && p instanceof Integer) {
             return compareInt(((Integer) k), ((Integer) p), f);
         }
@@ -200,7 +214,7 @@ public class JPUtil {
         return false;
     }
 
-    private static boolean compareInt(Integer k, Integer p, String f) {
+    private static Boolean compareInt(Integer k, Integer p, String f) {
         return switch (f) {
             case ">" -> k > p;
             case "<" -> k < p;

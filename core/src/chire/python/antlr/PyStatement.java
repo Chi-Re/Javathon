@@ -454,13 +454,13 @@ public abstract class PyStatement {
                 }
 
                 if (builder instanceof ModuleBuilder) {
-                    return new ModuleBuilder(fun._return(re -> re.definitObj(null)._break()).getClassAsm());
+                    return new ModuleBuilder(fun._return(re -> re.definitObj(null)._break())._back().getClassAsm());
                 } else {
                     return fun._return(re -> re.definitObj(null)._break())._back();
                 }
-            } else {
-                return builder;
             }
+
+            throw new RuntimeException("no key");
         }
 
         @Override
@@ -522,7 +522,19 @@ public abstract class PyStatement {
             if (builder instanceof ClassBuilder) {
                 ClassBuilder cont = ((ClassBuilder) builder).setContent(content -> {
                     return content.whileCall().setContent(
-                            pd -> (ClinitDefinition) conditions.build(pd),
+                            pd -> pd.callMethod(JPUtil.class, "toBoolean", new Class[]{Object.class}, boolean.class).setContent(con -> {
+                                return con.definitPar(par -> {
+                                    var bui = this.conditions.build(par);
+
+                                    if (bui instanceof CallBuilder<?>) {
+                                        return (CallBuilder<?>) bui;
+                                    } else if (bui instanceof BlockBuilder<?>) {
+                                        return ((BlockBuilder<?>) bui).toCall();
+                                    }
+
+                                    throw new RuntimeException("no key");
+                                });
+                            })._break(),
                             whiCont -> {
                                 for (PyStatement statement : this.statements) {
                                     Builder<?> bui = statement.build(whiCont);
@@ -546,7 +558,19 @@ public abstract class PyStatement {
                 }
             } else if (builder instanceof BlockBuilder<?>) {
                 return ((BlockBuilder)builder).whileCall().setContent(
-                        pd -> ((BlockBuilder<?>) conditions.build(pd)),
+                        pd -> pd.callMethod(JPUtil.class, "toBoolean", new Class[]{Object.class}, boolean.class).setContent(con -> {
+                            return con.definitPar(par -> {
+                                var bui = this.conditions.build(par);
+
+                                if (bui instanceof CallBuilder<?>) {
+                                    return (CallBuilder<?>) bui;
+                                } else if (bui instanceof BlockBuilder<?>) {
+                                    return ((BlockBuilder<?>) bui).toCall();
+                                }
+
+                                throw new RuntimeException("no key");
+                            });
+                        })._break(),
                         whiCont -> {
                             for (PyStatement statement : this.statements) {
                                 Builder<?> bui = statement.build(whiCont);
@@ -1051,7 +1075,7 @@ public abstract class PyStatement {
                         throw new RuntimeException("no key");
                     });
                 } else {
-                    return ((FunctionDefinition) builder)._return(re -> re.definitObj(null)._break())._back();
+                    return ((FunctionDefinition) builder)._return(re -> re.definitObj(null)._break());
                 }
             }
 
@@ -1129,7 +1153,19 @@ public abstract class PyStatement {
             if (builder instanceof ClassBuilder) {
                 ClassBuilder cont = ((ClassBuilder) builder).setContent(clinBui -> {
                     return createElse(clinBui.ifCall().setContent(
-                            condition -> (ClinitDefinition) conditions.build(condition),
+                            condition -> condition.callMethod(JPUtil.class, "toBoolean", new Class[]{Object.class}, boolean.class).setContent(con -> {
+                                return con.definitPar(par -> {
+                                    var bui = this.conditions.build(par);
+
+                                    if (bui instanceof CallBuilder<?>) {
+                                        return (CallBuilder<?>) bui;
+                                    } else if (bui instanceof BlockBuilder<?>) {
+                                        return ((BlockBuilder<?>) bui).toCall();
+                                    }
+
+                                    throw new RuntimeException("no key");
+                                });
+                            })._break(),
                             visitor -> {
                                 for (PyStatement statement : this.statements) {
                                     Builder<?> bui = statement.build(visitor);
@@ -1153,7 +1189,19 @@ public abstract class PyStatement {
                 }
             } if (builder instanceof BlockBuilder<?>) {
                 return createElse(((BlockBuilder) builder).ifCall().setContent(
-                        condition -> (BlockBuilder) conditions.build(condition),
+                        condition -> condition.callMethod(JPUtil.class, "toBoolean", new Class[]{Object.class}, boolean.class).setContent(con -> {
+                            return con.definitPar(par -> {
+                                var bui = this.conditions.build(par);
+
+                                if (bui instanceof CallBuilder<?>) {
+                                    return (CallBuilder<?>) bui;
+                                } else if (bui instanceof BlockBuilder<?>) {
+                                    return ((BlockBuilder<?>) bui).toCall();
+                                }
+
+                                throw new RuntimeException("no key");
+                            });
+                        })._break(),
                         visitor -> {
                             for (PyStatement statement : this.statements) {
                                 Builder<?> bui = statement.build(visitor);
@@ -1255,15 +1303,22 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             if (builder instanceof BlockBuilder<?>) {
-                return ((BlockBuilder<?>) builder).callMethod(JPUtil.class, "comparison", new Class[]{Object.class, Object.class, String.class}, boolean.class)
+                return ((BlockBuilder<?>) builder).callMethod(JPUtil.class, "comparison", new Class[]{Object.class, Object.class, String.class}, Boolean.class)
                         .setContent(budVis -> budVis.definitPar(
                                 left -> (CallBuilder) this.left.build(left),
                                 right -> (CallBuilder) this.right.build(right),
                                 operator -> operator.definitObj(this.operator.getText())
                         ))._break();
-            } else {
-                return builder;
+            } else if (builder instanceof CallBuilder<?>) {
+                return ((CallBuilder<?>) builder)._break().callMethod(JPUtil.class, "comparison", new Class[]{Object.class, Object.class, String.class}, Boolean.class)
+                        .setContent(budVis -> budVis.definitPar(
+                                left -> (CallBuilder) this.left.build(left),
+                                right -> (CallBuilder) this.right.build(right),
+                                operator -> operator.definitObj(this.operator.getText())
+                        ));
             }
+
+            throw new RuntimeException("no key");
         }
 
         @Override
