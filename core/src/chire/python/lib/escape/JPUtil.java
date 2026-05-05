@@ -181,12 +181,13 @@ public class JPUtil {
         throw new RuntimeException("no key");
     }
 
-    public static Integer operationInt(Integer k, Integer p, String f) {
+    public static Number operationInt(Integer k, Integer p, String f) {
         return switch (f) {
             case "+" -> k + p;
             case "-" -> k - p;
             case "*" -> k * p;
             case "/" -> k / p;
+            case "**" -> Math.pow(k, p);
             default -> throw new RuntimeException("no key");
         };
     }

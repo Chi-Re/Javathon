@@ -616,11 +616,11 @@ public class PyParser {
                 if (match(this.current+1, 71, 72)) {
                     current++;
                     return new PyStatement.LogicalStatement(constStmt, peek(), assignment(1));
-                } else if (match(this.current+1, 73, 56)){
+                } else if (match(this.current+1, 73, 56, 62)){
                     current++;
                     var lgc = new PyStatement.LogicalStatement(constStmt, peek(), logicalAssignment(1));
 
-                    if (match(this.current+1, 71, 72, 73, 56)) {
+                    if (match(this.current+1, 71, 72, 73, 56, 62)) {
                         current++;
                         return new PyStatement.LogicalStatement(
                                 lgc,
