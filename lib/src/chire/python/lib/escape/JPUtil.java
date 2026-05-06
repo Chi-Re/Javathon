@@ -8,11 +8,9 @@ import chire.python.lib.base.PyObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class JPUtil {
-    public static final Map<String, PyFunction> funs = new HashMap<>(){{
+    public static final Map<String, PyFunction> funs = new HashMap<String, PyFunction>(){{
         put("print", new PyFunction(
                 new String[]{"*args", "end"},
                 args -> {
@@ -193,14 +191,20 @@ public class JPUtil {
     }
 
     public static Number operationInt(Integer k, Integer p, String f) {
-        return switch (f) {
-            case "+" -> k + p;
-            case "-" -> k - p;
-            case "*" -> k * p;
-            case "/" -> k / p;
-            case "**" -> Math.pow(k, p);
-            default -> throw new RuntimeException("no key");
-        };
+        switch (f) {
+            case "+":
+                return k + p;
+            case "-":
+                return k - p;
+            case "*":
+                return k * p;
+            case "/":
+                return k / p;
+            case "**":
+                return Math.pow(k, p);
+            default:
+                throw new RuntimeException("no key");
+        }
     }
 
     /**对于部分操作来讲，更可控*/
@@ -217,15 +221,22 @@ public class JPUtil {
     }
 
     private static Boolean compareInt(Integer k, Integer p, String f) {
-        return switch (f) {
-            case ">" -> k > p;
-            case "<" -> k < p;
-            case "==" -> Objects.equals(k, p);
-            case ">=" -> compareInt(k, p, ">") || compareInt(k, p, "==");
-            case "<=" -> compareInt(k, p, "<") || compareInt(k, p, "==");
-            case "!=" -> !compareInt(k, p, "==");
-            default -> false;
-        };
+        switch (f) {
+            case ">":
+                return k > p;
+            case "<":
+                return k < p;
+            case "==":
+                return Objects.equals(k, p);
+            case ">=":
+                return compareInt(k, p, ">") || compareInt(k, p, "==");
+            case "<=":
+                return compareInt(k, p, "<") || compareInt(k, p, "==");
+            case "!=":
+                return !compareInt(k, p, "==");
+            default:
+                return false;
+        }
     }
 
     public static Object newInstance(Class<?> type, Object... args) {

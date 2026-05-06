@@ -25,11 +25,13 @@ project(":core") {
     compileJava.options.fork = true
 
     dependencies {
-        implementation project(":asm")
+        api project(":asm")
+        api project(":lib")
 
         implementation "org.antlr:antlr4:4.13.1"
-
         implementation 'com.google.guava:guava:32.1.3-jre'
+
+        implementation files("C:\\Projects\\java\\JavaPythonInterpreter\\pycode\\output.jar")
     }
 }
 
@@ -39,6 +41,9 @@ project(":asm") {
     dependencies {
         api 'org.ow2.asm:asm:9.4'
     }
+}
+
+project(":lib") {
 }
 
 

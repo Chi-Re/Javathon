@@ -150,8 +150,8 @@ public final class PyTuple extends PyObject implements Iterable<Object>, Compara
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof PyTuple other)) return false;
-        return Arrays.equals(elements, other.elements);
+        if (!(obj instanceof PyTuple)) return false;
+        return Arrays.equals(elements, ((PyTuple) obj).elements);
     }
 
     @Override

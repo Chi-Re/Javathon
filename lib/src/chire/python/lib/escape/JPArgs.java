@@ -10,7 +10,8 @@ public class JPArgs {
     private final List<String> keys;
 
     public JPArgs(String... keys) {
-        this.keys = List.of(keys);
+        this.keys = new ArrayList<>();
+        Collections.addAll(this.keys, keys);
     }
 
     public void setArgs(Object... objects) {
