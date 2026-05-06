@@ -1,0 +1,5 @@
+tasks.withType(JavaCompile){
+    options.encoding = "UTF-8"
+    options.fork = true
+    options.compilerArgs.addAll(['--release', '8'])
+}
