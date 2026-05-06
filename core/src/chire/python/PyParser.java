@@ -1,5 +1,12 @@
-package chire.python.antlr;
+package chire.python;
 
+import chire.python.stmt.PyStatement;
+import chire.python.stmt.block.*;
+import chire.python.stmt.content.control.*;
+import chire.python.stmt.content.*;
+import chire.python.stmt.content.decl.*;
+import chire.python.stmt.content.expr.*;
+import chire.python.stmt.type.*;
 import chire.python.util.type.TypeChecker;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
@@ -64,7 +71,7 @@ public class PyParser {
         while (!isEnd()) {
             switch (peek().getType()) {
                 case 2:
-                    return new PyStatement.ForStatement(variable, iterable, body);
+                    return new ForStatement(variable, iterable, body);
 
                 default:
                     body.addAll(bodyDeclaration());
@@ -75,7 +82,7 @@ public class PyParser {
         }
 
         throw new RuntimeException("no key");
-//        return new PyStatement.ForStatement(variable, iterable, bodyDeclaration(3));
+//        return new ForStatement(variable, iterable, bodyDeclaration(3));
     }
 
     private PyStatement importDeclaration() {
@@ -86,7 +93,7 @@ public class PyParser {
         this.current += cur;
 
         var key = peek();
-        PyStatement.ImportStatement importStatement = null;
+        ImportStatement importStatement = null;
         switch (key.getType()){
             case 23:
                 StringBuilder path = new StringBuilder();
@@ -118,7 +125,7 @@ public class PyParser {
 
                 key = peek();
 
-                importStatement = new PyStatement.ImportStatement(path.toString(), key.getText());
+                importStatement = new ImportStatement(path.toString(), key.getText());
                 break;
 
             case 26:
@@ -138,7 +145,7 @@ public class PyParser {
 
                     if (key.getType() == 45) {
                         if (key.getType() != 54 && last().getType() != 54) {
-                            importStatement = new PyStatement.ImportStatement(pack.toString(), key.getText());
+                            importStatement = new ImportStatement(pack.toString(), key.getText());
                             break;
                         }
 
@@ -177,16 +184,16 @@ public class PyParser {
 
         if (match(current+1, 63)) {
             current++;
-            return new PyStatement.SubSetStatement(var, call, assignment(1));
+            return new SubSetStatement(var, call, assignment(1));
         }
 
         if (last().getType() == 54) {
             return submethodCall(
-                    new PyStatement.SubCallStatement(var, call)
+                    new SubCallStatement(var, call)
             );
         }
 
-        return new PyStatement.SubCallStatement(var, call);
+        return new SubCallStatement(var, call);
     }
 
     private ArrayList<PyStatement> bodyDeclaration(){
@@ -272,7 +279,7 @@ public class PyParser {
                     break;
 
                 case 2:
-                    return new PyStatement.ClassStatement(class_token, body);
+                    return new ClassStatement(class_token, body);
 
                 default:
                     break;
@@ -301,19 +308,19 @@ public class PyParser {
                         break;
 
                     case 11:
-                        body.add(new PyStatement.BreakStatement());
+                        body.add(new BreakStatement());
                         break;
 
                     case 37:
                         if (match(this.current + 1, 44)) {
-                            body.add(new PyStatement.ReturnStatement());
+                            body.add(new ReturnStatement());
                         } else {
-                            body.add(new PyStatement.ReturnStatement(assignment(1)));
+                            body.add(new ReturnStatement(assignment(1)));
                         }
                         break;
 
                     case 2:
-                        return new PyStatement.WhileStatement(ifStmt, body);
+                        return new WhileStatement(ifStmt, body);
 
                     default:
                         break;
@@ -326,8 +333,8 @@ public class PyParser {
         return null;
     }
 
-    private ArrayList<PyStatement.ArgStatement> argsDeclaration(){
-        ArrayList<PyStatement.ArgStatement> args = new ArrayList<>();
+    private ArrayList<ArgStatement> argsDeclaration(){
+        ArrayList<ArgStatement> args = new ArrayList<>();
 
         while (!isEnd()) {
             current++;
@@ -336,7 +343,7 @@ public class PyParser {
 
             switch (token.getType()) {
                 case 45:
-                    PyStatement.TypeStatement type;
+                    FunStatement.TypeStatement type;
                     if (match(this.current+1, 60)){
                         current+=2;
                         if (!match(current, 45, 3)) throw new RuntimeException("no key");
@@ -345,7 +352,7 @@ public class PyParser {
                         type = null;
                     }
 
-                    args.add(new PyStatement.ArgStatement(token, type));
+                    args.add(new ArgStatement(token, type));
                     break;
 
                 case 59:
@@ -358,13 +365,13 @@ public class PyParser {
         throw new RuntimeException("no args");
     }
 
-    private PyStatement.FunStatement defDeclaration(){
+    private FunStatement defDeclaration(){
         current++;
 
         var token = peek();
 
         if (token.getType() == 45) {
-            ArrayList<PyStatement.ArgStatement> args = argsDeclaration();
+            ArrayList<ArgStatement> args = argsDeclaration();
             ArrayList<PyStatement> body = new ArrayList<>();
 
             while (!isEnd()) {
@@ -383,13 +390,13 @@ public class PyParser {
                         break;
 
                     case 2:
-                        return new PyStatement.FunStatement(token, args, body);
+                        return new FunStatement(token, args, body);
 
                     case 37:
                         if (match(this.current+1, 44)) {
-                            body.add(new PyStatement.ReturnStatement());
+                            body.add(new ReturnStatement());
                         } else {
-                            body.add(new PyStatement.ReturnStatement(assignment(1)));
+                            body.add(new ReturnStatement(assignment(1)));
                         }
                         break;
 
@@ -402,17 +409,17 @@ public class PyParser {
         throw new RuntimeException("no key");
     }
 
-    private PyStatement.TypeStatement typeDeclaration(){
+    private FunStatement.TypeStatement typeDeclaration(){
         return typeDeclaration(0);
     }
-    private PyStatement.TypeStatement typeDeclaration(int cur){
+    private FunStatement.TypeStatement typeDeclaration(int cur){
         this.current += cur;
 
         Token token = peek();
 
         switch (token.getType()) {
             case 45, 3:
-                return new PyStatement.TypeStatement(token);
+                return new FunStatement.TypeStatement(token);
         }
 
         throw new NullPointerException("no key");
@@ -427,14 +434,14 @@ public class PyParser {
             case 63:
                 var name = previous();
                 var asm = assignment(1);
-                return new PyStatement.VarStatement(name, asm);
+                return new VarStatement(name, asm);
 
             case 60:
                 name = previous();
                 var type = typeDeclaration(1);
                 current++;
                 asm = assignment(1);
-                return new PyStatement.VarStatement(name, asm, type);
+                return new VarStatement(name, asm, type);
 
             case 64:
                 name = previous();
@@ -442,7 +449,7 @@ public class PyParser {
                 current += 2;
                 if (match(current, 63)) {
                     asm = assignment(1);
-                    return new PyStatement.VarStatement(name, index, asm, null);
+                    return new VarStatement(name, index, asm, null);
                 } else {
                     throw new RuntimeException("no key");
                 }
@@ -464,9 +471,9 @@ public class PyParser {
                     throw new RuntimeException("Characters are not recognized");
                 }
 
-                return new PyStatement.VarStatement(previous(),
-                        new PyStatement.LogicalStatement(
-                                new PyStatement.VarCallStatement(previous()),
+                return new VarStatement(previous(),
+                        new LogicalStatement(
+                                new VarCallStatement(previous()),
                                 operator,
                                 assignment(1)
                         ));
@@ -474,7 +481,7 @@ public class PyParser {
             case 44:
                 //TODO 这里在创建时未处理空结构的问题。很明显，我应该默认None
                 throw new RuntimeException("parser error in "+key);
-//                return new PyStatement.VarStatement(previous(), null);
+//                return new VarStatement(previous(), null);
 
             default:
                 throw new RuntimeException("parser error in "+key);
@@ -485,12 +492,12 @@ public class PyParser {
         return ifDeclaration(0);
     }
 
-    private PyStatement.IfStatement ifDeclaration(int cur){
+    private IfStatement ifDeclaration(int cur){
         this.current += cur;
 
         var ifStmt = ifCondition();
         ArrayList<PyStatement> body = new ArrayList<>();
-        PyStatement.IfStatement elseStmt = null;
+        IfStatement elseStmt = null;
 
         while (!isEnd()) {
             if (match(current, bodyIndex)) {
@@ -502,14 +509,14 @@ public class PyParser {
 
                     case 37:
                         if (match(this.current + 1, 44)) {
-                            body.add(new PyStatement.ReturnStatement());
+                            body.add(new ReturnStatement());
                         } else {
-                            body.add(new PyStatement.ReturnStatement(assignment(1)));
+                            body.add(new ReturnStatement(assignment(1)));
                         }
                         break;
 
                     case 11:
-                        body.add(new PyStatement.BreakStatement());
+                        body.add(new BreakStatement());
                         break;
 
                     case 2:
@@ -519,7 +526,7 @@ public class PyParser {
                             elseStmt = ifDeclaration(1);
                         }
 
-                        return new PyStatement.IfStatement(ifStmt, body, elseStmt);
+                        return new IfStatement(ifStmt, body, elseStmt);
 
                     case 23, 26:
                         body.add(importDeclaration());
@@ -557,7 +564,7 @@ public class PyParser {
 
                 case 60:
                     if (operator != null && right != null) {
-                        return new PyStatement.JudgmentStatement(left, operator, right);
+                        return new IfStatement.JudgmentStatement(left, operator, right);
                     } else if (operator == null && right == null){
                         return left;
                     } else {
@@ -567,9 +574,9 @@ public class PyParser {
                 case 38, 20:
                     var key = peek();
                     if (Objects.equals(key.getText(), "True")) {
-                        return new PyStatement.ConstStatement<>(key, Boolean.class);
+                        return new ConstStatement<>(key, Boolean.class);
                     } else if (Objects.equals(key.getText(), "False")){
-                        return new PyStatement.ConstStatement<>(key, Boolean.class);
+                        return new ConstStatement<>(key, Boolean.class);
                     } else {
                         throw new RuntimeException("parser error");
                     }
@@ -592,7 +599,7 @@ public class PyParser {
 
         switch (key.getType()) {
             case 3:
-                return new PyStatement.ConstStatement<>(key, String.class);
+                return new ConstStatement<>(key, String.class);
             case 4, 72, 71: // TODO 与下方的 45, 64 存在功能差分的情况，需要进一步提取
                 boolean range = true;
 
@@ -605,9 +612,9 @@ public class PyParser {
                 PyStatement constStmt;
 
                 if (TypeChecker.isInteger(key.getText())) {
-                    constStmt = new PyStatement.NumberStatement<>(range, key, Integer.class);
+                    constStmt = new NumberStatement<>(range, key, Integer.class);
                 } else if (TypeChecker.isFloatingPointNumber(key.getText())) {
-                    constStmt = new PyStatement.NumberStatement<>(range, key, Float.class);
+                    constStmt = new NumberStatement<>(range, key, Float.class);
                 } else {
                     throw new RuntimeException("parser error "+peek());
                 }
@@ -621,9 +628,9 @@ public class PyParser {
                 }
             case 38, 20:
                 if (Objects.equals(key.getText(), "True")) {
-                    return new PyStatement.ConstStatement<>(key, Boolean.class);
+                    return new ConstStatement<>(key, Boolean.class);
                 } else if (Objects.equals(key.getText(), "False")){
-                    return new PyStatement.ConstStatement<>(key, Boolean.class);
+                    return new ConstStatement<>(key, Boolean.class);
                 } else {
                     throw new RuntimeException("parser error");
                 }
@@ -637,7 +644,7 @@ public class PyParser {
                     varmetStmt = methodCall();
                 } else if (match(this.current+1, 64)) {
                     current++;
-                    varmetStmt = new PyStatement.IndexStatement(key, assignment(1));
+                    varmetStmt = new IndexStatement(key, assignment(1));
 
                     if (last().getType() == 65) current++;
                     else throw new RuntimeException("no key");
@@ -657,7 +664,7 @@ public class PyParser {
                 }
 
             case 31:
-                return new PyStatement.NoneStatement();
+                return new NoneStatement();
 
             case 57:
                 return tupleDeclaration();
@@ -677,13 +684,13 @@ public class PyParser {
             PyStatement right = blockLogicalStatement(1);
 
             if (match(last().getTokenIndex(), 73, 56, 62)) {
-                statement = new PyStatement.LogicalStatement(
+                statement = new LogicalStatement(
                         statement,
                         operator,
-                        new PyStatement.LogicalStatement(right, peek(), blockLogicalStatement(1))
+                        new LogicalStatement(right, peek(), blockLogicalStatement(1))
                 );
             } else {
-                statement = new PyStatement.LogicalStatement(statement, operator, right);
+                statement = new LogicalStatement(statement, operator, right);
             }
 
             if (match(last().getTokenIndex(), 44,  1, 65, 58, 60)) {
@@ -703,12 +710,12 @@ public class PyParser {
 
         switch (key.getType()) {
             case 3:
-                return new PyStatement.ConstStatement<>(key, String.class);
+                return new ConstStatement<>(key, String.class);
             case 4:
                 if (TypeChecker.isInteger(key.getText())) {
-                    return new PyStatement.NumberStatement<>(key, Integer.class);
+                    return new NumberStatement<>(key, Integer.class);
                 } else if (TypeChecker.isFloatingPointNumber(key.getText())) {
-                    return new PyStatement.NumberStatement<>(key, Float.class);
+                    return new NumberStatement<>(key, Float.class);
                 } else {
                     throw new RuntimeException("parser error");
                 }
@@ -726,7 +733,7 @@ public class PyParser {
                     varmetStmt = methodCall();
                 } else if (match(this.current+1, 64)) {
                     this.current++;
-                    varmetStmt = new PyStatement.IndexStatement(key, assignment(1));
+                    varmetStmt = new IndexStatement(key, assignment(1));
 
                     if (last().getType() == 65) this.current++;
                     else throw new RuntimeException("no key");
@@ -748,7 +755,7 @@ public class PyParser {
 
     private PyStatement varCall(int current){
         this.current += current;
-        return new PyStatement.VarCallStatement(peek());
+        return new VarCallStatement(peek());
     }
 
     private PyStatement dictDeclaration() {
@@ -764,7 +771,7 @@ public class PyParser {
                 case 77:
                     break;
                 case 78:
-                    return new PyStatement.DictStatement(args);
+                    return new DictStatement(args);
             }
         }
 
@@ -784,7 +791,7 @@ public class PyParser {
                 case 59:
                     break;
                 case 58:
-                    return new PyStatement.TupleStatement(args);
+                    return new TupleStatement(args);
             }
         }
 
@@ -792,7 +799,7 @@ public class PyParser {
     }
 
     private PyStatement listAssignment() {
-        return new PyStatement.ListStatement(keyDeclaration());
+        return new ListStatement(keyDeclaration());
     }
 
     private ArrayList<PyStatement> keyDeclaration(){
@@ -827,7 +834,7 @@ public class PyParser {
 
                 case 45:
                     if (last().getType() == 63) {
-                        args.add(new PyStatement.ParametersStatement(peek(), assignment(2)));
+                        args.add(new ParametersStatement(peek(), assignment(2)));
                     } else {
                         args.add(assignment());
                     }
@@ -843,8 +850,8 @@ public class PyParser {
         throw new RuntimeException("no args");
     }
 
-    private PyStatement.FunCallStatement methodCall(){
-        var funCall = new PyStatement.FunCallStatement(peek());
+    private FunCallStatement methodCall(){
+        var funCall = new FunCallStatement(peek());
 
         current += 1;
 

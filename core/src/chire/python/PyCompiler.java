@@ -3,8 +3,7 @@ package chire.python;
 import chire.antlr.Python3Lexer;
 import chire.antlr.Python3Parser;
 import chire.asm.dynamic.builder.ClassBuilder;
-import chire.python.antlr.PyParser;
-import chire.python.antlr.PyStatement;
+import chire.python.stmt.PyStatement;
 import chire.python.asm.PythonAsmBuddy;
 import chire.python.util.SmartIndenter;
 import org.antlr.v4.runtime.CharStream;
@@ -13,13 +12,11 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class PyCompiler {
