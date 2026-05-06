@@ -1,5 +1,6 @@
 package chire.python.antlr;
 
+import chire.python.util.Test;
 import chire.python.util.type.TypeChecker;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
@@ -594,7 +595,7 @@ public class PyParser {
         switch (key.getType()) {
             case 3:
                 return new PyStatement.ConstStatement<>(key, String.class);
-            case 4, 72, 71:
+            case 4, 72, 71: // TODO 与下方的 45, 64 存在功能差分的情况，需要进一步提取
                 boolean range = true;
 
                 if (match(current, 71, 72)) {
@@ -613,23 +614,10 @@ public class PyParser {
                     throw new RuntimeException("parser error "+peek());
                 }
 
-                if (match(this.current+1, 71, 72)) {
+                if (match(this.current+1, 71, 72, 73, 56)) {
                     current++;
-                    return new PyStatement.LogicalStatement(constStmt, peek(), assignment(1));
-                } else if (match(this.current+1, 73, 56, 62)){
-                    current++;
-                    var lgc = new PyStatement.LogicalStatement(constStmt, peek(), logicalAssignment(1));
 
-                    if (match(this.current+1, 71, 72, 73, 56, 62)) {
-                        current++;
-                        return new PyStatement.LogicalStatement(
-                                lgc,
-                                peek(),
-                                assignment(1)
-                        );
-                    } else {
-                        return lgc;
-                    }
+                    return logicalAssignment(constStmt);
                 } else {
                     return constStmt;
                 }
@@ -660,23 +648,10 @@ public class PyParser {
                     varmetStmt = varCall();
                 }
 
-                if (match(this.current+1, 71, 72)) {
+                if (match(this.current+1, 71, 72, 73, 56)) {
                     current++;
-                    return new PyStatement.LogicalStatement(varmetStmt, peek(), assignment(1));
-                } else if (match(this.current+1, 73, 56)) {
-                    current++;
-                    var lgc = new PyStatement.LogicalStatement(varmetStmt, peek(), logicalAssignment(1));
 
-                    if (match(this.current + 1, 71, 72, 73, 56)) {
-                        current++;
-                        return new PyStatement.LogicalStatement(
-                                lgc,
-                                peek(),
-                                assignment(1)
-                        );
-                    } else {
-                        return lgc;
-                    }
+                    return logicalAssignment(varmetStmt);
                 } else if (match(current+1, 54)) {
                     return submethodCall(varCall());
                 } else {
@@ -697,12 +672,34 @@ public class PyParser {
         }
     }
 
-    private PyStatement logicalAssignment(){
-        return logicalAssignment(0);
+    private PyStatement logicalAssignment(PyStatement statement) {
+        while (!isEnd()) {
+            Token operator = peek();
+
+            PyStatement right = blockLogicalStatement(1);
+
+            if (match(last().getTokenIndex(), 73, 56)) {
+                statement = new PyStatement.LogicalStatement(
+                        statement,
+                        operator,
+                        new PyStatement.LogicalStatement(right, peek(), blockLogicalStatement(1))
+                );
+            } else {
+                statement = new PyStatement.LogicalStatement(statement, operator, right);
+            }
+
+            if (match(last().getTokenIndex(), 44,  1, 65, 58, 60)) {
+                return statement;
+            } else {
+                current++;
+            }
+        }
+
+        throw new RuntimeException("parser error");
     }
 
-    private PyStatement logicalAssignment(int cur) {
-        this.current += cur;
+    private PyStatement blockLogicalStatement(int current) {
+        this.current += current;
 
         var key = peek();
 
@@ -718,15 +715,29 @@ public class PyParser {
                     throw new RuntimeException("parser error");
                 }
 
-            case 45:
-                if (match(this.current+1, 57)){
-                    return methodCall();
-                } else {
-                    return varCall();
-                }
-
             case 57:
                 return assignment(1);
+
+            //TODO 4, 72, 71 对于块的解析仍然存在问题，但大部分情况下可以正常运行。
+            case 45, 64:
+                PyStatement varmetStmt;
+
+                if (key.getType() == 64) {
+                    varmetStmt = listAssignment();
+                } else if (match(this.current+1, 57)){
+                    varmetStmt = methodCall();
+                } else if (match(this.current+1, 64)) {
+                    current++;
+                    varmetStmt = new PyStatement.IndexStatement(key, assignment(1));
+
+                    if (last().getType() == 65) current++;
+                    else throw new RuntimeException("no key");
+                }
+                else {
+                    varmetStmt = varCall();
+                }
+
+                return varmetStmt;
 
             default:
                 throw new RuntimeException("parser error");
