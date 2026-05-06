@@ -614,7 +614,7 @@ public class PyParser {
                     throw new RuntimeException("parser error "+peek());
                 }
 
-                if (match(this.current+1, 71, 72, 73, 56)) {
+                if (match(this.current+1, 71, 72, 73, 56, 62)) {
                     current++;
 
                     return logicalAssignment(constStmt);
@@ -648,7 +648,7 @@ public class PyParser {
                     varmetStmt = varCall();
                 }
 
-                if (match(this.current+1, 71, 72, 73, 56)) {
+                if (match(this.current+1, 71, 72, 73, 56, 62)) {
                     current++;
 
                     return logicalAssignment(varmetStmt);
@@ -678,7 +678,7 @@ public class PyParser {
 
             PyStatement right = blockLogicalStatement(1);
 
-            if (match(last().getTokenIndex(), 73, 56)) {
+            if (match(last().getTokenIndex(), 73, 56, 62)) {
                 statement = new PyStatement.LogicalStatement(
                         statement,
                         operator,
