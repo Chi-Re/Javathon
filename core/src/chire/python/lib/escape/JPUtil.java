@@ -39,15 +39,17 @@ public class JPUtil {
 
         put("range", new PyFunction<>(new String[]{"in", "to"}, args -> {
             if (args.size() == 2) {
-                return new PyList(IntStream.iterate((Integer) args.get("in"), n -> n + 1)
-                        .limit((Integer) args.get("to"))
-                        .boxed()
-                        .collect(Collectors.toList()));
+                PyList list = new PyList();
+
+                for (int i = (int) args.get("in"); i < (int) args.get("to"); i++) list.append(i);
+
+                return list;
             } else if (args.size() == 1) {
-                return new PyList(IntStream.iterate(0, n -> n + 1)
-                        .limit((Integer) args.get("in"))
-                        .boxed()
-                        .collect(Collectors.toList()));
+                PyList list = new PyList();
+
+                for (int i = 0; i < (int) args.get("in"); i++) list.append(i);
+
+                return list;
             } else {
                 throw new RuntimeException("no key");
             }
