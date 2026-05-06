@@ -1,17 +1,11 @@
 package chire.asm;
 
 import chire.asm.args.Args;
-import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.VarVisitor;
 import chire.asm.dynamic.builder.ClassBuilder;
-import chire.asm.util.CallLogger;
 import chire.asm.util.Format;
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.matcher.ElementMatchers;
 import org.objectweb.asm.*;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -38,8 +32,6 @@ public class ClassAsm {
     private final Map<String, byte[]> innerClasses = new HashMap<>();
 
     private final List<String> levelStack = new ArrayList<>();
-
-    static CallLogger logger = new CallLogger();
 
     public ClassAsm(String className, String superClass) {
         this(className, superClass, null);

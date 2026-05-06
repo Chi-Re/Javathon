@@ -1,6 +1,5 @@
 package chire.python.antlr;
 
-import chire.python.util.Test;
 import chire.python.util.type.TypeChecker;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
@@ -9,7 +8,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class PyParser {
     private final CommonTokenStream tokenStream;
