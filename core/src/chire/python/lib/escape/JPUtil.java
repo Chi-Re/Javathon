@@ -16,7 +16,7 @@ public class JPUtil {
         put("print", new PyFunction(
                 new String[]{"*args", "end"},
                 args -> {
-                    PyTuple iargs = ((PyTuple) args.get("args"));
+                    PyTuple iargs = ((PyTuple) args.getOrDefault("args", PyTuple.empty()));
                     String sep = args.getOrDefault("sep", " ").toString();
                     String end = args.getOrDefault("end", "\n").toString();
 
