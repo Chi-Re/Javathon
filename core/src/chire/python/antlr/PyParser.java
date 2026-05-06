@@ -727,10 +727,10 @@ public class PyParser {
                 } else if (match(this.current+1, 57)){
                     varmetStmt = methodCall();
                 } else if (match(this.current+1, 64)) {
-                    current++;
+                    this.current++;
                     varmetStmt = new PyStatement.IndexStatement(key, assignment(1));
 
-                    if (last().getType() == 65) current++;
+                    if (last().getType() == 65) this.current++;
                     else throw new RuntimeException("no key");
                 }
                 else {
