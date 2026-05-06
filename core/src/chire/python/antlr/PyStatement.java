@@ -207,7 +207,7 @@ public abstract class PyStatement {
                 return builder instanceof ModuleBuilder ? new ModuleBuilder(classBuilder.getClassAsm()) : classBuilder;
             } else if (builder instanceof BlockBuilder<?>){
                 if (builder.getType().equals(ClinitDefinition.class)) {
-                    return ((ClinitDefinition) builder).setStaticVar(this.name.getText(), Object.class).setContent(setContent -> {
+                    return ((ClinitDefinition) builder).setVar(this.name.getText()).setContent(setContent -> {
                         return (CallBuilder<ClinitDefinition>) value.build(setContent);
                     });
                 } else {
