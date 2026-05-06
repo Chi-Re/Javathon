@@ -26,8 +26,6 @@ import org.objectweb.asm.Type;
 import java.util.*;
 
 public abstract class PyStatement {
-    public abstract PyExecutor.PyInstruction build(PyAssembler builder);
-
     public Builder<?> build(Builder<?> builder){
         return builder;
     }
@@ -43,11 +41,6 @@ public abstract class PyStatement {
     }
 
     public static class BreakStatement extends PyStatement{
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.BreakPy();
-        }
-
         @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("Break");
@@ -89,11 +82,6 @@ public abstract class PyStatement {
                 return builder;
             }
         }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return null;
-        }
     }
 
     public static class TypeStatement extends PyStatement{
@@ -122,11 +110,6 @@ public abstract class PyStatement {
         @Override
         public Builder<?> build(Builder<?> builder) {
             return super.build(builder);
-        }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return null;
         }
     }
 
@@ -229,11 +212,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.VarPy(name.getText(), value.build(builder));
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("Var{").newLine()
                     .indent()
@@ -300,11 +278,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return null;
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("Index{").newLine()
                     .indent()
@@ -357,18 +330,6 @@ public abstract class PyStatement {
             } else {
                 return builder;
             }
-        }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            ArrayList<PyExecutor.PyInstruction> body = new ArrayList<>();
-
-            for (PyStatement statement : this.body) {
-                body.add(statement.build(builder));
-            }
-
-            return new PyExecutor.ClassPy(name.getText(),
-                    paternal == null ? PyObject.class : paternal.build(builder).getClass(), body);
         }
 
         @Override
@@ -441,22 +402,6 @@ public abstract class PyStatement {
             }
 
             throw new RuntimeException("no key");
-        }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            ArrayList<PyExecutor.ArgPy> instArgs = new ArrayList<>();
-            ArrayList<PyExecutor.PyInstruction> instStmts = new ArrayList<>();
-
-            for (ArgStatement arg : this.args) {
-                instArgs.add((PyExecutor.ArgPy) arg.build(builder));
-            }
-
-            for (PyStatement statement : this.statements) {
-                instStmts.add(statement.build(builder));
-            }
-
-            return new PyExecutor.FunPy(token.getText(), instArgs, instStmts);
         }
 
         @Override
@@ -571,17 +516,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            ArrayList<PyExecutor.PyInstruction> instructions = new ArrayList<>();
-
-            for (PyStatement statement : this.statements) {
-                instructions.add(statement.build(builder));
-            }
-
-            return new PyExecutor.WhilePy(conditions.build(builder), instructions);
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("While{").newLine()
                     .indent()
@@ -663,11 +597,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return null;
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("For{").newLine();
 
@@ -697,10 +626,6 @@ public abstract class PyStatement {
     }
 
     public static class PassStatement extends PyStatement{
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.PassPy();
-        }
 
         @Override
         public void toString(SmartIndenter indenter) {
@@ -777,11 +702,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.SubCallPy(this.key.build(builder), this.call.build(builder));
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("SubCall{")
                     .indent()
@@ -838,11 +758,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.SubSetPy(key.build(builder), call.build(builder), var.build(builder));
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("SubSet{")
                     .indent()
@@ -895,11 +810,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return null;
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("Dict{")
                     .indent();
@@ -942,11 +852,6 @@ public abstract class PyStatement {
             }
 
             throw new RuntimeException("no key:"+builder.getClass());
-        }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return null;
         }
 
         @Override
@@ -993,17 +898,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            ArrayList<PyExecutor.PyInstruction> instructions = new ArrayList<>();
-
-            for (PyStatement statement : this.list) {
-                instructions.add(statement.build(builder));
-            }
-
-            return new PyExecutor.ListPy(instructions);
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("List[")
                     .indent();
@@ -1017,11 +911,6 @@ public abstract class PyStatement {
     }
 
     public static class NoneStatement extends PyStatement{
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.NonePy();
-        }
-
         @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("null");
@@ -1063,11 +952,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.ReturnPy(returnStmt.build(builder));
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("Return{")
                     .indent();
@@ -1097,11 +981,6 @@ public abstract class PyStatement {
 
         public String getType(){
             return type == null ? Format.formatPack(Object.class) : type.toType();
-        }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.ArgPy(token.getText(), Object.class);
         }
 
         @Override
@@ -1229,17 +1108,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            ArrayList<PyExecutor.PyInstruction> instructions = new ArrayList<>();
-
-            for (PyStatement statement : this.statements) {
-                instructions.add(statement.build(builder));
-            }
-
-            return new PyExecutor.IfPy(conditions.build(builder), instructions);
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("If{").newLine()
                     .indent()
@@ -1302,11 +1170,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.JudgmentPy(left.build(builder), operator.getType(), right.build(builder));
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().addLine("Judg{").indent();
             if (operator != null) {
@@ -1354,11 +1217,6 @@ public abstract class PyStatement {
             }
 
             throw new RuntimeException("no key");
-        }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.NumbePy(range, cast());
         }
 
         private Number cast() {
@@ -1412,15 +1270,6 @@ public abstract class PyStatement {
             }
 
             throw new RuntimeException("no key");
-        }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            if (type == String.class) {
-                return new PyExecutor.ConstPy(RemoveQuotes.removeQuotes(token.getText()));
-            } else {
-                return new PyExecutor.ConstPy(cast());
-            }
         }
 
         private Object cast() {
@@ -1479,11 +1328,6 @@ public abstract class PyStatement {
             }
 
             throw new RuntimeException("no key");
-        }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return null;
         }
 
         @Override
@@ -1572,17 +1416,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            ArrayList<PyExecutor.PyInstruction> insts = new ArrayList<>();
-
-            for (PyStatement arg : this.args) {
-                insts.add(arg.build(builder));
-            }
-
-            return new PyExecutor.FunCallPy(name.getText(), insts);
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().addLine("CallFun{")
                     .indent()
@@ -1643,11 +1476,6 @@ public abstract class PyStatement {
         }
 
         @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            return new PyExecutor.VarCallPy(name.getText());
-        }
-
-        @Override
         public void toString(SmartIndenter indenter) {
             indenter.newLine().add("CallVar{").add("name=").add(name.getText()).add("}");
         }
@@ -1694,15 +1522,6 @@ public abstract class PyStatement {
             }
 
             throw new RuntimeException("no key");
-        }
-
-        @Override
-        public PyExecutor.PyInstruction build(PyAssembler builder) {
-            if (operator != null) {
-                return new PyExecutor.LogicalPy(left.build(builder), operator.getText(), right.build(builder));
-            } else {
-                return new PyExecutor.LogicalPy(left.build(builder), operatorStr, right.build(builder));
-            }
         }
 
         @Override
