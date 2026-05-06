@@ -1,46 +1,11 @@
 package chire.python;
 
-import chire.asm.AsmBuddy;
-
 import java.io.File;
-import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PyInterpreter {
-    public static void main(String[] args) throws Exception {
-        //TODO
-        // 38 bool
-        // 4 int do
-        // 3 str
-        // 56 *
-        // 72 -
-        // 71 +
-        // 73 /
-        String pythonCode = """
-                class Test:
-                    def __init__(self):
-                        pass
-                
-                    def test(self):
-                        print("test")
-                
-                    def func(self):
-                        print("func")
-                """;
-
-        PyCompiler.debug = true;
-
-        try (FileOutputStream fos = new FileOutputStream("cache/test/ClassPyTest.class")) {
-            fos.write(PyCompiler.compile("ClassPyTest", pythonCode));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-//        PyInterpreter.runScript("C:\\Projects\\java\\JavaPythonInterpreter\\pycode\\main.py");
-    }
-
     private static final Map<String, Class<?>> CLASS_CACHE = new ConcurrentHashMap<>();
     private static volatile ByteArrayClassLoader dynamicLoader;
 
@@ -58,9 +23,11 @@ public class PyInterpreter {
      */
     public static Object runScript(String scriptPath, String... args) throws Exception {
         File pyFile = new File(scriptPath);
-        byte[] bytecode = PyCompiler.compile(pyFile);
+        Map<String, byte[]> bytecode = PyCompiler.compile(pyFile);
         String className = deriveClassNameFromFile(pyFile);
-        Class<?> clazz = loadClass(className, bytecode);
+
+        //TODO 这里还需要调整，暂时如此
+        Class<?> clazz = loadClass(className, bytecode.get(bytecode.keySet().toArray(new String[0])[0]));
 
         Method mainMethod = clazz.getMethod("main", String[].class);
         return mainMethod.invoke(null, (Object) args);

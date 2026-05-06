@@ -67,22 +67,6 @@ public class ClassAsm {
         this(className, Format.formatPack(superClass, false), outer);
     }
 
-    public static ClassAsm create(Class<?>[] types, Object[] args) {
-        try {
-            return new ByteBuddy()
-                    .subclass(ClassAsm.class)
-                    .method(ElementMatchers.any())
-                    .intercept(MethodDelegation.to(logger))
-                    .make()
-                    .load(ClassAsm.class.getClassLoader())
-                    .getLoaded()
-                    .getConstructor(types)
-                    .newInstance(args);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public ClassAsm defineClass(String className, Class<?> superClass){
         return defineClass(className, Format.formatPack(superClass, false));
     }
