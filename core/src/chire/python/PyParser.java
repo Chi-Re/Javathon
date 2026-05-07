@@ -19,7 +19,7 @@ import java.util.Objects;
 public class PyParser {
     private final CommonTokenStream tokenStream;
 
-    public static ArrayList<PyStatement> statements = new ArrayList<>();
+    public ArrayList<PyStatement> statements = new ArrayList<>();
 
     private int current = 0;
 
