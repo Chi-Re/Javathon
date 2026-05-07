@@ -3,8 +3,11 @@ package chire.python;
 import chire.antlr.Python3Lexer;
 import chire.antlr.Python3Parser;
 import chire.asm.dynamic.builder.ClassBuilder;
+import chire.python.jar.JarExporter;
+import chire.python.lib.base.PyObject;
 import chire.python.stmt.PyStatement;
 import chire.python.asm.PythonAsmBuddy;
+import chire.python.util.DirectoryWalker;
 import chire.python.util.SmartIndenter;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -22,6 +25,31 @@ import java.util.Map;
 public class PyCompiler {
     public static boolean debug = false;
 
+    /**
+     * @param args [input directory] [output file]
+     */
+    public static void main(String[] args) throws IOException {
+        if (args.length != 2) throw new RuntimeException("no key");
+
+        File input = new File(args[0]);
+        File output = new File(args[1]);
+
+        Map<String, byte[]> clazzes = new HashMap<>();
+
+        DirectoryWalker.walk(input, file -> {
+            if (file.getName().endsWith(".py")) {
+                String clazzPath = file.toPath().toString().replace(input.toPath()+"\\", "");
+                clazzPath = clazzPath.substring(0, clazzPath.length()-3).replace("\\", ".");
+
+                Map<String, byte[]> clamap = PyCompiler.compile(clazzPath, Files.readString(file.toPath()));
+
+                clazzes.putAll(clamap);
+            }
+        });
+
+        JarExporter.saveJar(clazzes, output.getPath());
+    }
+
     public static Map<String, byte[]> compile(String className, String pythonCode) {
         CharStream input = CharStreams.fromString(pythonCode);
         Python3Lexer lexer = new Python3Lexer(input);
@@ -35,7 +63,7 @@ public class PyCompiler {
 
         ArrayList<PyStatement> statements = new PyParser(tokens).parse();
 
-        ClassBuilder builder = new PythonAsmBuddy(className, Object.class).create();
+        ClassBuilder builder = new PythonAsmBuddy(className, PyObject.class).create();
         SmartIndenter indenter = new SmartIndenter("  ");
 
         for (PyStatement stmt : statements) {
