@@ -6,6 +6,7 @@ import chire.asm.dynamic.builder.ClassBuilder;
 import chire.asm.dynamic.definition.FunctionDefinition;
 import chire.asm.util.Format;
 import chire.python.asm.ModuleBuilder;
+import chire.python.lib.escape.JPUtil;
 import chire.python.stmt.PyStatement;
 import org.objectweb.asm.Type;
 
@@ -28,17 +29,23 @@ public class ImportStatement extends PyStatement {
     public Builder<?> build(Builder<?> builder) {
         if (builder instanceof ClassBuilder) {
             ClassBuilder classBuilder = ((ClassBuilder) builder).declareStaticVar(this.name, Object.class).setContent(
-                    argb -> argb.definitObj(
-                            Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
-                    )
+                    argb -> argb._break().callMethod(JPUtil.class, "toImport", new Class[]{String.class, String.class}, Object.class).setContent(impCont -> {
+                        return impCont.definitPar(
+                                pr -> pr.definitObj(this.path),
+                                pr -> pr.definitObj(this.packName)
+                        );
+                    })
             );
 
             return builder instanceof ModuleBuilder ? new ModuleBuilder(classBuilder.getClassAsm()) : classBuilder;
         } else if (builder instanceof BlockBuilder<?>){
             return ((FunctionDefinition) builder).setVar(this.name).setContent(
-                    argb -> argb.definitObj(
-                            Type.getType(Format.formatStrPack(this.path+"."+this.packName)+";")
-                    )
+                    argb -> argb.callMethod(JPUtil.class, "toImport", new Class[]{String.class, String.class}, Object.class).setContent(impCont -> {
+                        return impCont.definitPar(
+                                pr -> pr.definitObj(this.path),
+                                pr -> pr.definitObj(this.packName)
+                        );
+                    })
             );
         } else {
             return builder;
