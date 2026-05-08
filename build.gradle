@@ -44,4 +44,12 @@ project(":asm") {
 project(":lib") {
 }
 
+project(":test") {
+    compileJava.options.fork = true
 
+    dependencies {
+        implementation project(":core")
+
+        implementation files("C:\\Projects\\java\\JavaPythonInterpreter\\pycode\\output.jar")
+    }
+}

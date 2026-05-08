@@ -1,3 +1,3 @@
 rootProject.name = 'AntlrPythonInterpreter'
 
-include 'core', 'asm', 'lib'
+include 'core', 'asm', 'lib', 'test'
