@@ -37,13 +37,7 @@ public class FunCallStatement extends PyStatement {
             return new CallBuilder<>(callbl.getClassAsm(), callbl.getType());
         } else if (builder instanceof ClassBuilder) {
             ClassBuilder classBuilder = ((ClassBuilder) builder).setContent(cilnBui -> {
-                if (!args.isEmpty()) {
-                    cilnBui = makeContent(cilnBui);
-                } else {
-                    cilnBui = makeContent(cilnBui);
-                }
-
-                return cilnBui.out();
+                return makeContent(cilnBui).out();
             });
 
             if (builder instanceof ModuleBuilder) {
