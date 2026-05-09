@@ -99,6 +99,53 @@ public class JPUtil {
         }
     }
 
+    public static Object toImport(String path, String name) {
+        String packPath = getCallingClassName();
+
+        if (packPath.contains(".")) {
+            packPath = packPath.substring(0, packPath.lastIndexOf(".")+1);
+        }
+
+        try {
+            try {
+                return Class.forName(packPath + path + "." + name);
+            } catch (ClassNotFoundException e) {
+                return Class.forName(path + "." + name);
+            }
+        } catch (ClassNotFoundException e) {
+            Class<?> clazz;
+
+            try {
+                clazz = Class.forName(packPath + path);
+            } catch (ClassNotFoundException ex) {
+                try {
+                    clazz = Class.forName(path);
+                } catch (ClassNotFoundException ex3) {
+                    throw new RuntimeException(ex3);
+                }
+            }
+
+            Class<?> finalClazz = clazz;
+            return new PyFunction<>(new String[]{"*args"}, args -> {
+                PyTuple iargs = ((PyTuple) args.getOrDefault("args", PyTuple.empty()));
+
+                return callMethod(finalClazz, name, iargs.toArray());
+            }, Object.class);
+        }
+    }
+
+    private static String getCallingClassName() {
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+
+        for (StackTraceElement stackTraceElement : stackTraceElements) {
+            String className = stackTraceElement.getClassName();
+            if (className.equals(Thread.class.getName()) || className.equals(JPUtil.class.getName())) continue;
+            return className;
+        }
+
+        throw new RuntimeException("no key");
+    }
+
     public static Object getSerial(Object instance, Object key) {
         if (instance instanceof PyDict) {
             return ((PyDict) instance).__getitem__(key);
@@ -303,13 +350,19 @@ public class JPUtil {
             }
 
         } catch (NoSuchMethodException e) {
-            return callObj(obj, name, args);
+            Object cast = callObj(obj, name, args);
+
+            if (cast instanceof PyFunction<?>) {
+                return ((PyFunction<?>) cast).call(args);
+            } else {
+                return cast;
+            }
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static Object callObj(Object obj, String name, Object... args) {
+    private static Object callObj(Object obj, String name, Object... args) {
         List<Class<?>> classes = new ArrayList<>();
         List<Object> reArgs = new ArrayList<>();
 
@@ -329,7 +382,11 @@ public class JPUtil {
             }
 
         } catch (NoSuchMethodException e) {
-            return funs.get(name).call(args);
+            if (funs.containsKey(name)) {
+                return funs.get(name);
+            } else {
+                return callVar(obj, name);
+            }
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
