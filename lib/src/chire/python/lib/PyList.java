@@ -1,6 +1,6 @@
 package chire.python.lib;
 
-import chire.python.lib.base.PyObject;
+import chire.python.lib.builtins.PyObject;
 
 import java.util.*;
 import java.util.stream.Collectors;

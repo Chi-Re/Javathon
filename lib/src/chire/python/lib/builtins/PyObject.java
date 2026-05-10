@@ -1,4 +1,4 @@
-package chire.python.lib.base;
+package chire.python.lib.builtins;
 
 import chire.python.lib.PyDict;
 import chire.python.lib.escape.JPFunction;

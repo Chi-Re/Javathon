@@ -3,7 +3,7 @@ package chire.python.lib.escape;
 import chire.python.lib.PyDict;
 import chire.python.lib.PyList;
 import chire.python.lib.PyTuple;
-import chire.python.lib.base.PyObject;
+import chire.python.lib.builtins.PyObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;

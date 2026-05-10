@@ -4,7 +4,7 @@ import chire.antlr.Python3Lexer;
 import chire.antlr.Python3Parser;
 import chire.asm.dynamic.builder.ClassBuilder;
 import chire.python.jar.JarExporter;
-import chire.python.lib.base.PyObject;
+import chire.python.lib.builtins.PyObject;
 import chire.python.stmt.PyStatement;
 import chire.python.asm.PythonAsmBuddy;
 import chire.python.util.DirectoryWalker;
