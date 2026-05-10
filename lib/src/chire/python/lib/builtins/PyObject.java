@@ -1,6 +1,5 @@
 package chire.python.lib.builtins;
 
-import chire.python.lib.PyDict;
 import chire.python.lib.escape.JPFunction;
 
 import java.lang.reflect.InvocationTargetException;

@@ -6,7 +6,7 @@ import chire.asm.dynamic.builder.Builder;
 import chire.asm.dynamic.builder.CallBuilder;
 import chire.asm.dynamic.builder.ClassBuilder;
 import chire.python.asm.ModuleBuilder;
-import chire.python.lib.PyList;
+import chire.python.lib.builtins.PyList;
 import chire.python.lib.escape.JPUtil;
 import chire.python.stmt.PyStatement;
 import chire.python.util.SmartIndenter;

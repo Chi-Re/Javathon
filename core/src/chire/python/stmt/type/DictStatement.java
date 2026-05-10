@@ -4,7 +4,7 @@ import chire.asm.dynamic.AsmBudVisitor;
 import chire.asm.dynamic.builder.BlockBuilder;
 import chire.asm.dynamic.builder.Builder;
 import chire.asm.dynamic.builder.CallBuilder;
-import chire.python.lib.PyDict;
+import chire.python.lib.builtins.PyDict;
 import chire.python.lib.escape.JPUtil;
 import chire.python.stmt.PyStatement;
 import chire.python.util.SmartIndenter;

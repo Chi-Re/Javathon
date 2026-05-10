@@ -1,6 +1,4 @@
-package chire.python.lib;
-
-import chire.python.lib.builtins.PyObject;
+package chire.python.lib.builtins;
 
 import java.io.Serializable;
 import java.util.Arrays;

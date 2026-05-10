@@ -1,6 +1,6 @@
 package chire.python.lib.escape;
 
-import chire.python.lib.PyTuple;
+import chire.python.lib.builtins.PyTuple;
 
 import java.util.*;
 
