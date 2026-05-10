@@ -3,13 +3,14 @@ package chire.asm.args;
 import chire.asm.util.Format;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Args {
     private final Map<String, String> args;
 
     public Args() {
-        this.args = new HashMap<>();
+        this.args = new LinkedHashMap<>();
     }
 
     public String[] getArgNames() {
