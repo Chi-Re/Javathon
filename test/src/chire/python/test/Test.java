@@ -7,11 +7,18 @@ import java.io.IOException;
 
 public class Test {
     public static void main(String[] args) throws IOException {
-        PyCompiler.main(new String[]{
-                "C:\\Projects\\java\\JavaPythonInterpreter\\pycode\\src",
-                "C:\\Projects\\java\\JavaPythonInterpreter\\pycode\\output.jar"
-        });
+        System.out.println(new main());
+    }
 
-//        new main();
+    public static String valueOf(String pack, String path) {
+        int current = 0;
+
+        while (path.indexOf(".") == 0) {
+            path = path.substring(1);
+
+            current++;
+        }
+
+        return String.valueOf(current);
     }
 }
