@@ -3,17 +3,15 @@ package chire.python.lib.escape;
 import chire.python.lib.PyDict;
 import chire.python.lib.PyList;
 import chire.python.lib.PyTuple;
-import chire.python.lib.base.PyFunction;
 import chire.python.lib.base.PyObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class JPUtil {
-    public static final Map<String, PyFunction> funs = new HashMap<String, PyFunction>(){{
-        put("print", new PyFunction(
+    public static final Map<String, JPFunction> funs = new HashMap<String, JPFunction>(){{
+        put("print", new JPFunction(
                 new String[]{"*args", "end"},
                 args -> {
                     PyTuple iargs = ((PyTuple) args.getOrDefault("args", PyTuple.empty()));
@@ -33,11 +31,11 @@ public class JPUtil {
                 void.class
         ));
 
-        put("int", new PyFunction(new String[]{"obj"}, args -> {
+        put("int", new JPFunction(new String[]{"obj"}, args -> {
             return new BaseValue<>((int) args.get("obj"), int.class);
         }, int.class));
 
-        put("range", new PyFunction<>(new String[]{"in", "to"}, args -> {
+        put("range", new JPFunction<>(new String[]{"in", "to"}, args -> {
             if (args.size() == 2) {
                 PyList list = new PyList();
 
@@ -55,7 +53,7 @@ public class JPUtil {
             }
         }, PyList.class));
 
-        put("len", new PyFunction<>(new String[]{"item"}, args -> {
+        put("len", new JPFunction<>(new String[]{"item"}, args -> {
             Object item = args.get("item");
 
             if (item instanceof PyList) {
@@ -128,7 +126,7 @@ public class JPUtil {
             retClazz = forClass(clazzName);
             if (retClazz != null) {
                 Class<?> finalClazz = retClazz;
-                return new PyFunction<>(new String[]{"*args"}, args -> {
+                return new JPFunction<>(new String[]{"*args"}, args -> {
                     PyTuple iargs = ((PyTuple) args.getOrDefault("args", PyTuple.empty()));
 
                     return callMethod(finalClazz, name, iargs.toArray());
@@ -372,8 +370,8 @@ public class JPUtil {
         } catch (NoSuchMethodException e) {
             Object cast = callObj(obj, name, args);
 
-            if (cast instanceof PyFunction<?>) {
-                return ((PyFunction<?>) cast).call(args);
+            if (cast instanceof JPFunction<?>) {
+                return ((JPFunction<?>) cast).call(args);
             } else {
                 return cast;
             }

@@ -37,20 +37,11 @@ public class FunStatement extends PyStatement {
         if (builder instanceof ClassBuilder) {
             FunctionDefinition fun;
 
-            if (builder instanceof ModuleBuilder) {
-                for (ArgStatement arg : this.args) {
-                    args.put(arg.token.getText(), Object.class);
-                }
-
-                fun = ((ModuleBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, token.getText(), args, Object.class);
-            } else {
-                for (int i = 1; i < this.args.size(); i++) {
-                    args.put(this.args.get(i).token.getText(), Object.class);
-                }
-
-                fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC, token.getText(), args, Object.class);
-                fun = fun.setVar(this.args.get(0).token.getText()).setContent(BlockBuilder::callThis);
+            for (ArgStatement arg : this.args) {
+                args.put(arg.token.getText(), Object.class);
             }
+
+            fun = ((ClassBuilder) builder).defineFunction(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, token.getText(), args, Object.class);
 
             for (PyStatement statement : this.statements) {
                 Builder<?> bui = statement.build(fun);

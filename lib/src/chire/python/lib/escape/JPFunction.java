@@ -1,15 +1,13 @@
-package chire.python.lib.base;
-
-import chire.python.lib.escape.JPArgs;
+package chire.python.lib.escape;
 
 import java.util.Map;
 
-public class PyFunction<T> {
+public class JPFunction<T> {
     String[] argKeys;
     Parameter content;
     Class<T> returnType;
 
-    public PyFunction(String[] argKeys, Parameter content, Class<T> returnType) {
+    public JPFunction(String[] argKeys, Parameter content, Class<T> returnType) {
         this.content = content;
         this.returnType = returnType;
         this.argKeys = argKeys;
