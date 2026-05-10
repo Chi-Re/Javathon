@@ -1,3 +1,3 @@
-rootProject.name = 'AntlrPythonInterpreter'
+rootProject.name = 'Javathon'
 
 include 'core', 'asm', 'lib', 'test'
