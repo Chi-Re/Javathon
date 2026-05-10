@@ -50,6 +50,6 @@ project(":test") {
     dependencies {
         implementation project(":core")
 
-        implementation files("C:\\Projects\\java\\JavaPythonInterpreter\\pycode\\output.jar")
+        implementation files("C:\\Projects\\java\\JavaPythonInterpreter\\test\\build\\output.jar")
     }
 }
