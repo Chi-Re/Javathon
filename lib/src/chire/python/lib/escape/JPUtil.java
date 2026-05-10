@@ -8,6 +8,8 @@ import chire.python.lib.base.PyObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class JPUtil {
     public static final Map<String, PyFunction> funs = new HashMap<String, PyFunction>(){{
@@ -106,31 +108,42 @@ public class JPUtil {
             packPath = packPath.substring(0, packPath.lastIndexOf(".")+1);
         }
 
+        Class<?> retClazz;
+
+        for (String clazzName : new String[] {
+                packPath + path + "." + name,
+                path + "." + name,
+                packPath + path + "$" + name,
+                path + "$" + name,
+        }) {
+            retClazz = forClass(clazzName);
+            if (retClazz != null) return retClazz;
+        }
+
+
+        for (String clazzName : new String[]{
+                packPath + path,
+                path,
+        }) {
+            retClazz = forClass(clazzName);
+            if (retClazz != null) {
+                Class<?> finalClazz = retClazz;
+                return new PyFunction<>(new String[]{"*args"}, args -> {
+                    PyTuple iargs = ((PyTuple) args.getOrDefault("args", PyTuple.empty()));
+
+                    return callMethod(finalClazz, name, iargs.toArray());
+                }, Object.class);
+            }
+        }
+
+        throw new RuntimeException("no key");
+    }
+
+    private static Class<?> forClass(String className) {
         try {
-            try {
-                return Class.forName(packPath + path + "." + name);
-            } catch (ClassNotFoundException e) {
-                return Class.forName(path + "." + name);
-            }
+            return Class.forName(className);
         } catch (ClassNotFoundException e) {
-            Class<?> clazz;
-
-            try {
-                clazz = Class.forName(packPath + path);
-            } catch (ClassNotFoundException ex) {
-                try {
-                    clazz = Class.forName(path);
-                } catch (ClassNotFoundException ex3) {
-                    throw new RuntimeException(ex3);
-                }
-            }
-
-            Class<?> finalClazz = clazz;
-            return new PyFunction<>(new String[]{"*args"}, args -> {
-                PyTuple iargs = ((PyTuple) args.getOrDefault("args", PyTuple.empty()));
-
-                return callMethod(finalClazz, name, iargs.toArray());
-            }, Object.class);
+            return null;
         }
     }
 
@@ -304,7 +317,11 @@ public class JPUtil {
         try {
             if (type instanceof Class<?>) {
                 ((Class<?>) type).getDeclaredField(name).set(null, value);
-            } else {
+            }
+//            else if (type instanceof PyObject) {
+//                ((PyObject) type).__dict__(name, value);
+//            }
+            else {
                 type.getClass().getDeclaredField(name).set(type, value);
             }
         } catch (IllegalAccessException | NoSuchFieldException e) {
@@ -316,6 +333,9 @@ public class JPUtil {
         try {
             if (type instanceof Class<?>) {
                 return ((Class<?>) type).getDeclaredField(name).get(null);
+//            }
+//            else if (type instanceof PyObject) {
+//                return ((PyObject) type).__dict__().get(name);
             } else {
                 return type.getClass().getDeclaredField(name).get(type);
             }
@@ -377,6 +397,9 @@ public class JPUtil {
             //TODO 可能存在int.class这一类的存在，未修复。
             if (obj instanceof Class<?>) {
                 return ((Class<?>) obj).getMethod(name, classes.toArray(new Class[0])).invoke(null, reArgs.toArray(new Object[0]));
+            } else if (obj instanceof PyObject) {//TODO 过于宽泛！
+                reArgs.add(0, obj);
+                return obj.getClass().getMethod(name, classes.toArray(new Class[0])).invoke(null, reArgs.toArray(new Object[0]));
             } else {
                 return obj.getClass().getMethod(name, classes.toArray(new Class[0])).invoke(obj, reArgs.toArray(new Object[0]));
             }
@@ -385,10 +408,45 @@ public class JPUtil {
             if (funs.containsKey(name)) {
                 return funs.get(name);
             } else {
-                return callVar(obj, name);
+                return callClazz(obj, name, args);
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static Object callClazz(Object clazz, String name, Object... args) {
+        Class<?> retClazz = forClass(
+                ((Class)(clazz instanceof Class ? clazz : clazz.getClass())).getName() + "$" + name
+        );
+
+        if (retClazz == null) throw new RuntimeException("no key");
+
+        List<Class<?>> classes = new ArrayList<>();
+        List<Object> reArgs = new ArrayList<>();
+
+        for (Object arg : args) {
+            if (arg instanceof BaseValue) {
+                classes.add(((BaseValue) arg).getType());
+                reArgs.add(((BaseValue) arg).getValue());
+                continue;
+            }
+            //TODO 如何存在java传递的错误类型，arg将为null，所以这里暂时如此
+            classes.add(arg.getClass());
+            reArgs.add(arg);
+        }
+
+        try {
+            return retClazz.getDeclaredConstructor(classes.toArray(new Class[0])).newInstance(reArgs.toArray(new Object[0]));
+        } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchMethodException e) {
+            try {
+                return retClazz.getDeclaredConstructor(Stream.generate(() -> Object.class).limit(classes.size()).toArray(Class[]::new)).newInstance(reArgs.toArray(new Object[0]));
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                     IllegalAccessException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 }
