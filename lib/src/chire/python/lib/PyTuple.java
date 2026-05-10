@@ -21,6 +21,12 @@ public final class PyTuple extends PyObject implements Iterable<Object>, Compara
     private final Object[] elements;
     private int hash;
 
+    public static PyDict __dict__;
+
+    static {
+        init(PyTuple.class);
+    }
+
     // 私有构造器，确保防御性拷贝
     private PyTuple(Object[] elements) {
         this.elements = elements.clone();

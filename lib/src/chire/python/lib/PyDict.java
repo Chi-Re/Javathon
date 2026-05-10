@@ -8,6 +8,12 @@ import java.util.stream.Collectors;
 public class PyDict extends PyObject {
     private final LinkedHashMap<Object, Object> data;
 
+    public static PyDict __dict__;
+
+    static {
+        init(PyDict.class);
+    }
+
     public PyDict() {
         this.data = new LinkedHashMap<>();
     }
