@@ -13,7 +13,7 @@ import java.util.WeakHashMap;
 public class PyObject {
     /**关于私有变量，一般是存储在此*/
     public static PyDict __dict__;
-
+    /**存储所有的数据，包括__dict__*/
     protected final Map<String, PyObject> attrs = new HashMap<>();
 
     static {
