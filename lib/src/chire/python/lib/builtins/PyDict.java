@@ -8,10 +8,6 @@ public class PyDict extends PyObject {
 
     public static PyDict __dict__;
 
-    static {
-        init(PyDict.class);
-    }
-
     public PyDict() {
         this.data = new LinkedHashMap<>();
     }

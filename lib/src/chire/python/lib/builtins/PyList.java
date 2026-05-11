@@ -9,10 +9,6 @@ public class PyList extends PyObject implements Iterator<Object> {
 
     public static PyDict __dict__;
 
-    static {
-        init(PyList.class);
-    }
-
     // 构造方法
     public PyList() {
         this.data = new ArrayList<>();

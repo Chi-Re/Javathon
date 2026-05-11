@@ -1,5 +1,6 @@
 package chire.python.lib.escape;
 
+import chire.python.lib.PyTypes;
 import chire.python.lib.builtins.PyDict;
 import chire.python.lib.builtins.PyList;
 import chire.python.lib.builtins.PyTuple;
@@ -10,77 +11,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class JPUtil {
-    public static final Map<String, JPFunction> funs = new HashMap<String, JPFunction>(){{
-        put("print", new JPFunction(
-                new String[]{"*args", "end"},
-                args -> {
-                    PyTuple iargs = ((PyTuple) args.getOrDefault("args", PyTuple.empty()));
-                    String sep = args.getOrDefault("sep", " ").toString();
-                    String end = args.getOrDefault("end", "\n").toString();
-
-                    for (int i = 0; i < iargs.size(); i++) {
-                        System.out.print(iargs.get(i));
-
-                        if (i + 1 < iargs.size()) System.out.print(sep);
-                    }
-
-                    System.out.print(end);
-
-                    return null;
-                },
-                void.class
-        ));
-
-        put("int", new JPFunction(new String[]{"obj"}, args -> {
-            return new BaseValue<>((int) args.get("obj"), int.class);
-        }, int.class));
-
-        put("range", new JPFunction<>(new String[]{"in", "to"}, args -> {
-            if (args.size() == 2) {
-                PyList list = new PyList();
-
-                for (int i = (int) args.get("in"); i < (int) args.get("to"); i++) list.append(i);
-
-                return list;
-            } else if (args.size() == 1) {
-                PyList list = new PyList();
-
-                for (int i = 0; i < (int) args.get("in"); i++) list.append(i);
-
-                return list;
-            } else {
-                throw new RuntimeException("no key");
-            }
-        }, PyList.class));
-
-        put("len", new JPFunction<>(new String[]{"item"}, args -> {
-            Object item = args.get("item");
-
-            if (item instanceof PyList) {
-                return ((PyList) item).__len__();
-            }
-            if (item instanceof PyDict) {
-                return ((PyDict) item).__len__();
-            }
-            if (item instanceof PyTuple) {
-                return ((PyTuple) item).size();
-            }
-
-            if (item instanceof Map<?,?>) {
-                return ((Map<?, ?>) item).size();
-            }
-            if (item instanceof Collection<?>) {
-                return ((Collection<?>) item).size();
-            }
-
-            if (item instanceof String) {
-                return ((String) item).length();
-            }
-            throw new RuntimeException("no key");
-        }, Integer.class));
-    }};
-
-    static class BaseValue<T> {
+    public static class BaseValue<T> {
         T value;
 
         Class<T> type;
@@ -403,8 +334,8 @@ public class JPUtil {
             }
 
         } catch (NoSuchMethodException e) {
-            if (funs.containsKey(name)) {
-                return funs.get(name);
+            if (PyTypes.funs.containsKey(name)) {
+                return PyTypes.funs.get(name);
             } else {
                 return callClazz(obj, name, args);
             }
