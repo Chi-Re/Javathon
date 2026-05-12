@@ -1,4 +1,8 @@
 package chire.python.test.asm;
 
-public class Test2 extends Test{
+import chire.python.lib.builtins.PyDict;
+
+import java.util.List;
+
+public class Test2{
 }

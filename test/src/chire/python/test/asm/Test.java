@@ -1,10 +1,11 @@
 package chire.python.test.asm;
 
-public class Test {
-    static {
-        System.out.println("sssssss");
-    }
+import chire.python.lib.builtins.PyDict;
 
+import java.util.ArrayList;
+import java.util.List;
+
+public class Test {
     public static void va(Object v1, Object v2, Object v3){
         System.out.println(v1);
         System.out.println(v2);
