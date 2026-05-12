@@ -50,6 +50,8 @@ project(":test") {
     dependencies {
         implementation project(":core")
 
-        implementation files("C:\\Projects\\java\\JavaPythonInterpreter\\test\\build\\output.jar")
+        if (new File("$rootDir\\test\\build\\output.jar").exists()) {
+            implementation files("$rootDir\\test\\build\\output.jar")
+        }
     }
 }
