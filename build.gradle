@@ -28,6 +28,11 @@ allprojects {
 project(":core") {
     compileJava.options.fork = true
 
+    tasks.withType(JavaCompile) {
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
+
     dependencies {
         api project(":asm")
         api project(":lib")
@@ -50,6 +55,11 @@ project(":core") {
 
 project(":asm") {
     compileJava.options.fork = true
+
+    tasks.withType(JavaCompile) {
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
 
     dependencies {
         api 'org.ow2.asm:asm:9.4'
@@ -87,6 +97,11 @@ project(":lib") {
 
 project(":test") {
     compileJava.options.fork = true
+
+    tasks.withType(JavaCompile) {
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
 
     dependencies {
         implementation project(":core")
