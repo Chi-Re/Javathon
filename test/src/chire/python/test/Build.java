@@ -6,6 +6,8 @@ import java.io.IOException;
 
 public class Build {
     public static void main(String[] args) throws IOException {
+        PyCompiler.debug = true;
+
         PyCompiler.main(new String[]{
                 ".\\pycode",
                 ".\\test\\build\\output.jar"
