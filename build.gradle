@@ -105,9 +105,5 @@ project(":test") {
 
     dependencies {
         implementation project(":core")
-
-        if (new File("$rootDir\\test\\build\\output.jar").exists()) {
-            implementation files("$rootDir\\test\\build\\output.jar")
-        }
     }
 }
