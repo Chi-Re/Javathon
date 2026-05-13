@@ -658,7 +658,7 @@ public class PyParser {
 
                     return logicalAssignment(varmetStmt);
                 } else if (match(current+1, 54)) {
-                    return submethodCall(varCall());
+                    return submethodCall(varmetStmt);
                 } else {
                     return varmetStmt;
                 }
