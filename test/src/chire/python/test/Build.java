@@ -9,7 +9,7 @@ public class Build {
         PyCompiler.debug = true;
 
         PyCompiler.main(new String[]{
-                ".\\pycode",
+                ".\\test\\pycode",
                 ".\\test\\build\\output.jar"
         });
     }
