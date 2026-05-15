@@ -47,9 +47,7 @@ public class PyCompiler {
             }
         });
 
-        if (!output.exists()) output.mkdir();
-
-        if (output.isDirectory()) {
+        if (!output.getName().contains(".")) {
             JarExporter.saveClass(clazzes, output.getPath());
         } else {
             JarExporter.saveJar(clazzes, output.getPath());
