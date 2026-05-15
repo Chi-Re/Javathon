@@ -1,7 +1,6 @@
 allprojects {
     apply plugin: "java"
     apply plugin: "java-library"
-    apply plugin: 'maven-publish'
 
     ext {
         version = "0.1.2"
@@ -26,6 +25,8 @@ allprojects {
 }
 
 project(":core") {
+    apply plugin: 'maven-publish'
+
     compileJava.options.fork = true
 
     tasks.withType(JavaCompile) {
@@ -54,6 +55,8 @@ project(":core") {
 }
 
 project(":asm") {
+    apply plugin: 'maven-publish'
+
     compileJava.options.fork = true
 
     tasks.withType(JavaCompile) {
@@ -78,6 +81,8 @@ project(":asm") {
 }
 
 project(":lib") {
+    apply plugin: 'maven-publish'
+
     tasks.withType(JavaCompile) {
         targetCompatibility = 8
         sourceCompatibility = 8
@@ -104,6 +109,6 @@ project(":test") {
     }
 
     dependencies {
-        implementation project(":core")
+        implementation 'com.github.Chi-Re.Javathon:core:0.1.2'
     }
 }
