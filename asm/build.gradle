@@ -31,3 +31,6 @@ tasks.register('dist', Jar) {
     archiveFileName = "${rootProject.name}.jar"
 }
 
+dependencies {
+    api 'org.ow2.asm:asm:9.4'
+}

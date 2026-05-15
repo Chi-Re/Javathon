@@ -37,3 +37,11 @@ tasks.register('dist', Jar) {
         attributes 'Main-Class': mainClassName
     }
 }
+
+dependencies {
+    api project(":asm")
+    api project(":lib")
+
+    implementation "org.antlr:antlr4:4.13.1"
+    implementation 'com.google.guava:guava:32.1.3-jre'
+}
