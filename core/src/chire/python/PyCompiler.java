@@ -47,7 +47,13 @@ public class PyCompiler {
             }
         });
 
-        JarExporter.saveJar(clazzes, output.getPath());
+        if (!output.exists()) output.mkdir();
+
+        if (output.isDirectory()) {
+            JarExporter.saveClass(clazzes, output.getPath());
+        } else {
+            JarExporter.saveJar(clazzes, output.getPath());
+        }
     }
 
     public static Map<String, byte[]> compile(String className, String pythonCode) {

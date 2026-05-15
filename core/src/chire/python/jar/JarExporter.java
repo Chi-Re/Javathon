@@ -17,14 +17,30 @@ public class JarExporter {
                 jos.write(bytecode);
                 jos.closeEntry();
             }
+        }
+    }
 
-            // 添加默认的 MANIFEST.MF（可选）
-            Manifest manifest = new Manifest();
-            manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-            JarEntry manifestEntry = new JarEntry(JarFile.MANIFEST_NAME);
-            jos.putNextEntry(manifestEntry);
-            manifest.write(jos);
-            jos.closeEntry();
+    public static void saveClass(Map<String, byte[]> classBytes, String outPath) throws IOException {
+        for (Map.Entry<String, byte[]> entry : classBytes.entrySet()) {
+            String className = entry.getKey();
+            byte[] bytecode = entry.getValue();
+
+            String entryName = className.replace('.', '/') + ".class";
+
+            File file = new File(outPath + "/" + entryName);
+
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
+
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(
+                    new FileOutputStream(file))) {
+                bufferedOutputStream.write(bytecode);
+            }
         }
     }
 }
