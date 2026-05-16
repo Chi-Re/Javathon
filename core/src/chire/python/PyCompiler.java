@@ -34,24 +34,7 @@ public class PyCompiler {
         File input = new File(args[0]);
         File output = new File(args[1]);
 
-        Map<String, byte[]> clazzes = new HashMap<>();
-
-        DirectoryWalker.walk(input, file -> {
-            if (file.getName().endsWith(".py")) {
-                String clazzPath = file.toPath().toString().replace(input.toPath()+"\\", "");
-                clazzPath = clazzPath.substring(0, clazzPath.length()-3).replace("\\", ".");
-
-                Map<String, byte[]> clamap = PyCompiler.compile(clazzPath, Files.readString(file.toPath()));
-
-                clazzes.putAll(clamap);
-            }
-        });
-
-        if (!output.getName().contains(".")) {
-            JarExporter.saveClass(clazzes, output.getPath());
-        } else {
-            JarExporter.saveJar(clazzes, output.getPath());
-        }
+        PyCompiler.compileFiles(input, output);
     }
 
     public static Map<String, byte[]> compile(String className, String pythonCode) {
@@ -86,26 +69,43 @@ public class PyCompiler {
         return compile(className, pythonCode);
     }
 
-    public static Map<String, File> compileClassFile(File pyFile, File outputDir) throws IOException {
-        Map<String, byte[]> bytecodes = compile(pyFile);
-        Map<String, File> fileCodes = new HashMap<>();
+    public static void compileFiles(File pyDir, File outputDir) throws IOException {
+        Map<String, byte[]> clazzes = new HashMap<>();
 
-        //TODO 这里需要更多的调整，但我还没想好。
-        for (String kes : bytecodes.keySet()) {
-            String classFilePath = kes.replace('.', '/') + ".class";
-            Path targetPath = outputDir.toPath().resolve(classFilePath);
-            Files.createDirectories(targetPath.getParent());
-            Files.write(targetPath, bytecodes.get(kes));
-            fileCodes.put(kes, targetPath.toFile());
+        DirectoryWalker.walk(pyDir, file -> {
+            if (file.getName().endsWith(".py")) {
+                String clazzPath = file.toPath().toString().replace(pyDir.toPath()+"\\", "");
+                clazzPath = clazzPath.substring(0, clazzPath.length()-3).replace("\\", ".");
+
+                Map<String, byte[]> clamap = PyCompiler.compile(clazzPath, Files.readString(file.toPath()));
+
+                clazzes.putAll(clamap);
+            }
+        });
+
+        if (!outputDir.getName().contains(".")) {
+            JarExporter.saveClass(clazzes, outputDir.getPath());
+        } else {
+            JarExporter.saveJar(clazzes, outputDir.getPath());
         }
+    }
 
-        return fileCodes;
+    public static void compileFile(File pyFile, File outputDir) throws IOException {
+        String clazzPath = deriveClassName(pyFile);
+
+        Map<String, byte[]> clamap = PyCompiler.compile(clazzPath, Files.readString(pyFile.toPath()));
+
+        if (!outputDir.getName().contains(".")) {
+            JarExporter.saveClass(clamap, outputDir.getPath());
+        } else {
+            JarExporter.saveJar(clamap, outputDir.getPath());
+        }
     }
 
     private static String deriveClassName(File pyFile) {
         String name = pyFile.getName();
         int dotIdx = name.lastIndexOf('.');
         if (dotIdx > 0) name = name.substring(0, dotIdx);
-        return name;  // 无包名，可扩展
+        return name;
     }
 }
