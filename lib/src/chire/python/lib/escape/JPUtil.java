@@ -1,5 +1,6 @@
 package chire.python.lib.escape;
 
+import chire.python.lib.PyConfig;
 import chire.python.lib.PyTypes;
 import chire.python.lib.builtins.PyDict;
 import chire.python.lib.builtins.PyList;
@@ -42,6 +43,7 @@ public class JPUtil {
         for (String clazzName : new String[] {
                 packPath + path + "." + name,
                 path + "." + name,
+                packPath + name,
                 packPath + path + "$" + name,
                 path + "$" + name,
         }) {
@@ -63,7 +65,7 @@ public class JPUtil {
                     return callMethod(finalClazz, name, iargs.toArray());
                 }, Object.class);
             }
-        }
+        };
 
         throw new RuntimeException("no key");
     }
@@ -72,7 +74,15 @@ public class JPUtil {
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
-            return null;
+            if (PyConfig.loader.get() != null) {
+                try {
+                    return Class.forName(className, true, PyConfig.loader.get());
+                } catch (ClassNotFoundException e2) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
         }
     }
 
