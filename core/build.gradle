@@ -1,4 +1,4 @@
-project.ext.mainClassName = 'chire.python.PythonInterpreter'
+project.ext.mainClassName = 'chire.python.PyCompiler'
 
 tasks.withType(JavaCompile){
     options.encoding = "UTF-8"
