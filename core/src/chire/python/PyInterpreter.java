@@ -1,5 +1,6 @@
 package chire.python;
 
+import chire.python.lib.PyConfig;
 import chire.python.util.DirectoryWalker;
 
 import java.io.File;
@@ -18,6 +19,8 @@ public class PyInterpreter {
     public static void main(String[] args) throws IOException {
         if (args.length < 1) throw new RuntimeException("no key");
 
+        PyConfig.loader = () -> dynamicLoader;
+
         File path = new File(args[0]);
 
         DirectoryWalker.walk(path, file -> {
@@ -33,7 +36,13 @@ public class PyInterpreter {
             }
         });
 
-//        System.out.println(CLASS_CACHE.get("chire.py.main").getMethod("main", Object.class).invoke(null, "ssssssss"));
+        if (args.length == 2) {
+            try {
+                Class.forName(args[1], true, dynamicLoader);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private static final Map<String, Class<?>> CLASS_CACHE = new ConcurrentHashMap<>();
