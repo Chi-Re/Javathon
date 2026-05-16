@@ -1,4 +1,4 @@
-package chire.antlr;
+package chire.python.antlr;
 
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.TokenStream;

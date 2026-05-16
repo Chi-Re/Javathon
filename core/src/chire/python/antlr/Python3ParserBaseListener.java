@@ -1,5 +1,5 @@
 // Generated from F:/PyModInterpreter/jython/testcore/src/chire/jython/test/Python3Parser.g4 by ANTLR 4.13.1
-package chire.antlr;
+package chire.python.antlr;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
