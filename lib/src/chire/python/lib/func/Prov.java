@@ -1,4 +1,4 @@
-package chire.asm.func;
+package chire.python.lib.func;
 
 public interface Prov<T> {
     T get();
