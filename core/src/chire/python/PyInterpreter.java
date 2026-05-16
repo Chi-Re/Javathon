@@ -14,14 +14,32 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PyInterpreter {
 
     /**
-     * @param args [directory]
+     * @param args [directory] [classPath]
      */
     public static void main(String[] args) throws IOException {
         if (args.length < 1) throw new RuntimeException("no key");
 
-        PyConfig.loader = () -> dynamicLoader;
+        PyInterpreter interpreter = new PyInterpreter();
+        interpreter.loadFiles(new File(args[0]));
 
-        File path = new File(args[0]);
+        if (args.length == 2) {
+            interpreter.execClass(args[1]);
+        }
+    }
+
+    private static final ByteArrayClassLoader dynamicLoader;
+
+    static {
+        //TODO 之后采用沙箱设计，但未解决JPUtil.forClass的问题。
+        dynamicLoader = new ByteArrayClassLoader(Thread.currentThread().getContextClassLoader());
+        PyConfig.loader = () -> dynamicLoader;
+    }
+
+    public PyInterpreter() {
+    }
+
+    public void loadFiles(File path) throws IOException {
+        if (!path.isDirectory() || !path.exists()) throw new IOException("The loading file type is wrong or non-existent!");
 
         DirectoryWalker.walk(path, file -> {
             if (file.getName().endsWith(".py")) {
@@ -35,46 +53,43 @@ public class PyInterpreter {
                 }
             }
         });
+    }
 
-        if (args.length == 2) {
-            try {
-                Class.forName(args[1], true, dynamicLoader);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+    public void loadFile(File file, String name) throws IOException {
+        if (file.getName().endsWith(".py")) {
+            Map<String, byte[]> clamap = PyCompiler.compile(name, Files.readString(file.toPath()));
+
+            for (String cla : clamap.keySet()) {
+                loadClass(cla.replaceAll("/", "."), clamap.get(cla));
             }
         }
     }
 
-    private static final Map<String, Class<?>> CLASS_CACHE = new ConcurrentHashMap<>();
-    private static final ByteArrayClassLoader dynamicLoader;
-
-    static {
-        dynamicLoader = new ByteArrayClassLoader(Thread.currentThread().getContextClassLoader());
+    public Class<?> execClass(String name) {
+        return forClass(name);
     }
 
-    /**
-     * 直接运行一个Python脚本（无需手动编译为class文件）。
-     *
-     * @param scriptPath .py文件路径
-     * @param args       传递给Python脚本中main函数的参数（若有）
-     * @return 脚本执行结果（若脚本无返回值则返回null）
-     * @throws Exception 编译或执行异常
-     */
-    public static Class<?> runScript(String scriptPath, String... args) throws Exception {
-        File pyFile = new File(scriptPath);
-        Map<String, byte[]> bytecode = PyCompiler.compile(pyFile);
-        String className = deriveClassNameFromFile(pyFile);
-
-        return loadClass(className, bytecode.get(bytecode.keySet().toArray(new String[0])[0]));
+    public Class<?> execFile(File file) {
+        try {
+            String name = file.getName();
+            if (name.contains(".")) name = name.split("\\.")[0];
+            loadFile(file, name);
+            return execClass(name);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private static Class<?> loadClass(String name, byte[] bytecode) {
-        return CLASS_CACHE.computeIfAbsent(name, n -> dynamicLoader.defineClass(n, bytecode));
+    private Class<?> forClass(String name) {
+        try {
+            return Class.forName(name, true, dynamicLoader);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private static String deriveClassNameFromFile(File pyFile) {
-        String name = pyFile.getName();
-        return name.substring(0, name.lastIndexOf('.'));
+    private Class<?> loadClass(String name, byte[] bytecode) {
+        return dynamicLoader.defineClass(name, bytecode);
     }
 
     private static class ByteArrayClassLoader extends ClassLoader {
